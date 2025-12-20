@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
-import { Check, X, Minus, Plus, ChevronDown, LogOut, Loader2, Circle } from 'lucide-react'
+import { Check, X, Minus, Plus, ChevronDown, LogOut, Loader2, Circle, Mail, KeyRound } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
@@ -65,12 +65,13 @@ function App() {
   const [submitting, setSubmitting] = useState(false)
   const [votingQuestionId, setVotingQuestionId] = useState<string | null>(null)
   const [groups, setGroups] = useState<{ id: string, name: string }[]>([])
-  const [authMode, setAuthMode] = useState<'sign_in' | 'sign_up'>('sign_in')
+  const [authMethod, setAuthMethod] = useState<'magic' | 'password'>('magic')
   const [authEmail, setAuthEmail] = useState('')
   const [authPassword, setAuthPassword] = useState('')
   const [authError, setAuthError] = useState<string | null>(null)
   const [authNotice, setAuthNotice] = useState<string | null>(null)
   const [authBusy, setAuthBusy] = useState(false)
+  const [magicLinkSent, setMagicLinkSent] = useState(false)
   const hasSupabaseConfig = Boolean(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY)
 
   useEffect(() => {
@@ -177,23 +178,57 @@ function App() {
     setSubmitting(false)
   }
 
-  const handleAuthSubmit = async (e: React.FormEvent) => {
+  const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault()
     if (authBusy) return
     setAuthError(null)
     setAuthNotice(null)
     setAuthBusy(true)
 
-    const result = authMode === 'sign_in'
-      ? await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword })
-      : await supabase.auth.signUp({ email: authEmail, password: authPassword })
+    const { error } = await supabase.auth.signInWithOtp({
+      email: authEmail,
+      options: {
+        emailRedirectTo: window.location.origin,
+      },
+    })
 
-    if (result.error) {
-      setAuthError(result.error.message)
-    } else if (authMode === 'sign_up') {
-      setAuthNotice('Controleer je e-mail om je account te bevestigen.')
+    if (error) {
+      setAuthError(error.message)
+    } else {
+      setMagicLinkSent(true)
     }
+    setAuthBusy(false)
+  }
 
+  const handlePasswordAuth = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (authBusy) return
+    setAuthError(null)
+    setAuthNotice(null)
+    setAuthBusy(true)
+
+    // Try sign in first
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: authEmail,
+      password: authPassword,
+    })
+
+    if (signInError) {
+      // If user doesn't exist, try sign up
+      if (signInError.message.includes('Invalid login credentials')) {
+        const { error: signUpError } = await supabase.auth.signUp({
+          email: authEmail,
+          password: authPassword,
+        })
+        if (signUpError) {
+          setAuthError(signUpError.message)
+        } else {
+          setAuthNotice('Controleer je e-mail om je account te bevestigen.')
+        }
+      } else {
+        setAuthError(signInError.message)
+      }
+    }
     setAuthBusy(false)
   }
 
@@ -276,89 +311,143 @@ function App() {
           </div>
 
           <div className="bg-white/80 backdrop-blur-sm border border-stone-200/60 shadow-xl shadow-stone-200/50 p-10">
-            <div className="text-center mb-10">
-              <h2 className="text-2xl font-serif text-stone-800 mb-2">
-                {authMode === 'sign_in' ? 'Welkom terug' : 'Account aanmaken'}
-              </h2>
-              <p className="text-stone-500 text-sm">
-                {authMode === 'sign_in' ? 'Log in om verder te gaan' : 'Registreer voor toegang'}
-              </p>
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-serif text-stone-800 mb-2">Inloggen</h2>
+              <p className="text-stone-500 text-sm">Toegang tot het stemplatform</p>
             </div>
 
             {!hasSupabaseConfig ? (
               <div className="border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
                 Configureer eerst de Supabase omgevingsvariabelen.
               </div>
+            ) : magicLinkSent ? (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center py-8"
+              >
+                <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+                  <Mail className="w-8 h-8 text-emerald-600" />
+                </div>
+                <h3 className="text-lg font-medium text-stone-800 mb-2">Controleer je inbox</h3>
+                <p className="text-stone-500 text-sm mb-6">
+                  We hebben een inloglink gestuurd naar<br />
+                  <span className="font-medium text-stone-700">{authEmail}</span>
+                </p>
+                <button
+                  onClick={() => {
+                    setMagicLinkSent(false)
+                    setAuthEmail('')
+                  }}
+                  className="text-sm text-primary-700 hover:text-primary-800 font-medium"
+                >
+                  Ander e-mailadres gebruiken
+                </button>
+              </motion.div>
             ) : (
-              <form onSubmit={handleAuthSubmit} className="space-y-6">
-                <div>
-                  <label className="block text-xs font-medium text-stone-500 mb-2 tracking-wider uppercase">
-                    E-mailadres
-                  </label>
-                  <input
-                    type="email"
-                    required
-                    value={authEmail}
-                    onChange={(e) => setAuthEmail(e.target.value)}
-                    className="w-full bg-stone-50 border-0 border-b-2 border-stone-200 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:border-primary-600 focus:ring-0 focus:bg-white transition-all"
-                    placeholder="naam@voorbeeld.be"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-medium text-stone-500 mb-2 tracking-wider uppercase">
+              <>
+                {/* Auth Method Tabs */}
+                <div className="flex mb-8 border-b border-stone-200">
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMethod('magic'); setAuthError(null); setAuthNotice(null) }}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium border-b-2 transition-all -mb-px",
+                      authMethod === 'magic'
+                        ? "border-primary-700 text-primary-800"
+                        : "border-transparent text-stone-500 hover:text-stone-700"
+                    )}
+                  >
+                    <Mail size={16} />
+                    Magic Link
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => { setAuthMethod('password'); setAuthError(null); setAuthNotice(null) }}
+                    className={cn(
+                      "flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium border-b-2 transition-all -mb-px",
+                      authMethod === 'password'
+                        ? "border-primary-700 text-primary-800"
+                        : "border-transparent text-stone-500 hover:text-stone-700"
+                    )}
+                  >
+                    <KeyRound size={16} />
                     Wachtwoord
-                  </label>
-                  <input
-                    type="password"
-                    required
-                    value={authPassword}
-                    onChange={(e) => setAuthPassword(e.target.value)}
-                    className="w-full bg-stone-50 border-0 border-b-2 border-stone-200 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:border-primary-600 focus:ring-0 focus:bg-white transition-all"
-                    placeholder="••••••••"
-                  />
+                  </button>
                 </div>
 
-                {authError && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="border-l-2 border-rose-500 bg-rose-50 p-3 text-sm text-rose-700"
-                  >
-                    {authError}
-                  </motion.div>
-                )}
+                <form onSubmit={authMethod === 'magic' ? handleMagicLink : handlePasswordAuth} className="space-y-6">
+                  <div>
+                    <label className="block text-xs font-medium text-stone-500 mb-2 tracking-wider uppercase">
+                      E-mailadres
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={authEmail}
+                      onChange={(e) => setAuthEmail(e.target.value)}
+                      className="w-full bg-stone-50 border-0 border-b-2 border-stone-200 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:border-primary-600 focus:ring-0 focus:bg-white transition-all"
+                      placeholder="naam@voorbeeld.be"
+                    />
+                  </div>
 
-                {authNotice && (
-                  <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="border-l-2 border-emerald-500 bg-emerald-50 p-3 text-sm text-emerald-700"
-                  >
-                    {authNotice}
-                  </motion.div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={authBusy}
-                  className="w-full bg-primary-800 text-white py-4 text-sm tracking-widest uppercase font-medium hover:bg-primary-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {authBusy ? (
-                    <Loader2 className="w-4 h-4 animate-spin mx-auto" />
-                  ) : (
-                    authMode === 'sign_in' ? 'Inloggen' : 'Registreren'
+                  {authMethod === 'password' && (
+                    <div>
+                      <label className="block text-xs font-medium text-stone-500 mb-2 tracking-wider uppercase">
+                        Wachtwoord
+                      </label>
+                      <input
+                        type="password"
+                        required
+                        value={authPassword}
+                        onChange={(e) => setAuthPassword(e.target.value)}
+                        className="w-full bg-stone-50 border-0 border-b-2 border-stone-200 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:border-primary-600 focus:ring-0 focus:bg-white transition-all"
+                        placeholder="••••••••"
+                      />
+                    </div>
                   )}
-                </button>
 
-                <button
-                  type="button"
-                  onClick={() => setAuthMode(authMode === 'sign_in' ? 'sign_up' : 'sign_in')}
-                  className="w-full text-sm text-stone-500 hover:text-stone-700 transition-colors py-2"
-                >
-                  {authMode === 'sign_in' ? 'Nog geen account? Registreer hier' : 'Heb je al een account? Log in'}
-                </button>
-              </form>
+                  {authError && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="border-l-2 border-rose-500 bg-rose-50 p-3 text-sm text-rose-700"
+                    >
+                      {authError}
+                    </motion.div>
+                  )}
+
+                  {authNotice && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="border-l-2 border-emerald-500 bg-emerald-50 p-3 text-sm text-emerald-700"
+                    >
+                      {authNotice}
+                    </motion.div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={authBusy}
+                    className="w-full bg-primary-800 text-white py-4 text-sm tracking-widest uppercase font-medium hover:bg-primary-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {authBusy ? (
+                      <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                    ) : authMethod === 'magic' ? (
+                      'Verstuur link'
+                    ) : (
+                      'Inloggen'
+                    )}
+                  </button>
+
+                  {authMethod === 'magic' && (
+                    <p className="text-xs text-stone-400 text-center">
+                      Nieuw? Je account wordt automatisch aangemaakt.
+                    </p>
+                  )}
+                </form>
+              </>
             )}
           </div>
 
