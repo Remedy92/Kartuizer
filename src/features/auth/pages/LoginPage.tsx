@@ -11,7 +11,7 @@ type AuthMethod = 'magic' | 'password'
 export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
-  const { signInWithMagicLink, signInWithPassword, isLoading, isAuthenticated } = useAuth()
+  const { signInWithMagicLink, signInWithPassword, resetPassword, isLoading, isAuthenticated } = useAuth()
 
   const [authMethod, setAuthMethod] = useState<AuthMethod>('magic')
   const [email, setEmail] = useState('')
@@ -19,6 +19,7 @@ export function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const [magicLinkSent, setMagicLinkSent] = useState(false)
+  const [resetEmailSent, setResetEmailSent] = useState(false)
 
   const from = (location.state as { from?: Location })?.from?.pathname || '/dashboard'
 
@@ -58,6 +59,22 @@ export function LoginPage() {
     }
   }
 
+  const handleResetPassword = async () => {
+    if (!email) {
+      setError('Vul eerst je e-mailadres in')
+      return
+    }
+    setError(null)
+    setNotice(null)
+
+    const result = await resetPassword(email)
+    if (result.success) {
+      setResetEmailSent(true)
+    } else {
+      setError(result.error ?? 'Er is een fout opgetreden')
+    }
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-100 via-stone-50 to-primary-50/30 flex flex-col justify-center items-center p-6">
       {/* Decorative elements */}
@@ -80,7 +97,7 @@ export function LoginPage() {
             <p className="text-stone-500 text-sm">Toegang tot het stemplatform</p>
           </div>
 
-          {magicLinkSent ? (
+          {magicLinkSent || resetEmailSent ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -91,13 +108,16 @@ export function LoginPage() {
               </div>
               <h3 className="text-lg font-medium text-stone-800 mb-2">Controleer je inbox</h3>
               <p className="text-stone-500 text-sm mb-6">
-                We hebben een inloglink gestuurd naar
+                {resetEmailSent
+                  ? 'We hebben een link gestuurd om je wachtwoord te resetten naar'
+                  : 'We hebben een inloglink gestuurd naar'}
                 <br />
                 <span className="font-medium text-stone-700">{email}</span>
               </p>
               <button
                 onClick={() => {
                   setMagicLinkSent(false)
+                  setResetEmailSent(false)
                   setEmail('')
                 }}
                 className="text-sm text-primary-700 hover:text-primary-800 font-medium"
@@ -176,6 +196,14 @@ export function LoginPage() {
                       className="w-full bg-stone-50 border-0 border-b-2 border-stone-200 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:border-primary-600 focus:ring-0 focus:bg-white transition-all"
                       placeholder="••••••••"
                     />
+                    <button
+                      type="button"
+                      onClick={handleResetPassword}
+                      disabled={isLoading}
+                      className="mt-2 text-sm text-primary-700 hover:text-primary-800 font-medium disabled:opacity-50"
+                    >
+                      Wachtwoord vergeten?
+                    </button>
                   </div>
                 )}
 

@@ -1,11 +1,30 @@
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { Loader2 } from 'lucide-react'
 import { useAuthStore } from '@/stores'
 import { Wordmark } from '@/components/shared'
 
 export function LandingPage() {
   const navigate = useNavigate()
   const session = useAuthStore((s) => s.session)
+  const isLoading = useAuthStore((s) => s.isLoading)
+
+  // Auto-redirect logged-in users to dashboard
+  useEffect(() => {
+    if (!isLoading && session) {
+      navigate('/dashboard', { replace: true })
+    }
+  }, [session, isLoading, navigate])
+
+  // Show loading while checking auth state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-stone-50">
+        <Loader2 className="w-8 h-8 animate-spin text-stone-400" />
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-b from-stone-50 to-stone-100">

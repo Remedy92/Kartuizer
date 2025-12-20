@@ -6,6 +6,7 @@ import { AdminRoute } from './AdminRoute'
 // Lazy load pages
 import { LandingPage } from '@/features/landing/pages/LandingPage'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
+import { ResetPasswordPage } from '@/features/auth/pages/ResetPasswordPage'
 import { DashboardPage } from '@/features/dashboard/pages/DashboardPage'
 import { ArchivePage } from '@/features/archive/pages/ArchivePage'
 import { AdminDashboard } from '@/features/admin/pages/AdminDashboard'
@@ -22,6 +23,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <LandingPage /> },
       { path: 'login', element: <LoginPage /> },
+      { path: 'reset-password', element: <ResetPasswordPage /> },
       {
         element: <ProtectedRoute />,
         children: [

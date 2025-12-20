@@ -18,10 +18,13 @@ export function useAuth() {
   async function signInWithMagicLink(email: string): Promise<AuthResult> {
     setIsLoading(true)
     try {
+      const redirectUrl = `${window.location.origin}/dashboard`
+      console.log('Magic link redirect URL:', redirectUrl)
+      
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: redirectUrl,
         },
       })
 
@@ -67,6 +70,30 @@ export function useAuth() {
     }
   }
 
+  async function resetPassword(email: string): Promise<AuthResult> {
+    setIsLoading(true)
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      })
+      if (error) return { success: false, error: error.message }
+      return { success: true }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  async function updatePassword(newPassword: string): Promise<AuthResult> {
+    setIsLoading(true)
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPassword })
+      if (error) return { success: false, error: error.message }
+      return { success: true }
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
   return {
     session,
     user,
@@ -75,6 +102,8 @@ export function useAuth() {
     isAuthenticated: !!session,
     signInWithMagicLink,
     signInWithPassword,
+    resetPassword,
+    updatePassword,
     signOut,
   }
 }
