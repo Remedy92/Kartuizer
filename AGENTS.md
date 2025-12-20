@@ -30,3 +30,7 @@
 - Frontend env vars (local `.env`): `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
 - Edge Function env vars: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`.
 - Never commit secrets; use `.env` and Supabase dashboard configuration.
+
+## Supabase Projects (Important)
+- **Kartuizer (should be used by this repo):** project ref `yzrvfpitavjtvhbdshjh` (`https://yzrvfpitavjtvhbdshjh.supabase.co`)
+- **Guardrail:** Before running any Supabase MCP migrations, verify the MCP project URL matches the Kartuizer URL above.

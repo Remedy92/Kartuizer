@@ -43,5 +43,23 @@ export const useAuthStore = create<AuthState>((set) => ({
 
     // Attempt to revoke server-side session without blocking the UI.
     supabase.auth.signOut({ scope: 'global' }).catch(() => {})
+
+    // If storage somehow got corrupted, aggressively remove Supabase auth tokens so the app
+    // doesn't require a full "Clear Site Data" in the browser to recover.
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const keysToRemove: string[] = []
+        for (let i = 0; i < window.localStorage.length; i += 1) {
+          const key = window.localStorage.key(i)
+          if (!key) continue
+          if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+            keysToRemove.push(key)
+          }
+        }
+        keysToRemove.forEach((key) => window.localStorage.removeItem(key))
+      }
+    } catch {
+      // Best-effort only.
+    }
   },
 }))

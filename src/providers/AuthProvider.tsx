@@ -19,13 +19,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Get initial session
     supabase.auth
       .getSession()
-      .then(({ data: { session } }) => {
+      .then(async ({ data: { session } }) => {
         setSession(session)
-        if (session?.user) {
-          fetchUserProfile(session.user.id)
-        } else {
+
+        if (!session?.user) {
           setLoading(false)
+          return
         }
+
+        // Guard against "stuck" sessions (invalid/expired refresh token) that keep the UI
+        // authenticated but break every request until users clear site data.
+        const { error: userError } = await supabase.auth.getUser()
+        if (userError) {
+          await supabase.auth.signOut({ scope: 'local' }).catch(() => {})
+          setSession(null)
+          setUser(null)
+          queryClient.clear()
+          setLoading(false)
+          return
+        }
+
+        fetchUserProfile(session.user.id)
       })
       .catch(() => {
         setLoading(false)
@@ -34,22 +48,38 @@ export function AuthProvider({ children }: AuthProviderProps) {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
 
-      // Handle password recovery - session is auto-created by Supabase from URL tokens
+      // Avoid deadlocks: do not run async Supabase calls inside onAuthStateChange.
+      // Dispatch follow-up work after the callback returns. (Supabase docs + troubleshooting)
+      const defer = (fn: () => void) => {
+        if (typeof queueMicrotask === 'function') {
+          queueMicrotask(fn)
+        } else {
+          setTimeout(fn, 0)
+        }
+      }
+
       if (event === 'PASSWORD_RECOVERY') {
         setLoading(false)
         return
       }
 
       if (event === 'SIGNED_IN' && session?.user) {
-        await fetchUserProfile(session.user.id)
+        defer(() => {
+          fetchUserProfile(session.user.id).catch(() => {
+            setLoading(false)
+          })
+        })
+        return
       }
 
       if (event === 'SIGNED_OUT') {
         setUser(null)
         queryClient.clear()
+        setLoading(false)
+        return
       }
 
       setLoading(false)
