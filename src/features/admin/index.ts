@@ -1,0 +1,6 @@
+export { AdminDashboard } from './pages/AdminDashboard'
+export { CreateQuestionPage } from './pages/CreateQuestionPage'
+export { ManageQuestionsPage } from './pages/ManageQuestionsPage'
+export { ManageGroupsPage } from './pages/ManageGroupsPage'
+export { ManageUsersPage } from './pages/ManageUsersPage'
+export { AnalyticsPage } from './pages/AnalyticsPage'
