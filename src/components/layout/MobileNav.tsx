@@ -1,5 +1,4 @@
 import { NavLink } from 'react-router-dom'
-import { Plus } from 'lucide-react'
 import { useAuthStore } from '@/stores'
 import { cn } from '@/lib/utils'
 
@@ -11,10 +10,7 @@ export function MobileNav() {
       <MobileNavTab to="/dashboard">Overzicht</MobileNavTab>
       <MobileNavTab to="/archive">Archief</MobileNavTab>
       {isAdmin && (
-        <MobileNavTab to="/admin">
-          <Plus size={14} className="mr-1" />
-          Beheer
-        </MobileNavTab>
+        <MobileNavTab to="/admin">Beheer</MobileNavTab>
       )}
     </div>
   )

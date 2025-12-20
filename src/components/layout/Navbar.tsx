@@ -1,5 +1,5 @@
-import { NavLink, useNavigate } from 'react-router-dom'
-import { Plus, LogOut, Menu } from 'lucide-react'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { LogOut, Menu } from 'lucide-react'
 import { useAuthStore, useUIStore } from '@/stores'
 import { useToast } from '@/hooks'
 import { Wordmark } from '@/components/shared'
@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 
 export function Navbar() {
   const navigate = useNavigate()
+  const location = useLocation()
   const session = useAuthStore((s) => s.session)
   const isAdmin = useAuthStore((s) => s.isAdmin)
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
@@ -33,10 +34,7 @@ export function Navbar() {
               <NavTab to="/dashboard">Overzicht</NavTab>
               <NavTab to="/archive">Archief</NavTab>
               {isAdmin && (
-                <NavTab to="/admin">
-                  <Plus size={14} className="mr-1.5" />
-                  Beheer
-                </NavTab>
+                <NavTab to="/admin">Beheer</NavTab>
               )}
             </div>
           </div>

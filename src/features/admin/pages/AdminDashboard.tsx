@@ -9,9 +9,14 @@ export function AdminDashboard() {
 
   return (
     <div>
-      <header className="mb-8">
-        <h1 className="text-3xl font-serif text-stone-800 mb-2">Beheer</h1>
-        <p className="text-stone-500">Overzicht van het stemplatform</p>
+      <header className="mb-10">
+        <div className="flex flex-col gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-serif text-stone-800 mb-2">Beheer</h1>
+            <p className="text-stone-500">Overzicht van het stemplatform</p>
+          </div>
+          <div className="h-px bg-gradient-to-r from-stone-200 via-stone-200 to-transparent" />
+        </div>
       </header>
 
       {/* Quick Stats */}
@@ -20,32 +25,32 @@ export function AdminDashboard() {
           label="Openstaand"
           value={stats?.openQuestions}
           icon={Clock}
-          color="text-amber-600"
-          bgColor="bg-amber-50"
+          color="text-primary-700"
+          bgColor="bg-primary-50"
           loading={isLoading}
         />
         <StatCard
           label="Afgerond"
           value={stats?.completedQuestions}
           icon={CheckCircle}
-          color="text-emerald-600"
-          bgColor="bg-emerald-50"
+          color="text-primary-700"
+          bgColor="bg-primary-100/70"
           loading={isLoading}
         />
         <StatCard
           label="Totaal stemmen"
           value={stats?.totalVotes}
           icon={TrendingUp}
-          color="text-blue-600"
-          bgColor="bg-blue-50"
+          color="text-primary-700"
+          bgColor="bg-primary-50"
           loading={isLoading}
         />
         <StatCard
           label="Gebruikers"
           value={stats?.totalUsers}
           icon={Users}
-          color="text-purple-600"
-          bgColor="bg-purple-50"
+          color="text-primary-700"
+          bgColor="bg-primary-100/70"
           loading={isLoading}
         />
       </div>
@@ -76,6 +81,13 @@ export function AdminDashboard() {
           title="Statistieken"
           description="Bekijk uitgebreide statistieken"
         />
+        <QuickAction
+          to="/admin/users"
+          icon={Users}
+          title="Gebruikers beheren"
+          description="Beheer rollen en toegang"
+          full
+        />
       </div>
     </div>
   )
@@ -92,7 +104,7 @@ interface StatCardProps {
 
 function StatCard({ label, value, icon: Icon, color, bgColor, loading }: StatCardProps) {
   return (
-    <Card>
+    <Card className="border-stone-200">
       <CardContent className="flex items-center gap-4">
         <div className={cn('p-3 rounded-lg', bgColor)}>
           <Icon className={cn('w-5 h-5', color)} />
@@ -115,14 +127,15 @@ interface QuickActionProps {
   icon: React.ComponentType<{ className?: string }>
   title: string
   description: string
+  full?: boolean
 }
 
-function QuickAction({ to, icon: Icon, title, description }: QuickActionProps) {
+function QuickAction({ to, icon: Icon, title, description, full }: QuickActionProps) {
   return (
-    <Link to={to}>
-      <Card className="hover:border-primary-300 cursor-pointer">
+    <Link to={to} className={full ? 'md:col-span-2' : undefined}>
+      <Card className="hover:border-primary-300 cursor-pointer transition-colors">
         <CardContent className="flex items-center gap-4">
-          <div className="p-3 rounded-lg bg-primary-50">
+          <div className="p-3 rounded-lg bg-primary-50 ring-1 ring-primary-100">
             <Icon className="w-5 h-5 text-primary-700" />
           </div>
           <div>
