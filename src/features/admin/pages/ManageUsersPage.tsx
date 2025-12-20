@@ -1,10 +1,14 @@
+import { useState } from 'react'
 import { Loader2, Mail, Shield, User } from 'lucide-react'
-import { useUsers } from '@/hooks'
-import { Badge, Card, CardContent } from '@/components/ui'
+import { useUsers, useUpdateUser } from '@/hooks'
+import { Badge, Button, Card, CardContent } from '@/components/ui'
 import { formatDate } from '@/lib/utils'
+import type { UserRole } from '@/types'
 
 export function ManageUsersPage() {
   const { data: users, isLoading } = useUsers()
+  const updateUser = useUpdateUser()
+  const [updatingUserId, setUpdatingUserId] = useState<string | null>(null)
 
   const roleLabels = {
     member: 'Lid',
@@ -16,6 +20,21 @@ export function ManageUsersPage() {
     member: 'default' as const,
     admin: 'primary' as const,
     super_admin: 'warning' as const,
+  }
+
+  const roleOptions: { value: UserRole; label: string }[] = [
+    { value: 'member', label: roleLabels.member },
+    { value: 'admin', label: roleLabels.admin },
+    { value: 'super_admin', label: roleLabels.super_admin },
+  ]
+
+  const handleRoleChange = async (userId: string, role: UserRole) => {
+    setUpdatingUserId(userId)
+    try {
+      await updateUser.mutateAsync({ id: userId, role })
+    } finally {
+      setUpdatingUserId(null)
+    }
   }
 
   return (
@@ -59,9 +78,30 @@ export function ManageUsersPage() {
                     </div>
                   </div>
                 </div>
-                <div className="text-right text-sm text-stone-400">
-                  <p>Aangemaakt</p>
-                  <p>{formatDate(user.created_at)}</p>
+                <div className="flex flex-col items-end gap-3">
+                  <div className="flex items-center gap-2">
+                    <select
+                      className="text-sm bg-white border border-stone-200 rounded-md px-2 py-1 text-stone-700 focus:border-primary-600 focus:ring-0"
+                      value={user.role}
+                      onChange={(e) => handleRoleChange(user.id, e.target.value as UserRole)}
+                      disabled={updatingUserId === user.id}
+                    >
+                      {roleOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                    {updatingUserId === user.id && (
+                      <Button size="sm" variant="ghost" loading>
+                        Opslaan
+                      </Button>
+                    )}
+                  </div>
+                  <div className="text-right text-sm text-stone-400">
+                    <p>Aangemaakt</p>
+                    <p>{formatDate(user.created_at)}</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
