@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router-dom'
+import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { RootLayout, AdminLayout } from '@/components/layout'
 import { ProtectedRoute } from './ProtectedRoute'
 import { AdminRoute } from './AdminRoute'
@@ -22,6 +22,7 @@ export const router = createBrowserRouter([
     element: <RootLayout />,
     children: [
       { index: true, element: <LandingPage /> },
+      { path: 'overview', element: <Navigate to="/dashboard" replace /> },
       { path: 'login', element: <LoginPage /> },
       { path: 'reset-password', element: <ResetPasswordPage /> },
       {

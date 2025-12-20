@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import type { ActivityLog } from '@/types'
 
 export interface AnalyticsStats {
@@ -13,6 +13,9 @@ export interface AnalyticsStats {
 
 export const analyticsApi = {
   async getStats(): Promise<AnalyticsStats> {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase is niet geconfigureerd. Stel VITE_SUPABASE_URL en VITE_SUPABASE_ANON_KEY in.')
+    }
     const [questionsResult, votesResult, usersResult, groupsResult] = await Promise.all([
       supabase.from('questions').select('status'),
       supabase.from('votes').select('id', { count: 'exact', head: true }),
@@ -36,6 +39,9 @@ export const analyticsApi = {
   },
 
   async getRecentActivity(limit = 20): Promise<ActivityLog[]> {
+    if (!isSupabaseConfigured) {
+      throw new Error('Supabase is niet geconfigureerd. Stel VITE_SUPABASE_URL en VITE_SUPABASE_ANON_KEY in.')
+    }
     const { data, error } = await supabase
       .from('activity_log')
       .select('*, user_profiles(email, display_name)')
@@ -52,6 +58,9 @@ export const analyticsApi = {
     entityId?: string,
     metadata: Record<string, unknown> = {}
   ): Promise<void> {
+    if (!isSupabaseConfigured) {
+      return
+    }
     const { error } = await supabase.from('activity_log').insert({
       action,
       entity_type: entityType,

@@ -1,5 +1,11 @@
-import { supabase } from '@/lib/supabase'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import type { Question, QuestionStatus, CompletionMethod } from '@/types'
+
+function ensureSupabaseConfigured() {
+  if (!isSupabaseConfigured) {
+    throw new Error('Supabase is niet geconfigureerd. Stel VITE_SUPABASE_URL en VITE_SUPABASE_ANON_KEY in.')
+  }
+}
 
 export interface CreateQuestionInput {
   title: string
@@ -16,6 +22,7 @@ export interface UpdateQuestionInput {
 
 export const questionsApi = {
   async getByStatus(status: QuestionStatus): Promise<Question[]> {
+    ensureSupabaseConfigured()
     const { data, error } = await supabase
       .from('questions')
       .select('*, groups(id, name, required_votes), votes(id, question_id, user_id, vote, created_at)')
@@ -27,6 +34,7 @@ export const questionsApi = {
   },
 
   async getById(id: string): Promise<Question | null> {
+    ensureSupabaseConfigured()
     const { data, error } = await supabase
       .from('questions')
       .select('*, groups(id, name, required_votes), votes(id, question_id, user_id, vote, created_at)')
@@ -41,6 +49,7 @@ export const questionsApi = {
   },
 
   async getAll(): Promise<Question[]> {
+    ensureSupabaseConfigured()
     const { data, error } = await supabase
       .from('questions')
       .select('*, groups(id, name, required_votes), votes(id, question_id, user_id, vote, created_at)')
@@ -51,6 +60,7 @@ export const questionsApi = {
   },
 
   async create(input: CreateQuestionInput): Promise<Question> {
+    ensureSupabaseConfigured()
     const { data, error } = await supabase
       .from('questions')
       .insert({
@@ -65,6 +75,7 @@ export const questionsApi = {
   },
 
   async update(id: string, input: UpdateQuestionInput): Promise<Question> {
+    ensureSupabaseConfigured()
     const { data, error } = await supabase
       .from('questions')
       .update({
@@ -80,6 +91,7 @@ export const questionsApi = {
   },
 
   async close(id: string, method: CompletionMethod = 'manual'): Promise<Question> {
+    ensureSupabaseConfigured()
     const { data, error } = await supabase
       .from('questions')
       .update({
@@ -97,6 +109,7 @@ export const questionsApi = {
   },
 
   async delete(id: string): Promise<void> {
+    ensureSupabaseConfigured()
     const { error } = await supabase.from('questions').delete().eq('id', id)
     if (error) throw error
   },

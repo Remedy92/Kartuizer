@@ -32,7 +32,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   setLoading: (isLoading) => set({ isLoading }),
 
   signOut: async () => {
-    await supabase.auth.signOut()
+    // Clear local session immediately so UI can recover even if network is stuck.
+    await supabase.auth.signOut({ scope: 'local' })
     set({ session: null, user: null, isAdmin: false })
+
+    // Attempt to revoke server-side session without blocking the UI.
+    supabase.auth.signOut().catch(() => {})
   },
 }))

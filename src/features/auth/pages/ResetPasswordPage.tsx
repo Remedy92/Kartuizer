@@ -1,13 +1,19 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { KeyRound, Loader2, CheckCircle } from 'lucide-react'
-import { useAuth } from '@/hooks'
+import { KeyRound, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
+import { useAuth, useToast } from '@/hooks'
+import { useAuthStore } from '@/stores'
 import { Wordmark } from '@/components/shared'
 
 export function ResetPasswordPage() {
   const navigate = useNavigate()
   const { updatePassword, isLoading } = useAuth()
+  const { error: showError } = useToast()
+
+  // Session is auto-created by Supabase from URL tokens via detectSessionInUrl
+  const session = useAuthStore((s) => s.session)
+  const authLoading = useAuthStore((s) => s.isLoading)
 
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -35,9 +41,15 @@ export function ResetPasswordPage() {
         navigate('/dashboard', { replace: true })
       }, 2000)
     } else {
-      setError(result.error ?? 'Er is een fout opgetreden')
+      const message = result.error ?? 'Er is een fout opgetreden'
+      setError(message)
+      showError('Wachtwoord wijzigen mislukt', message)
     }
   }
+
+  // Determine what to show based on auth state
+  const showLoading = authLoading
+  const showInvalidLink = !authLoading && !session
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-100 via-stone-50 to-primary-50/30 flex flex-col justify-center items-center p-6">
@@ -60,7 +72,32 @@ export function ResetPasswordPage() {
             <p className="text-stone-500 text-sm">Kies een nieuw wachtwoord voor je account</p>
           </div>
 
-          {success ? (
+          {showLoading ? (
+            <div className="text-center py-8">
+              <Loader2 className="w-8 h-8 animate-spin text-primary-600 mx-auto mb-4" />
+              <p className="text-stone-500 text-sm">Link verifiëren...</p>
+            </div>
+          ) : showInvalidLink ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center py-8"
+            >
+              <div className="w-16 h-16 rounded-full bg-rose-100 flex items-center justify-center mx-auto mb-4">
+                <AlertCircle className="w-8 h-8 text-rose-600" />
+              </div>
+              <h3 className="text-lg font-medium text-stone-800 mb-2">Ongeldige link</h3>
+              <p className="text-stone-500 text-sm mb-6">
+                Deze link is ongeldig of verlopen. Vraag een nieuwe link aan.
+              </p>
+              <button
+                onClick={() => navigate('/login')}
+                className="text-sm text-primary-700 hover:text-primary-800 font-medium"
+              >
+                Vraag een nieuwe link aan
+              </button>
+            </motion.div>
+          ) : success ? (
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}

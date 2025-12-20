@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuthStore } from '@/stores'
+import { isSupabaseConfigured } from '@/lib/supabase'
 import { Navbar } from './Navbar'
 import { MobileNav } from './MobileNav'
 
@@ -14,6 +15,12 @@ export function RootLayout() {
 
   return (
     <div className="min-h-screen bg-stone-50 flex flex-col">
+      {!isSupabaseConfigured && (
+        <div className="bg-rose-50 border-b border-rose-200 text-rose-800 text-sm px-6 py-3">
+          Supabase is niet geconfigureerd. Stel `VITE_SUPABASE_URL` en `VITE_SUPABASE_ANON_KEY` in
+          en herstart de dev server.
+        </div>
+      )}
       <Navbar />
       <MobileNav />
 

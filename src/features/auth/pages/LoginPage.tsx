@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Mail, KeyRound, Loader2 } from 'lucide-react'
-import { useAuth } from '@/hooks'
+import { useAuth, useToast } from '@/hooks'
 import { Wordmark } from '@/components/shared'
 import { cn } from '@/lib/utils'
 
@@ -12,6 +12,7 @@ export function LoginPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { signInWithMagicLink, signInWithPassword, resetPassword, isLoading, isAuthenticated } = useAuth()
+  const { error: showError } = useToast()
 
   const [authMethod, setAuthMethod] = useState<AuthMethod>('magic')
   const [email, setEmail] = useState('')
@@ -71,7 +72,9 @@ export function LoginPage() {
     if (result.success) {
       setResetEmailSent(true)
     } else {
-      setError(result.error ?? 'Er is een fout opgetreden')
+      const message = result.error ?? 'Er is een fout opgetreden'
+      setError(message)
+      showError('Wachtwoord reset mislukt', message)
     }
   }
 

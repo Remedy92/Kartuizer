@@ -1,5 +1,5 @@
 import { useEffect, type ReactNode } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuthStore } from '@/stores'
 
 interface AuthProviderProps {
@@ -10,21 +10,37 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const { setSession, setUser, setLoading } = useAuthStore()
 
   useEffect(() => {
+    if (!isSupabaseConfigured) {
+      setLoading(false)
+      return
+    }
+
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      if (session?.user) {
-        fetchUserProfile(session.user.id)
-      } else {
+    supabase.auth
+      .getSession()
+      .then(({ data: { session } }) => {
+        setSession(session)
+        if (session?.user) {
+          fetchUserProfile(session.user.id)
+        } else {
+          setLoading(false)
+        }
+      })
+      .catch(() => {
         setLoading(false)
-      }
-    })
+      })
 
     // Listen for auth changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       setSession(session)
+
+      // Handle password recovery - session is auto-created by Supabase from URL tokens
+      if (event === 'PASSWORD_RECOVERY') {
+        setLoading(false)
+        return
+      }
 
       if (event === 'SIGNED_IN' && session?.user) {
         await fetchUserProfile(session.user.id)

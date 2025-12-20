@@ -1,7 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom'
 import { Plus, LogOut, Menu } from 'lucide-react'
 import { useAuthStore, useUIStore } from '@/stores'
-import { supabase } from '@/lib/supabase'
+import { useToast } from '@/hooks'
 import { Wordmark } from '@/components/shared'
 import { cn } from '@/lib/utils'
 
@@ -10,10 +10,16 @@ export function Navbar() {
   const session = useAuthStore((s) => s.session)
   const isAdmin = useAuthStore((s) => s.isAdmin)
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
+  const { error: showError } = useToast()
+  const signOut = useAuthStore((s) => s.signOut)
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    navigate('/')
+    try {
+      await signOut()
+      navigate('/', { replace: true })
+    } catch (err) {
+      showError('Uitloggen mislukt', err instanceof Error ? err.message : 'Er is een fout opgetreden')
+    }
   }
 
   return (

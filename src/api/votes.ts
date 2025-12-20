@@ -1,8 +1,15 @@
-import { supabase } from '@/lib/supabase'
+import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import type { Vote, VoteType } from '@/types'
+
+function ensureSupabaseConfigured() {
+  if (!isSupabaseConfigured) {
+    throw new Error('Supabase is niet geconfigureerd. Stel VITE_SUPABASE_URL en VITE_SUPABASE_ANON_KEY in.')
+  }
+}
 
 export const votesApi = {
   async cast(questionId: string, vote: VoteType, userId: string): Promise<Vote> {
+    ensureSupabaseConfigured()
     const { data, error } = await supabase
       .from('votes')
       .insert({
@@ -23,6 +30,7 @@ export const votesApi = {
   },
 
   async getByQuestion(questionId: string): Promise<Vote[]> {
+    ensureSupabaseConfigured()
     const { data, error } = await supabase
       .from('votes')
       .select('*')
@@ -34,6 +42,7 @@ export const votesApi = {
   },
 
   async getByUser(userId: string): Promise<Vote[]> {
+    ensureSupabaseConfigured()
     const { data, error } = await supabase
       .from('votes')
       .select('*')
@@ -45,6 +54,7 @@ export const votesApi = {
   },
 
   async getUserVoteForQuestion(questionId: string, userId: string): Promise<Vote | null> {
+    ensureSupabaseConfigured()
     const { data, error } = await supabase
       .from('votes')
       .select('*')

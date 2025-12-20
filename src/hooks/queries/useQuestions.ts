@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { questionsApi, type CreateQuestionInput, type UpdateQuestionInput } from '@/api'
+import { isSupabaseConfigured } from '@/lib/supabase'
 import type { QuestionStatus, CompletionMethod } from '@/types'
 
 export const questionKeys = {
@@ -14,6 +15,8 @@ export function useQuestions(status: QuestionStatus) {
   return useQuery({
     queryKey: questionKeys.list(status),
     queryFn: () => questionsApi.getByStatus(status),
+    retry: false,
+    enabled: isSupabaseConfigured,
   })
 }
 
@@ -29,6 +32,8 @@ export function useAllQuestions() {
   return useQuery({
     queryKey: questionKeys.lists(),
     queryFn: () => questionsApi.getAll(),
+    retry: false,
+    enabled: isSupabaseConfigured,
   })
 }
 
@@ -36,7 +41,8 @@ export function useQuestion(id: string) {
   return useQuery({
     queryKey: questionKeys.detail(id),
     queryFn: () => questionsApi.getById(id),
-    enabled: !!id,
+    retry: false,
+    enabled: isSupabaseConfigured && !!id,
   })
 }
 

@@ -10,6 +10,22 @@ export function LandingPage() {
   const session = useAuthStore((s) => s.session)
   const isLoading = useAuthStore((s) => s.isLoading)
 
+  // If a recovery link lands on "/", forward it to /reset-password
+  useEffect(() => {
+    const hashParams = new URLSearchParams(window.location.hash.replace('#', ''))
+    const searchParams = new URLSearchParams(window.location.search)
+    const type = searchParams.get('type') ?? hashParams.get('type')
+    const hasRecoveryToken =
+      !!(searchParams.get('token_hash') ?? hashParams.get('token_hash')) ||
+      !!(searchParams.get('access_token') ?? hashParams.get('access_token')) ||
+      !!(searchParams.get('code') ?? hashParams.get('code'))
+
+    if (type === 'recovery' && hasRecoveryToken) {
+      const fullQuery = window.location.search + window.location.hash
+      navigate(`/reset-password${fullQuery}`, { replace: true })
+    }
+  }, [navigate])
+
   // Auto-redirect logged-in users to dashboard
   useEffect(() => {
     if (!isLoading && session) {
