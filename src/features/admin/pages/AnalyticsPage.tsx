@@ -8,9 +8,14 @@ export function AnalyticsPage() {
 
   return (
     <div>
-      <header className="mb-8">
-        <h1 className="text-3xl font-serif text-stone-800 mb-2">Statistieken</h1>
-        <p className="text-stone-500">Overzicht van het stemplatform</p>
+      <header className="mb-10">
+        <div className="flex flex-col gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-serif text-stone-800 mb-2">Statistieken</h1>
+            <p className="text-stone-500">Overzicht van het stemplatform</p>
+          </div>
+          <div className="h-px bg-gradient-to-r from-stone-200 via-stone-200 to-transparent" />
+        </div>
       </header>
 
       {/* Overview Stats */}
@@ -20,53 +25,53 @@ export function AnalyticsPage() {
           label="Totaal vragen"
           value={stats?.totalQuestions}
           loading={isLoading}
-          color="text-blue-600"
-          bgColor="bg-blue-50"
+          color="text-primary-700"
+          bgColor="bg-primary-50"
         />
         <StatCard
           icon={Clock}
           label="Openstaand"
           value={stats?.openQuestions}
           loading={isLoading}
-          color="text-amber-600"
-          bgColor="bg-amber-50"
+          color="text-primary-700"
+          bgColor="bg-primary-100/70"
         />
         <StatCard
           icon={Vote}
           label="Afgerond"
           value={stats?.completedQuestions}
           loading={isLoading}
-          color="text-emerald-600"
-          bgColor="bg-emerald-50"
+          color="text-primary-700"
+          bgColor="bg-primary-50"
         />
         <StatCard
           icon={TrendingUp}
           label="Totaal stemmen"
           value={stats?.totalVotes}
           loading={isLoading}
-          color="text-purple-600"
-          bgColor="bg-purple-50"
+          color="text-primary-700"
+          bgColor="bg-primary-100/70"
         />
         <StatCard
           icon={Users}
           label="Gebruikers"
           value={stats?.totalUsers}
           loading={isLoading}
-          color="text-indigo-600"
-          bgColor="bg-indigo-50"
+          color="text-primary-700"
+          bgColor="bg-primary-50"
         />
         <StatCard
           icon={BarChart3}
           label="Groepen"
           value={stats?.totalGroups}
           loading={isLoading}
-          color="text-rose-600"
-          bgColor="bg-rose-50"
+          color="text-primary-700"
+          bgColor="bg-primary-100/70"
         />
       </div>
 
       {/* Placeholder for future charts */}
-      <Card>
+      <Card className="border-stone-200">
         <CardHeader>
           <h2 className="text-lg font-medium text-stone-800">Activiteit</h2>
         </CardHeader>
@@ -92,9 +97,9 @@ interface StatCardProps {
 
 function StatCard({ icon: Icon, label, value, loading, color, bgColor }: StatCardProps) {
   return (
-    <Card>
+    <Card className="border-stone-200">
       <CardContent className="flex items-center gap-4">
-        <div className={cn('p-3 rounded-lg', bgColor)}>
+        <div className={cn('p-3 rounded-lg ring-1 ring-primary-100', bgColor)}>
           <Icon className={cn('w-6 h-6', color)} />
         </div>
         <div>

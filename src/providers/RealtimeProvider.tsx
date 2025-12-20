@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore, useUIStore, useRealtimeStore } from '@/stores'
 import { queryClient } from './QueryProvider'
+import { questionKeys } from '@/hooks/queries/useQuestions'
 
 interface RealtimeProviderProps {
   children: ReactNode
@@ -32,9 +33,8 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
             (payload.old as { question_id?: string })?.question_id
 
           if (questionId) {
-            queryClient.invalidateQueries({ queryKey: ['questions', questionId] })
-            queryClient.invalidateQueries({ queryKey: ['questions', 'open'] })
-            queryClient.invalidateQueries({ queryKey: ['questions', 'completed'] })
+            queryClient.invalidateQueries({ queryKey: questionKeys.detail(questionId) })
+            queryClient.invalidateQueries({ queryKey: questionKeys.lists() })
           }
           setLastSync(new Date())
         }
@@ -50,7 +50,7 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'questions' },
         (payload) => {
-          queryClient.invalidateQueries({ queryKey: ['questions'] })
+          queryClient.invalidateQueries({ queryKey: questionKeys.all })
           const newQuestion = payload.new as { title?: string }
           addToast({
             type: 'info',
@@ -64,7 +64,7 @@ export function RealtimeProvider({ children }: RealtimeProviderProps) {
         'postgres_changes',
         { event: 'UPDATE', schema: 'public', table: 'questions' },
         (payload) => {
-          queryClient.invalidateQueries({ queryKey: ['questions'] })
+          queryClient.invalidateQueries({ queryKey: questionKeys.all })
           const oldQuestion = payload.old as { status?: string }
           const newQuestion = payload.new as { status?: string; title?: string }
 
