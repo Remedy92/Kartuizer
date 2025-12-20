@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+const SMTP2GO_API_KEY = Deno.env.get('SMTP2GO_API_KEY');
 
 Deno.serve(async (req) => {
     try {
@@ -51,7 +51,9 @@ Deno.serve(async (req) => {
         }
 
         const voteSummary = question.votes.reduce((acc: Record<string, number>, v: { vote: string }) => {
-            acc[v.vote] = (acc[v.vote] || 0) + 1;
+            if (v.vote === 'yes' || v.vote === 'no' || v.vote === 'abstain') {
+                acc[v.vote] = (acc[v.vote] || 0) + 1;
+            }
             return acc;
         }, { yes: 0, no: 0, abstain: 0 });
 
@@ -116,19 +118,24 @@ Deno.serve(async (req) => {
 </html>
     `;
 
-        const res = await fetch('https://api.resend.com/emails', {
+        const res = await fetch('https://api.smtp2go.com/v3/email/send', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${RESEND_API_KEY}`,
             },
             body: JSON.stringify({
-                from: 'Karthuizer Voting <notifications@resend.dev>',
+                api_key: SMTP2GO_API_KEY,
+                sender: 'Karthuizer Voting <johanvanhoutven@gmail.com>',
                 to: emails,
                 subject: `${resultText} - ${question.title}`,
-                html: emailContent,
+                html_body: emailContent,
             }),
         });
+
+        if (!res.ok) {
+            const errorText = await res.text();
+            throw new Error(`SMTP2GO API error (${res.status}): ${errorText}`);
+        }
 
         const resData = await res.json();
         

@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react'
 import { supabase } from './lib/supabase'
-import { Check, X, Minus, Plus, LayoutDashboard, History, ArrowRight, Building2, LogOut, Loader2, CheckCircle2 } from 'lucide-react'
+import { Check, X, Minus, Plus, ChevronDown, LogOut, Loader2, Circle } from 'lucide-react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import type { Session } from '@supabase/supabase-js'
 
-// Utility for cleaner class names
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs))
 }
@@ -28,6 +27,33 @@ type Question = {
   group_id: string
   groups: { name: string; required_votes: number }
   votes?: Vote[]
+}
+
+// Elegant wordmark component
+function Wordmark({ size = 'default', onClick }: { size?: 'default' | 'large'; onClick?: () => void }) {
+  return (
+    <div
+      className={cn(
+        "select-none",
+        onClick && "cursor-pointer group"
+      )}
+      onClick={onClick}
+    >
+      <div className={cn(
+        "font-serif tracking-[0.3em] text-stone-800 transition-colors",
+        size === 'large' ? "text-2xl md:text-3xl" : "text-lg",
+        onClick && "group-hover:text-primary-700"
+      )}>
+        KARTHUIZER
+      </div>
+      <div className={cn(
+        "tracking-[0.2em] text-stone-400 uppercase",
+        size === 'large' ? "text-[11px] mt-1" : "text-[9px] mt-0.5"
+      )}>
+        Residentie
+      </div>
+    </div>
+  )
 }
 
 function App() {
@@ -109,12 +135,12 @@ function App() {
   }
 
   const handleVote = async (questionId: string, vote: string) => {
-    if (votingQuestionId) return // Prevent double-clicks
+    if (votingQuestionId || !session?.user?.id) return
     setVotingQuestionId(questionId)
-    
+
     const { error } = await supabase
       .from('votes')
-      .insert([{ question_id: questionId, vote, user_id: session?.user?.id }])
+      .insert([{ question_id: questionId, vote, user_id: session.user.id }])
 
     if (error) {
       if (error.code === '23505') {
@@ -122,10 +148,11 @@ function App() {
       } else {
         alert(error.message)
       }
+      setVotingQuestionId(null)
     } else {
       await fetchQuestions()
+      setVotingQuestionId(null)
     }
-    setVotingQuestionId(null)
   }
 
   const createQuestion = async (e: React.FormEvent) => {
@@ -170,378 +197,430 @@ function App() {
     setAuthBusy(false)
   }
 
-  // --- Views ---
-
+  // --- Landing Page ---
   if (view === 'landing') {
     return (
-      <div className="flex flex-col min-h-screen bg-[#fafaf9]">
-        {/* Navigation */}
-        <header className="py-6 px-8 flex justify-between items-center max-w-7xl mx-auto w-full">
-          <div className="flex items-center gap-3 text-stone-800">
-            <div className="w-10 h-10 bg-primary-800 rounded-lg flex items-center justify-center text-white shadow-sm">
-              <Building2 size={20} strokeWidth={2.5} />
-            </div>
-            <div>
-              <h1 className="text-xl font-bold tracking-tight">KARTHUIZER</h1>
-              <p className="text-[10px] text-stone-500 font-bold tracking-widest uppercase mt-0.5">Residentie Beheer</p>
-            </div>
-          </div>
-          <div className="text-sm font-semibold text-stone-500">&nbsp;</div>
+      <div className="flex flex-col min-h-screen bg-gradient-to-b from-stone-50 to-stone-100">
+        {/* Subtle grain overlay */}
+        <div className="fixed inset-0 opacity-[0.015] pointer-events-none"
+          style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg viewBox=\'0 0 256 256\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cfilter id=\'noise\'%3E%3CfeTurbulence type=\'fractalNoise\' baseFrequency=\'0.9\' numOctaves=\'4\' stitchTiles=\'stitch\'/%3E%3C/filter%3E%3Crect width=\'100%25\' height=\'100%25\' filter=\'url(%23noise)\'/%3E%3C/svg%3E")' }}
+        />
+
+        <header className="relative py-8 px-8 flex justify-between items-center max-w-6xl mx-auto w-full">
+          <Wordmark size="large" />
+          <div className="h-px w-24 bg-gradient-to-r from-transparent via-stone-300 to-transparent hidden md:block" />
         </header>
 
-        {/* Hero Section */}
-        <main className="flex-1 flex flex-col justify-center items-center text-center px-4 -mt-20">
+        <main className="relative flex-1 flex flex-col justify-center items-center text-center px-6 pb-20">
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="max-w-3xl"
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            className="max-w-2xl"
           >
-            <h2 className="text-5xl md:text-7xl font-bold text-stone-900 mb-8 tracking-tight font-serif leading-[1.1]">
-              Besluitvorming <br /> met <span className="text-primary-600 italic">klasse.</span>
-            </h2>
-            <p className="text-xl text-stone-500 mb-12 max-w-2xl mx-auto leading-relaxed">
-              Het officiële digitale stemplatform voor de Raad van Bestuur en Blokvoorzitters van Residentie Karthuizer. Veilig, transparant en efficiënt.
+            {/* Decorative line */}
+            <div className="w-px h-16 bg-gradient-to-b from-transparent via-primary-400 to-transparent mx-auto mb-12" />
+
+            <h1 className="text-4xl md:text-6xl font-serif text-stone-800 mb-8 leading-[1.15] tracking-tight">
+              Besluitvorming
+              <br />
+              <span className="text-primary-600 italic">met klasse</span>
+            </h1>
+
+            <p className="text-lg md:text-xl text-stone-500 mb-16 max-w-lg mx-auto leading-relaxed font-light">
+              Het digitale stemplatform voor de Raad van Bestuur en Blokvoorzitters. Veilig, transparant en efficiënt.
             </p>
-            <button
+
+            <motion.button
               onClick={() => setView(session ? 'dashboard' : 'login')}
-              className="group bg-primary-800 text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-primary-900 transition-all shadow-lg hover:shadow-xl hover:-translate-y-1 flex items-center gap-3 mx-auto"
+              className="group relative bg-primary-800 text-white px-10 py-4 text-sm tracking-widest uppercase font-medium hover:bg-primary-900 transition-all duration-300"
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
             >
-              {session ? 'Naar het Dashboard' : 'Inloggen'} <ArrowRight className="group-hover:translate-x-1 transition-transform" />
-            </button>
+              <span className="relative z-10">
+                {session ? 'Naar Dashboard' : 'Toegang'}
+              </span>
+              <div className="absolute inset-0 border border-primary-800 translate-x-1 translate-y-1 -z-10 group-hover:translate-x-1.5 group-hover:translate-y-1.5 transition-transform" />
+            </motion.button>
           </motion.div>
         </main>
 
-        <footer className="py-8 text-center text-stone-400 text-sm border-t border-stone-200">
-          &copy; {new Date().getFullYear()} Residentie Karthuizer. Alle rechten voorbehouden.
+        <footer className="relative py-8 text-center">
+          <div className="h-px w-32 bg-gradient-to-r from-transparent via-stone-300 to-transparent mx-auto mb-6" />
+          <p className="text-xs text-stone-400 tracking-wider uppercase">
+            &copy; {new Date().getFullYear()} Residentie Karthuizer
+          </p>
         </footer>
       </div>
     )
   }
 
-  // --- Authenticated Layout ---
-
+  // --- Login Page ---
   const showLoginGate = view === 'login' || !session
 
   if (showLoginGate) {
     return (
-      <div className="min-h-screen bg-[#fafaf9] flex flex-col justify-center items-center p-4">
-        <div className="max-w-md w-full bg-white p-10 rounded-2xl shadow-xl border border-stone-200">
-          <div className="text-center mb-10">
-            <div className="w-14 h-14 bg-primary-800 rounded-2xl flex items-center justify-center text-white mx-auto mb-6 shadow-lg">
-              <Building2 size={28} />
-            </div>
-            <h2 className="text-3xl font-bold text-stone-900 font-serif">Welkom terug</h2>
-            <p className="text-stone-500 mt-2">Log in voor toegang tot KARTHUIZER</p>
+      <div className="min-h-screen bg-gradient-to-br from-stone-100 via-stone-50 to-primary-50/30 flex flex-col justify-center items-center p-6">
+        {/* Decorative elements */}
+        <div className="fixed top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-stone-300 to-transparent" />
+        <div className="fixed bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-stone-300 to-transparent" />
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+          className="w-full max-w-md"
+        >
+          <div className="text-center mb-12">
+            <Wordmark size="large" />
           </div>
-          {!hasSupabaseConfig ? (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-              Supabase is niet geconfigureerd. Voeg `VITE_SUPABASE_URL` en `VITE_SUPABASE_ANON_KEY` toe aan je `.env`.
+
+          <div className="bg-white/80 backdrop-blur-sm border border-stone-200/60 shadow-xl shadow-stone-200/50 p-10">
+            <div className="text-center mb-10">
+              <h2 className="text-2xl font-serif text-stone-800 mb-2">
+                {authMode === 'sign_in' ? 'Welkom terug' : 'Account aanmaken'}
+              </h2>
+              <p className="text-stone-500 text-sm">
+                {authMode === 'sign_in' ? 'Log in om verder te gaan' : 'Registreer voor toegang'}
+              </p>
             </div>
-          ) : (
-            <form onSubmit={handleAuthSubmit} className="space-y-5">
-              <div>
-                <label className="block text-sm font-bold text-stone-700 mb-2">E-mailadres</label>
-                <input
-                  type="email"
-                  required
-                  value={authEmail}
-                  onChange={(e) => setAuthEmail(e.target.value)}
-                  className="input-field"
-                  placeholder="naam@bedrijf.be"
-                />
+
+            {!hasSupabaseConfig ? (
+              <div className="border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800">
+                Configureer eerst de Supabase omgevingsvariabelen.
               </div>
-              <div>
-                <label className="block text-sm font-bold text-stone-700 mb-2">Wachtwoord</label>
-                <input
-                  type="password"
-                  required
-                  value={authPassword}
-                  onChange={(e) => setAuthPassword(e.target.value)}
-                  className="input-field"
-                  placeholder="••••••••"
-                />
-              </div>
-              {authError && (
-                <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
-                  {authError}
+            ) : (
+              <form onSubmit={handleAuthSubmit} className="space-y-6">
+                <div>
+                  <label className="block text-xs font-medium text-stone-500 mb-2 tracking-wider uppercase">
+                    E-mailadres
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={authEmail}
+                    onChange={(e) => setAuthEmail(e.target.value)}
+                    className="w-full bg-stone-50 border-0 border-b-2 border-stone-200 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:border-primary-600 focus:ring-0 focus:bg-white transition-all"
+                    placeholder="naam@voorbeeld.be"
+                  />
                 </div>
-              )}
-              {authNotice && (
-                <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
-                  {authNotice}
+
+                <div>
+                  <label className="block text-xs font-medium text-stone-500 mb-2 tracking-wider uppercase">
+                    Wachtwoord
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    value={authPassword}
+                    onChange={(e) => setAuthPassword(e.target.value)}
+                    className="w-full bg-stone-50 border-0 border-b-2 border-stone-200 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:border-primary-600 focus:ring-0 focus:bg-white transition-all"
+                    placeholder="••••••••"
+                  />
                 </div>
-              )}
-              <button
-                type="submit"
-                disabled={authBusy}
-                className="btn btn-primary w-full text-base"
-              >
-                {authBusy ? 'Bezig met inloggen...' : authMode === 'sign_in' ? 'Inloggen' : 'Registreren'}
-              </button>
-              <button
-                type="button"
-                onClick={() => setAuthMode(authMode === 'sign_in' ? 'sign_up' : 'sign_in')}
-                className="w-full text-sm text-stone-500 hover:text-stone-700 transition-colors font-medium"
-              >
-                {authMode === 'sign_in' ? 'Nog geen account? Registreer hier' : 'Heb je al een account? Log in'}
-              </button>
-            </form>
-          )}
+
+                {authError && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="border-l-2 border-rose-500 bg-rose-50 p-3 text-sm text-rose-700"
+                  >
+                    {authError}
+                  </motion.div>
+                )}
+
+                {authNotice && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="border-l-2 border-emerald-500 bg-emerald-50 p-3 text-sm text-emerald-700"
+                  >
+                    {authNotice}
+                  </motion.div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={authBusy}
+                  className="w-full bg-primary-800 text-white py-4 text-sm tracking-widest uppercase font-medium hover:bg-primary-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {authBusy ? (
+                    <Loader2 className="w-4 h-4 animate-spin mx-auto" />
+                  ) : (
+                    authMode === 'sign_in' ? 'Inloggen' : 'Registreren'
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setAuthMode(authMode === 'sign_in' ? 'sign_up' : 'sign_in')}
+                  className="w-full text-sm text-stone-500 hover:text-stone-700 transition-colors py-2"
+                >
+                  {authMode === 'sign_in' ? 'Nog geen account? Registreer hier' : 'Heb je al een account? Log in'}
+                </button>
+              </form>
+            )}
+          </div>
+
           <button
             onClick={() => setView('landing')}
-            className="w-full mt-8 text-sm text-stone-400 hover:text-stone-600 transition-colors font-medium"
+            className="w-full mt-8 text-sm text-stone-400 hover:text-stone-600 transition-colors"
           >
-            Terug naar de startpagina
+            &larr; Terug
           </button>
-        </div>
+        </motion.div>
       </div>
     )
   }
 
+  // --- Authenticated Dashboard Layout ---
   return (
-    <div className="min-h-screen bg-[#f5f5f4] flex flex-col">
-      {/* Top Navbar */}
-      <nav className="bg-white border-b border-stone-200 sticky top-0 z-10 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-20">
-            <div className="flex items-center gap-8">
-              <div
-                className="flex items-center gap-3 cursor-pointer group"
-                onClick={() => setView('landing')}
-              >
-                <div className="w-9 h-9 bg-primary-800 rounded flex items-center justify-center text-white shadow-sm group-hover:bg-primary-900 transition-colors">
-                  <Building2 size={18} strokeWidth={2.5} />
-                </div>
-                <span className="font-bold text-stone-800 text-lg tracking-tight uppercase">Karthuizer</span>
-              </div>
+    <div className="min-h-screen bg-stone-50 flex flex-col">
+      {/* Navigation */}
+      <nav className="bg-white border-b border-stone-200 sticky top-0 z-20">
+        <div className="max-w-6xl mx-auto px-6">
+          <div className="flex justify-between h-20 items-center">
+            <div className="flex items-center gap-12">
+              <Wordmark onClick={() => setView('landing')} />
 
-              <div className="hidden md:flex space-x-1 pl-4 border-l border-stone-200 h-8 items-center">
-                <NavButton active={view === 'dashboard'} onClick={() => setView('dashboard')} icon={<LayoutDashboard size={18} />}>
+              <div className="hidden md:flex items-center gap-1">
+                <NavTab
+                  active={view === 'dashboard'}
+                  onClick={() => setView('dashboard')}
+                >
                   Overzicht
-                </NavButton>
-                <NavButton active={view === 'archive'} onClick={() => setView('archive')} icon={<History size={18} />}>
+                </NavTab>
+                <NavTab
+                  active={view === 'archive'}
+                  onClick={() => setView('archive')}
+                >
                   Archief
-                </NavButton>
-                <NavButton active={view === 'admin'} onClick={() => setView('admin')} icon={<Plus size={18} />}>
-                  Beheer
-                </NavButton>
+                </NavTab>
+                <NavTab
+                  active={view === 'admin'}
+                  onClick={() => setView('admin')}
+                >
+                  <Plus size={14} className="mr-1.5" />
+                  Nieuw
+                </NavTab>
               </div>
             </div>
-            <div className="flex items-center gap-4">
+
+            <div className="flex items-center gap-6">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-semibold text-stone-800 truncate max-w-[150px]">{session?.user?.email}</p>
-                <p className="text-xs text-stone-500">Bestuurslid</p>
+                <p className="text-sm font-medium text-stone-700 truncate max-w-[180px]">
+                  {session?.user?.email}
+                </p>
+                <p className="text-xs text-stone-400">Bestuurslid</p>
               </div>
+
               <button
                 onClick={() => supabase.auth.signOut()}
-                className="w-10 h-10 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-200 transition-all shadow-sm"
+                className="w-10 h-10 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-all rounded-full"
                 title="Uitloggen"
               >
-                <LogOut size={20} />
+                <LogOut size={18} />
               </button>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Main Content Area */}
-      <main className="flex-1 max-w-7xl w-full mx-auto py-12 px-4 sm:px-6 lg:px-8">
+      {/* Mobile Navigation */}
+      <div className="md:hidden bg-white border-b border-stone-100 px-4 py-2 flex gap-2 overflow-x-auto">
+        <NavTab active={view === 'dashboard'} onClick={() => setView('dashboard')} mobile>
+          Overzicht
+        </NavTab>
+        <NavTab active={view === 'archive'} onClick={() => setView('archive')} mobile>
+          Archief
+        </NavTab>
+        <NavTab active={view === 'admin'} onClick={() => setView('admin')} mobile>
+          Nieuw
+        </NavTab>
+      </div>
+
+      {/* Main Content */}
+      <main className="flex-1 max-w-6xl w-full mx-auto py-12 px-6">
         <AnimatePresence mode="wait">
           <motion.div
             key={view}
-            initial={{ opacity: 0, y: 15 }}
+            initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -15 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
           >
-            {/* --- Dashboard & Archive View --- */}
+            {/* Dashboard & Archive Views */}
             {(view === 'dashboard' || view === 'archive') && (
               <div>
-                <header className="mb-10 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-stone-200 pb-6">
-                  <div>
-                    <h2 className="text-3xl font-bold text-stone-900 mb-3 font-serif">
-                      {view === 'dashboard' ? 'Openstaande Vragen' : 'Archief Stemmingen'}
-                    </h2>
-                    <p className="text-stone-500 max-w-xl text-lg">
-                      {view === 'dashboard'
-                        ? 'Bekijk en stem op de actuele agendapunten die uw aandacht vereisen.'
-                        : 'Historisch overzicht van alle genomen besluiten en stemmingen.'}
-                    </p>
-                  </div>
-                  {view === 'dashboard' && (
-                    <div className="bg-white text-primary-800 px-5 py-2.5 rounded-lg border border-stone-200 shadow-sm text-sm font-semibold flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                      {questions.length} actieve {questions.length === 1 ? 'kwestie' : 'kwesties'}
+                <header className="mb-12">
+                  <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+                    <div>
+                      <h1 className="text-3xl md:text-4xl font-serif text-stone-800 mb-3">
+                        {view === 'dashboard' ? 'Openstaande Vragen' : 'Archief'}
+                      </h1>
+                      <p className="text-stone-500 max-w-lg">
+                        {view === 'dashboard'
+                          ? 'Breng uw stem uit op actuele agendapunten.'
+                          : 'Overzicht van afgeronde stemmingen.'}
+                      </p>
                     </div>
-                  )}
+
+                    {view === 'dashboard' && questions.length > 0 && (
+                      <div className="flex items-center gap-2 text-sm text-stone-500">
+                        <Circle size={8} className="fill-emerald-500 text-emerald-500" />
+                        <span>{questions.length} actief</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="h-px bg-gradient-to-r from-stone-200 via-stone-200 to-transparent mt-8" />
                 </header>
 
                 {loading ? (
-                  <div className="py-32 text-center text-stone-400 italic">Gegevens ophalen...</div>
+                  <div className="py-24 flex justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-stone-400" />
+                  </div>
                 ) : questions.length === 0 ? (
-                  <div className="py-24 text-center bg-white rounded-xl border border-dashed border-stone-300">
-                    <p className="text-stone-500 text-lg">Er zijn momenteel geen items in dit overzicht.</p>
+                  <div className="py-20 text-center">
+                    <div className="w-px h-12 bg-gradient-to-b from-transparent via-stone-300 to-transparent mx-auto mb-6" />
+                    <p className="text-stone-400 italic">Geen items beschikbaar</p>
                   </div>
                 ) : (
-                  <div className="grid gap-6">
-                    {questions.map((q) => (
-                      <div key={q.id} className="pro-card p-6 md:p-8 flex flex-col md:flex-row gap-8 md:items-start group hover:border-primary-300 transition-colors bg-white shadow-sm hover:shadow-md">
-                        <div className="flex-1 space-y-4">
-                          <div className="flex items-center gap-3">
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide bg-stone-100 text-stone-600 border border-stone-200">
-                              {q.groups?.name}
-                            </span>
-                            <span className="text-stone-400 text-sm font-medium">
-                              {new Date(q.created_at).toLocaleDateString('nl-BE', { day: 'numeric', month: 'long', year: 'numeric' })}
-                            </span>
-                          </div>
-                          <h3 className="text-2xl font-bold text-stone-900 leading-tight group-hover:text-primary-800 transition-colors">
-                            {q.title}
-                          </h3>
-                          <p className="text-stone-600 leading-relaxed text-lg max-w-4xl">
-                            {q.description}
-                          </p>
-                        </div>
+                  <div className="space-y-6">
+                    {questions.map((q, index) => (
+                      <motion.div
+                        key={q.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.05 }}
+                        className="group bg-white border border-stone-200 hover:border-stone-300 transition-all duration-300 hover:shadow-lg hover:shadow-stone-100"
+                      >
+                        <div className="p-8 flex flex-col lg:flex-row gap-8">
+                          {/* Content */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-3 mb-4">
+                              <span className="text-xs tracking-wider uppercase text-primary-700 font-medium bg-primary-50 px-3 py-1">
+                                {q.groups?.name}
+                              </span>
+                              <span className="text-xs text-stone-400">
+                                {new Date(q.created_at).toLocaleDateString('nl-BE', {
+                                  day: 'numeric',
+                                  month: 'long',
+                                  year: 'numeric'
+                                })}
+                              </span>
+                            </div>
 
-                        <div className="flex-shrink-0 pt-6 md:pt-0 border-t md:border-t-0 md:border-l border-stone-100 md:pl-8 flex md:flex-col gap-3 justify-center min-w-[180px]">
-                          {q.status === 'open' ? (
-                            (() => {
-                              const userVote = getUserVote(q)
-                              const isVoting = votingQuestionId === q.id
-                              
-                              if (userVote) {
-                                return (
-                                  <div className="flex flex-col items-center justify-center h-full px-6 py-4 bg-emerald-50 rounded-lg border border-emerald-200">
-                                    <CheckCircle2 className="text-emerald-600 mb-2" size={24} />
-                                    <span className="text-emerald-700 font-semibold text-sm">Gestemd</span>
-                                    <span className="text-emerald-600 text-xs mt-1 capitalize">
-                                      {userVote.vote === 'yes' ? 'Akkoord' : userVote.vote === 'no' ? 'Niet Akkoord' : 'Onthouding'}
-                                    </span>
-                                    <span className="text-stone-400 text-xs mt-2">
-                                      {q.votes?.length || 0} / {q.groups?.required_votes} stemmen
-                                    </span>
-                                  </div>
-                                )
-                              }
-                              
-                              return (
-                                <>
-                                  <h4 className="hidden md:block text-xs font-bold text-stone-400 uppercase tracking-widest mb-3 text-center">Jouw Stem</h4>
-                                  <div className="flex md:flex-col gap-3 w-full">
-                                    <VoteButton onClick={() => handleVote(q.id, 'yes')} variant="yes" disabled={isVoting} loading={isVoting} />
-                                    <VoteButton onClick={() => handleVote(q.id, 'no')} variant="no" disabled={isVoting} loading={isVoting} />
-                                    <VoteButton onClick={() => handleVote(q.id, 'abstain')} variant="abstain" disabled={isVoting} loading={isVoting} />
-                                  </div>
-                                </>
-                              )
-                            })()
-                          ) : (
-                            (() => {
-                              const summary = getVoteSummary(q)
-                              const result = summary.yes > summary.no ? 'Goedgekeurd' : summary.no > summary.yes ? 'Afgewezen' : 'Geen meerderheid'
-                              const resultColor = summary.yes > summary.no ? 'text-emerald-600' : summary.no > summary.yes ? 'text-rose-600' : 'text-stone-500'
-                              
-                              return (
-                                <div className="flex flex-col items-center justify-center h-full px-4 py-4 bg-stone-50 rounded-lg border border-stone-200">
-                                  <span className={cn("font-bold text-sm mb-3", resultColor)}>{result}</span>
-                                  <div className="space-y-1.5 text-xs w-full">
-                                    <div className="flex justify-between items-center">
-                                      <span className="text-stone-500">Akkoord</span>
-                                      <span className="font-semibold text-emerald-600">{summary.yes}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                      <span className="text-stone-500">Niet Akkoord</span>
-                                      <span className="font-semibold text-rose-600">{summary.no}</span>
-                                    </div>
-                                    <div className="flex justify-between items-center">
-                                      <span className="text-stone-500">Onthouding</span>
-                                      <span className="font-semibold text-stone-600">{summary.abstain}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              )
-                            })()
-                          )}
+                            <h2 className="text-xl md:text-2xl font-serif text-stone-800 mb-3 group-hover:text-primary-800 transition-colors">
+                              {q.title}
+                            </h2>
+
+                            {q.description && (
+                              <p className="text-stone-500 leading-relaxed">
+                                {q.description}
+                              </p>
+                            )}
+                          </div>
+
+                          {/* Voting Section */}
+                          <div className="lg:w-56 flex-shrink-0 lg:border-l lg:border-stone-100 lg:pl-8">
+                            {q.status === 'open' ? (
+                              <VotingPanel
+                                question={q}
+                                userVote={getUserVote(q)}
+                                isVoting={votingQuestionId === q.id}
+                                onVote={(vote) => handleVote(q.id, vote)}
+                              />
+                            ) : (
+                              <ResultsPanel summary={getVoteSummary(q)} />
+                            )}
+                          </div>
                         </div>
-                      </div>
+                      </motion.div>
                     ))}
                   </div>
                 )}
               </div>
             )}
 
-            {/* --- Admin View --- */}
+            {/* Admin View */}
             {view === 'admin' && (
-              <div className="max-w-3xl mx-auto">
-                <header className="mb-10 text-center">
-                  <h2 className="text-4xl font-bold text-stone-900 mb-4 font-serif">Nieuw Agendapunt</h2>
-                  <p className="text-stone-500 text-lg">Stel een nieuwe vraag op voor de stemming.</p>
+              <div className="max-w-2xl mx-auto">
+                <header className="text-center mb-12">
+                  <div className="w-px h-12 bg-gradient-to-b from-transparent via-stone-300 to-transparent mx-auto mb-8" />
+                  <h1 className="text-3xl md:text-4xl font-serif text-stone-800 mb-3">
+                    Nieuw Agendapunt
+                  </h1>
+                  <p className="text-stone-500">
+                    Stel een nieuwe vraag op voor de stemming
+                  </p>
                 </header>
 
-                <div className="pro-card p-10 bg-white shadow-lg border-stone-200">
+                <div className="bg-white border border-stone-200 p-8 md:p-12">
                   <form onSubmit={createQuestion} className="space-y-8">
-                    <div className="grid md:grid-cols-2 gap-8">
-                      <div className="col-span-2 md:col-span-1">
-                        <label className="block text-sm font-bold text-stone-800 mb-3 uppercase tracking-wide">Doelgroep</label>
-                        <div className="relative">
-                          <select
-                            required
-                            value={newQuestion.groupId}
-                            onChange={e => setNewQuestion({ ...newQuestion, groupId: e.target.value })}
-                            className="input-field appearance-none bg-stone-50"
-                          >
-                            <option value="">Selecteer orgaan...</option>
-                            {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
-                          </select>
-                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-stone-500">
-                            <ArrowRight size={16} className="rotate-90" />
-                          </div>
-                        </div>
-                        <p className="text-xs text-stone-400 mt-2">Kies wie er mag stemmen.</p>
-                      </div>
-
-                      <div className="col-span-2 md:col-span-1">
-                        {/* Spacer or extra field could go here */}
+                    <div>
+                      <label className="block text-xs font-medium text-stone-500 mb-3 tracking-wider uppercase">
+                        Doelgroep
+                      </label>
+                      <div className="relative">
+                        <select
+                          required
+                          value={newQuestion.groupId}
+                          onChange={e => setNewQuestion({ ...newQuestion, groupId: e.target.value })}
+                          className="w-full appearance-none bg-stone-50 border-0 border-b-2 border-stone-200 px-4 py-3 pr-10 text-stone-800 focus:border-primary-600 focus:ring-0 focus:bg-white transition-all"
+                        >
+                          <option value="">Selecteer orgaan...</option>
+                          {groups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+                        </select>
+                        <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-stone-400 pointer-events-none" />
                       </div>
                     </div>
 
                     <div>
-                      <label className="block text-sm font-bold text-stone-800 mb-3 uppercase tracking-wide">Onderwerp</label>
+                      <label className="block text-xs font-medium text-stone-500 mb-3 tracking-wider uppercase">
+                        Onderwerp
+                      </label>
                       <input
                         required
                         type="text"
                         value={newQuestion.title}
                         onChange={e => setNewQuestion({ ...newQuestion, title: e.target.value })}
-                        placeholder="Bijv. Goedkeuring notulen..."
-                        className="input-field text-lg font-medium placeholder:font-normal"
+                        placeholder="Bijv. Goedkeuring notulen vergadering"
+                        className="w-full bg-stone-50 border-0 border-b-2 border-stone-200 px-4 py-3 text-stone-800 text-lg placeholder:text-stone-400 focus:border-primary-600 focus:ring-0 focus:bg-white transition-all"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-bold text-stone-800 mb-3 uppercase tracking-wide">Toelichting</label>
+                      <label className="block text-xs font-medium text-stone-500 mb-3 tracking-wider uppercase">
+                        Toelichting
+                      </label>
                       <textarea
                         value={newQuestion.description}
                         onChange={e => setNewQuestion({ ...newQuestion, description: e.target.value })}
-                        placeholder="Beschrijf de context, de details en het doel van deze stemming..."
-                        className="input-field min-h-[200px] resize-y leading-relaxed text-stone-600"
+                        placeholder="Beschrijf de context en het doel van deze stemming..."
+                        rows={5}
+                        className="w-full bg-stone-50 border-0 border-b-2 border-stone-200 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:border-primary-600 focus:ring-0 focus:bg-white transition-all resize-none"
                       />
                     </div>
 
-                    <div className="pt-8 flex items-center justify-between border-t border-stone-100 mt-8">
+                    <div className="flex items-center justify-between pt-8 border-t border-stone-100">
                       <button
                         type="button"
                         onClick={() => setView('dashboard')}
-                        className="text-stone-500 hover:text-stone-800 font-medium px-4 py-2 transition-colors"
+                        className="text-stone-500 hover:text-stone-700 text-sm transition-colors"
                       >
                         Annuleren
                       </button>
+
                       <button
                         type="submit"
                         disabled={submitting}
-                        className="btn btn-primary min-w-[200px] text-lg py-3 shadow-md hover:shadow-lg"
+                        className="bg-primary-800 text-white px-8 py-3 text-sm tracking-wider uppercase font-medium hover:bg-primary-900 transition-colors disabled:opacity-50"
                       >
-                        {submitting ? 'Moment geduld...' : 'Agendapunt Publiceren'}
+                        {submitting ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : (
+                          'Publiceren'
+                        )}
                       </button>
                     </div>
                   </form>
@@ -555,65 +634,161 @@ function App() {
   )
 }
 
-function NavButton({ active, onClick, icon, children }: { active: boolean, onClick: () => void, icon: React.ReactNode, children: React.ReactNode }) {
+function NavTab({ active, onClick, children, mobile }: {
+  active: boolean
+  onClick: () => void
+  children: React.ReactNode
+  mobile?: boolean
+}) {
   return (
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 px-4 py-2 rounded-md text-sm font-bold transition-all duration-200 tracking-wide",
-        active
-          ? "bg-primary-50 text-primary-800 ring-1 ring-primary-100"
-          : "text-stone-500 hover:text-stone-800 hover:bg-stone-50"
+        "flex items-center transition-all duration-200",
+        mobile
+          ? cn(
+              "px-4 py-2 text-sm rounded-full whitespace-nowrap",
+              active
+                ? "bg-primary-800 text-white"
+                : "bg-stone-100 text-stone-600 hover:bg-stone-200"
+            )
+          : cn(
+              "px-4 py-2 text-sm font-medium relative",
+              active
+                ? "text-primary-800"
+                : "text-stone-500 hover:text-stone-800",
+              active && "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5 after:bg-primary-800"
+            )
       )}
     >
-      {icon}
-      <span>{children}</span>
+      {children}
     </button>
   )
 }
 
-function VoteButton({ onClick, variant, disabled = false, loading = false }: { 
-  onClick: () => void
-  variant: 'yes' | 'no' | 'abstain'
-  disabled?: boolean
-  loading?: boolean 
+function VotingPanel({ question, userVote, isVoting, onVote }: {
+  question: Question
+  userVote: Vote | undefined
+  isVoting: boolean
+  onVote: (vote: string) => void
 }) {
-  const styles = {
-    yes: "border-stone-200 text-stone-600 hover:bg-emerald-50 hover:border-emerald-500 hover:text-emerald-700 hover:shadow-sm",
-    no: "border-stone-200 text-stone-600 hover:bg-rose-50 hover:border-rose-500 hover:text-rose-700 hover:shadow-sm",
-    abstain: "border-stone-200 text-stone-600 hover:bg-stone-100 hover:border-stone-400 hover:text-stone-800 hover:shadow-sm"
-  }
-
-  const disabledStyles = "opacity-50 cursor-not-allowed hover:bg-white hover:border-stone-200 hover:text-stone-600 hover:shadow-none"
-
-  const icons = {
-    yes: <Check size={18} strokeWidth={2.5} />,
-    no: <X size={18} strokeWidth={2.5} />,
-    abstain: <Minus size={18} strokeWidth={2.5} />
-  }
-
-  const labels = {
-    yes: "Akkoord",
-    no: "Niet Akkoord",
-    abstain: "Onthouding"
+  if (userVote) {
+    const voteLabels = { yes: 'Akkoord', no: 'Niet akkoord', abstain: 'Onthouding' }
+    return (
+      <div className="text-center py-4">
+        <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">
+          <Check className="w-5 h-5 text-emerald-600" />
+        </div>
+        <p className="text-sm font-medium text-stone-700 mb-1">Stem uitgebracht</p>
+        <p className="text-xs text-stone-500">{voteLabels[userVote.vote]}</p>
+        <p className="text-xs text-stone-400 mt-3">
+          {question.votes?.length || 0} / {question.groups?.required_votes} stemmen
+        </p>
+      </div>
+    )
   }
 
   return (
+    <div className="space-y-2">
+      <p className="text-xs text-stone-400 uppercase tracking-wider mb-4 text-center lg:text-left">
+        Uw stem
+      </p>
+      <VoteButton variant="yes" onClick={() => onVote('yes')} disabled={isVoting} loading={isVoting} />
+      <VoteButton variant="no" onClick={() => onVote('no')} disabled={isVoting} loading={isVoting} />
+      <VoteButton variant="abstain" onClick={() => onVote('abstain')} disabled={isVoting} loading={isVoting} />
+    </div>
+  )
+}
+
+function ResultsPanel({ summary }: {
+  summary: { yes: number; no: number; abstain: number }
+}) {
+  const total = summary.yes + summary.no + summary.abstain
+  const result = summary.yes > summary.no ? 'Goedgekeurd' : summary.no > summary.yes ? 'Afgewezen' : 'Geen meerderheid'
+  const resultColor = summary.yes > summary.no ? 'text-emerald-600' : summary.no > summary.yes ? 'text-rose-600' : 'text-stone-500'
+
+  return (
+    <div className="py-2">
+      <p className={cn("text-sm font-medium mb-4 text-center lg:text-left", resultColor)}>
+        {result}
+      </p>
+
+      <div className="space-y-3">
+        <ResultRow label="Akkoord" value={summary.yes} total={total} color="bg-emerald-500" />
+        <ResultRow label="Niet akkoord" value={summary.no} total={total} color="bg-rose-500" />
+        <ResultRow label="Onthouding" value={summary.abstain} total={total} color="bg-stone-400" />
+      </div>
+    </div>
+  )
+}
+
+function ResultRow({ label, value, total, color }: {
+  label: string
+  value: number
+  total: number
+  color: string
+}) {
+  const percentage = total > 0 ? (value / total) * 100 : 0
+
+  return (
+    <div>
+      <div className="flex justify-between text-xs text-stone-500 mb-1">
+        <span>{label}</span>
+        <span className="font-medium text-stone-700">{value}</span>
+      </div>
+      <div className="h-1 bg-stone-100 rounded-full overflow-hidden">
+        <motion.div
+          className={cn("h-full rounded-full", color)}
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        />
+      </div>
+    </div>
+  )
+}
+
+function VoteButton({ onClick, variant, disabled, loading }: {
+  onClick: () => void
+  variant: 'yes' | 'no' | 'abstain'
+  disabled: boolean
+  loading: boolean
+}) {
+  const config = {
+    yes: {
+      label: 'Akkoord',
+      icon: Check,
+      hover: 'hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-700'
+    },
+    no: {
+      label: 'Niet akkoord',
+      icon: X,
+      hover: 'hover:border-rose-500 hover:bg-rose-50 hover:text-rose-700'
+    },
+    abstain: {
+      label: 'Onthouding',
+      icon: Minus,
+      hover: 'hover:border-stone-400 hover:bg-stone-100'
+    }
+  }
+
+  const { label, icon: Icon, hover } = config[variant]
+
+  return (
     <button
-      onClick={(e) => { e.stopPropagation(); if (!disabled) onClick(); }}
+      onClick={onClick}
       disabled={disabled}
       className={cn(
-        "flex flex-1 md:flex-initial flex-row items-center gap-3 px-4 py-3 md:py-2.5 rounded-lg border transition-all duration-200 justify-start md:justify-center group",
-        disabled ? disabledStyles : styles[variant]
+        "w-full flex items-center gap-3 px-4 py-3 border border-stone-200 text-stone-600 text-sm transition-all duration-200",
+        disabled ? "opacity-50 cursor-not-allowed" : hover
       )}
-      title={labels[variant]}
     >
       {loading ? (
-        <Loader2 size={18} className="animate-spin" />
+        <Loader2 size={16} className="animate-spin" />
       ) : (
-        <span className="opacity-50 group-hover:opacity-100 transition-opacity">{icons[variant]}</span>
+        <Icon size={16} className="opacity-50" />
       )}
-      <span className="text-sm font-bold">{labels[variant]}</span>
+      <span>{label}</span>
     </button>
   )
 }
