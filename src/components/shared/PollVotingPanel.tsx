@@ -19,6 +19,13 @@ const neutralBars = [
   'bg-gradient-to-r from-stone-600 via-stone-500 to-stone-400',
 ]
 
+const neutralDots = [
+  'bg-stone-400',
+  'bg-stone-500',
+  'bg-stone-300',
+  'bg-stone-600',
+]
+
 export function PollVotingPanel({
   question,
   userVotes,
@@ -88,10 +95,12 @@ export function PollVotingPanel({
         )}
 
         {totalVotes > 0 && (
-          <div className="mt-3 rounded-md border border-stone-200 bg-stone-50/70 p-2 text-left">
+          <div className="mt-3 rounded-md border border-stone-200 bg-stone-50/70 p-3 text-left">
             <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-stone-500">
-              <span>Verdeling</span>
-              <span>{totalVotes} stemmen</span>
+              <span>Tussenstand</span>
+              <span>
+                {totalVotes} {totalVotes === 1 ? 'stem' : 'stemmen'}
+              </span>
             </div>
             <div className="mt-2 h-2.5 rounded-full bg-stone-100 overflow-hidden flex">
               {options.map((option, index) => {
@@ -105,6 +114,33 @@ export function PollVotingPanel({
                 return (
                   <div key={option.id} className="h-full" style={{ width: `${percentage}%` }}>
                     <div className={cn('h-full w-full', barClass)} />
+                  </div>
+                )
+              })}
+            </div>
+            <div className="mt-2 space-y-1">
+              {options.map((option, index) => {
+                const count = voteCounts.get(option.id) || 0
+                const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0
+                const isWinner = option.id === question.winning_option_id
+                const dotClass = isWinner
+                  ? 'bg-primary-500'
+                  : neutralDots[index % neutralDots.length]
+
+                return (
+                  <div key={option.id} className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <span className={cn('h-2 w-2 rounded-full', dotClass)} />
+                      <span className="truncate text-stone-600">{option.label}</span>
+                      {isWinner && (
+                        <span className="text-[10px] uppercase tracking-wider text-primary-600">
+                          Koploper
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-stone-500">
+                      {count} · {percentage}%
+                    </span>
                   </div>
                 )
               })}
@@ -164,7 +200,9 @@ export function PollVotingPanel({
         <div className="rounded-lg border border-stone-200 bg-stone-50/70 p-3 mb-2">
           <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-stone-500">
             <span>Tussenstand</span>
-            <span>{totalVotes} stemmen</span>
+            <span>
+              {totalVotes} {totalVotes === 1 ? 'stem' : 'stemmen'}
+            </span>
           </div>
           <div className="mt-2 h-2.5 rounded-full bg-stone-100 overflow-hidden flex">
             {options.map((option, index) => {
@@ -178,6 +216,33 @@ export function PollVotingPanel({
               return (
                 <div key={option.id} className="h-full" style={{ width: `${percentage}%` }}>
                   <div className={cn('h-full w-full', barClass)} />
+                </div>
+              )
+            })}
+          </div>
+          <div className="mt-2 space-y-1">
+            {options.map((option, index) => {
+              const count = voteCounts.get(option.id) || 0
+              const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0
+              const isWinner = option.id === question.winning_option_id
+              const dotClass = isWinner
+                ? 'bg-primary-500'
+                : neutralDots[index % neutralDots.length]
+
+              return (
+                <div key={option.id} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className={cn('h-2 w-2 rounded-full', dotClass)} />
+                    <span className="truncate text-stone-600">{option.label}</span>
+                    {isWinner && (
+                      <span className="text-[10px] uppercase tracking-wider text-primary-600">
+                        Koploper
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-stone-500">
+                    {count} · {percentage}%
+                  </span>
                 </div>
               )
             })}
@@ -281,7 +346,7 @@ export function PollVotingPanel({
                 />
               )}
             </motion.button>
-          )
+          )}
         })}
       </div>
 

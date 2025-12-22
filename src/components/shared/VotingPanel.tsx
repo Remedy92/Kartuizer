@@ -27,18 +27,21 @@ const segments = [
     key: 'yes',
     label: 'Akkoord',
     bar: 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400',
+    dot: 'bg-emerald-500',
     text: 'text-emerald-600',
   },
   {
     key: 'no',
     label: 'Niet akkoord',
     bar: 'bg-gradient-to-r from-rose-600 via-rose-500 to-rose-400',
+    dot: 'bg-rose-500',
     text: 'text-rose-600',
   },
   {
     key: 'abstain',
     label: 'Onthouding',
     bar: 'bg-gradient-to-r from-stone-500 via-stone-400 to-stone-300',
+    dot: 'bg-stone-400',
     text: 'text-stone-600',
   },
 ] as const
@@ -66,7 +69,9 @@ export function VotingPanel({ question, userVote, isVoting, onVote }: VotingPane
       <div className="mt-4 rounded-lg border border-stone-200 bg-stone-50/70 p-3">
         <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-stone-500">
           <span>Tussenstand</span>
-          <span>{totalVotes} stemmen</span>
+          <span>
+            {totalVotes} {totalVotes === 1 ? 'stem' : 'stemmen'}
+          </span>
         </div>
         <div className="mt-2 h-2.5 rounded-full bg-stone-100 overflow-hidden flex">
           {segments.map((segment) => {
@@ -79,6 +84,24 @@ export function VotingPanel({ question, userVote, isVoting, onVote }: VotingPane
                 className={cn('h-full', segment.bar)}
                 style={{ width: `${percentage}%` }}
               />
+            )
+          })}
+        </div>
+        <div className="mt-2 space-y-1">
+          {segments.map((segment) => {
+            const value = voteSummary[segment.key]
+            const percentage = totalVotes > 0 ? Math.round((value / totalVotes) * 100) : 0
+
+            return (
+              <div key={segment.key} className="flex items-center justify-between text-xs">
+                <div className="flex items-center gap-2">
+                  <span className={cn('h-2 w-2 rounded-full', segment.dot)} />
+                  <span className="text-stone-600">{segment.label}</span>
+                </div>
+                <span className={cn('font-medium', segment.text)}>
+                  {value} · {percentage}%
+                </span>
+              </div>
             )
           })}
         </div>
