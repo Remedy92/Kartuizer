@@ -31,6 +31,17 @@ export const groupsApi = {
     return data ?? []
   },
 
+  async getAllMembers(): Promise<GroupMember[]> {
+    ensureSupabaseConfigured()
+    const { data, error } = await supabase
+      .from('group_members')
+      .select('*, user_profiles(*)')
+      .order('joined_at', { ascending: true })
+
+    if (error) throw error
+    return data ?? []
+  },
+
   async getById(id: string): Promise<Group | null> {
     ensureSupabaseConfigured()
     const { data, error } = await supabase

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus,
@@ -6,17 +6,16 @@ import {
   Trash2,
   Users,
   Edit,
-  ChevronDown,
   UserPlus,
   X,
   Mail,
 } from 'lucide-react'
 import {
   useGroups,
+  useAllGroupMembers,
   useCreateGroup,
   useUpdateGroup,
   useDeleteGroup,
-  useGroupMembers,
   useAddGroupMember,
   useRemoveGroupMember,
   useUpdateMemberRole,
@@ -40,11 +39,11 @@ const roleLabels: Record<GroupMemberRole, string> = {
 
 interface GroupMembersSectionProps {
   groupId: string
+  members: GroupMember[]
   allUsers: UserProfile[]
 }
 
-function GroupMembersSection({ groupId, allUsers }: GroupMembersSectionProps) {
-  const { data: members, isLoading } = useGroupMembers(groupId)
+function GroupMembersSection({ groupId, members, allUsers }: GroupMembersSectionProps) {
   const addMember = useAddGroupMember()
   const removeMember = useRemoveGroupMember()
   const updateRole = useUpdateMemberRole()
@@ -58,7 +57,7 @@ function GroupMembersSection({ groupId, allUsers }: GroupMembersSectionProps) {
 
   // Filter out users already in the group
   const availableUsers = allUsers.filter(
-    (user) => !members?.some((m) => m.user_id === user.id)
+    (user) => !members.some((m) => m.user_id === user.id)
   )
 
   const handleAddMember = async () => {
@@ -112,20 +111,12 @@ function GroupMembersSection({ groupId, allUsers }: GroupMembersSectionProps) {
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="py-6 flex justify-center">
-        <Loader2 className="w-5 h-5 animate-spin text-stone-400" />
-      </div>
-    )
-  }
-
   return (
     <div className="pt-4 border-t border-stone-100">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <span className="text-xs font-medium text-stone-500 tracking-wider uppercase">
-          Leden ({members?.length || 0})
+          Leden ({members.length})
         </span>
         {!showAddForm && availableUsers.length > 0 && (
           <Button
@@ -196,7 +187,7 @@ function GroupMembersSection({ groupId, allUsers }: GroupMembersSectionProps) {
       </AnimatePresence>
 
       {/* Members list */}
-      {!members || members.length === 0 ? (
+      {members.length === 0 ? (
         <p className="text-sm text-stone-400 italic py-2">Nog geen leden</p>
       ) : (
         <div className="space-y-2">
@@ -292,17 +283,29 @@ function GroupMembersSection({ groupId, allUsers }: GroupMembersSectionProps) {
 }
 
 export function ManageGroupsPage() {
-  const { data: groups, isLoading } = useGroups()
+  const { data: groups, isLoading: isLoadingGroups } = useGroups()
+  const { data: allMembers, isLoading: isLoadingMembers } = useAllGroupMembers()
   const { data: users } = useUsers()
   const createGroup = useCreateGroup()
   const updateGroup = useUpdateGroup()
   const deleteGroup = useDeleteGroup()
   const { success, error: showError } = useToast()
 
+  // Group members by group_id for efficient lookup
+  const membersByGroup = useMemo(() => {
+    const map = new Map<string, GroupMember[]>()
+    for (const member of allMembers ?? []) {
+      const existing = map.get(member.group_id) ?? []
+      map.set(member.group_id, [...existing, member])
+    }
+    return map
+  }, [allMembers])
+
+  const isLoading = isLoadingGroups || isLoadingMembers
+
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingGroup, setEditingGroup] = useState<Group | null>(null)
   const [deletingGroup, setDeletingGroup] = useState<Group | null>(null)
-  const [expandedGroupId, setExpandedGroupId] = useState<string | null>(null)
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -314,8 +317,7 @@ export function ManageGroupsPage() {
     setRequiredVotes('')
   }
 
-  const openEditModal = (group: Group, e: React.MouseEvent) => {
-    e.stopPropagation()
+  const openEditModal = (group: Group) => {
     setEditingGroup(group)
     setName(group.name)
     setDescription(group.description ?? '')
@@ -364,16 +366,9 @@ export function ManageGroupsPage() {
       await deleteGroup.mutateAsync(deletingGroup.id)
       success('Groep verwijderd', 'De groep is succesvol verwijderd')
       setDeletingGroup(null)
-      if (expandedGroupId === deletingGroup.id) {
-        setExpandedGroupId(null)
-      }
     } catch (err) {
       showError('Fout', err instanceof Error ? err.message : 'Er is een fout opgetreden')
     }
-  }
-
-  const toggleExpand = (groupId: string) => {
-    setExpandedGroupId((prev) => (prev === groupId ? null : groupId))
   }
 
   return (
@@ -399,80 +394,49 @@ export function ManageGroupsPage() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {groups.map((group) => {
-            const isExpanded = expandedGroupId === group.id
-
-            return (
-              <Card
-                key={group.id}
-                className={`cursor-pointer transition-all ${
-                  isExpanded ? 'ring-2 ring-primary-200 shadow-lg' : ''
-                }`}
-                onClick={() => toggleExpand(group.id)}
-              >
-                <CardContent className="p-5">
-                  {/* Group header */}
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="p-3 rounded-lg bg-primary-50">
-                        <Users className="w-5 h-5 text-primary-700" />
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-stone-800">{group.name}</h3>
-                        <p className="text-sm text-stone-500">
-                          Drempel: {group.required_votes} stemmen
-                        </p>
-                      </div>
+          {groups.map((group) => (
+            <Card key={group.id}>
+              <CardContent className="p-5">
+                {/* Group header */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 rounded-lg bg-primary-50">
+                      <Users className="w-5 h-5 text-primary-700" />
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => openEditModal(group, e)}
-                      >
-                        <Edit size={14} />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setDeletingGroup(group)
-                        }}
-                      >
-                        <Trash2 size={14} className="text-rose-500" />
-                      </Button>
-                      <motion.div
-                        animate={{ rotate: isExpanded ? 180 : 0 }}
-                        transition={{ duration: 0.2 }}
-                      >
-                        <ChevronDown size={18} className="text-stone-400" />
-                      </motion.div>
+                    <div>
+                      <h3 className="font-medium text-stone-800">{group.name}</h3>
+                      <p className="text-sm text-stone-500">
+                        Drempel: {group.required_votes} stemmen
+                      </p>
                     </div>
                   </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => openEditModal(group)}
+                    >
+                      <Edit size={14} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDeletingGroup(group)}
+                    >
+                      <Trash2 size={14} className="text-rose-500" />
+                    </Button>
+                  </div>
+                </div>
 
-                  {/* Expandable members section */}
-                  <AnimatePresence>
-                    {isExpanded && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        className="overflow-hidden"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <GroupMembersSection
-                          groupId={group.id}
-                          allUsers={users || []}
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </CardContent>
-              </Card>
-            )
-          })}
+                {/* Members section */}
+                <GroupMembersSection
+                  groupId={group.id}
+                  members={membersByGroup.get(group.id) ?? []}
+                  allUsers={users || []}
+                />
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
 

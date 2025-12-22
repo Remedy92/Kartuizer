@@ -24,21 +24,21 @@ const donutSegments = [
     label: 'Akkoord',
     key: 'yes',
     color: 'stroke-emerald-500',
-    bar: 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400',
+    dot: 'bg-emerald-500',
     text: 'text-emerald-600',
   },
   {
     label: 'Niet akkoord',
     key: 'no',
     color: 'stroke-rose-500',
-    bar: 'bg-gradient-to-r from-rose-600 via-rose-500 to-rose-400',
+    dot: 'bg-rose-500',
     text: 'text-rose-600',
   },
   {
     label: 'Onthouding',
     key: 'abstain',
     color: 'stroke-stone-400',
-    bar: 'bg-gradient-to-r from-stone-500 via-stone-400 to-stone-300',
+    dot: 'bg-stone-400',
     text: 'text-stone-600',
   },
 ] as const
@@ -48,63 +48,43 @@ export function ResultsPanel({ summary }: ResultsPanelProps) {
   const result = getVoteResult(summary)
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <div className="relative h-20 w-20">
+    <div className="space-y-5">
+      {/* Result announcement - clear hierarchy */}
+      <div className="text-center pb-4 border-b border-stone-100">
+        <p className={cn('text-lg font-serif font-semibold', resultColors[result])}>
+          {resultLabels[result]}
+        </p>
+        <p className="text-xs text-stone-400 mt-1">
+          {total} {total === 1 ? 'stem' : 'stemmen'} uitgebracht
+        </p>
+      </div>
+
+      {/* Donut chart with legend integrated */}
+      <div className="flex items-center gap-5">
+        <div className="relative w-24 h-24 flex-shrink-0">
           <DonutChart summary={summary} total={total} />
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-[10px] uppercase tracking-wider text-stone-400">Totaal</span>
-            <span className="text-sm font-semibold text-stone-800">{total}</span>
-          </div>
         </div>
-        <div className="flex-1 min-w-0">
-          <p className={cn('text-sm font-semibold', resultColors[result])}>{resultLabels[result]}</p>
-          <p className="text-xs text-stone-500 mt-1">
-            Resultaat op basis van {total} {total === 1 ? 'stem' : 'stemmen'}
-          </p>
+
+        {/* Legend - vertical beside chart */}
+        <div className="flex-1 space-y-2">
+          {donutSegments.map((segment) => {
+            const value = summary[segment.key]
+            const percentage = total > 0 ? Math.round((value / total) * 100) : 0
+
+            return (
+              <div key={segment.key} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className={cn('w-3 h-3 rounded-sm', segment.dot)} />
+                  <span className="text-sm text-stone-600">{segment.label}</span>
+                </div>
+                <span className={cn('text-sm font-medium', segment.text)}>
+                  {value}{' '}
+                  <span className="text-stone-400 font-normal">({percentage}%)</span>
+                </span>
+              </div>
+            )
+          })}
         </div>
-      </div>
-
-      <div className="space-y-2">
-        {donutSegments.map((segment) => (
-          <ResultRow
-            key={segment.key}
-            label={segment.label}
-            value={summary[segment.key]}
-            total={total}
-            bar={segment.bar}
-            text={segment.text}
-          />
-        ))}
-      </div>
-    </div>
-  )
-}
-
-interface ResultRowProps {
-  label: string
-  value: number
-  total: number
-  bar: string
-  text: string
-}
-
-function ResultRow({ label, value, total, bar, text }: ResultRowProps) {
-  const percentage = total > 0 ? Math.round((value / total) * 100) : 0
-
-  return (
-    <div className="rounded-md p-2">
-      <div className="flex items-center justify-between text-xs text-stone-500 mb-1">
-        <span className="font-medium text-stone-700">{label}</span>
-        <span className={cn('font-semibold', text)}>{percentage}%</span>
-      </div>
-      <div className="h-2.5 bg-stone-100 rounded-full overflow-hidden">
-        <motion.div
-          className={cn('h-full rounded-full', bar)}
-          initial={{ width: 0 }}
-          animate={{ width: `${percentage}%` }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        />
       </div>
     </div>
   )
@@ -132,12 +112,14 @@ function DonutChart({ summary, total }: DonutChartProps) {
       {donutSegments.map((segment) => {
         const value = summary[segment.key]
         const percentage = total > 0 ? (value / total) * 100 : 0
+        if (percentage === 0) return null
+
         const dashArray = `${percentage} ${100 - percentage}`
         const dashOffset = -cumulative
         cumulative += percentage
 
         return (
-          <circle
+          <motion.circle
             key={segment.key}
             cx="18"
             cy="18"
@@ -148,6 +130,9 @@ function DonutChart({ summary, total }: DonutChartProps) {
             strokeDasharray={dashArray}
             strokeDashoffset={dashOffset}
             className={segment.color}
+            initial={{ strokeDasharray: '0 100' }}
+            animate={{ strokeDasharray: dashArray }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
           />
         )
       })}

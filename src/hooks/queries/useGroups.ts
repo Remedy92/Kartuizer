@@ -9,6 +9,7 @@ export const groupKeys = {
   details: () => [...groupKeys.all, 'detail'] as const,
   detail: (id: string) => [...groupKeys.details(), id] as const,
   members: (id: string) => [...groupKeys.detail(id), 'members'] as const,
+  allMembers: () => [...groupKeys.all, 'all-members'] as const,
 }
 
 export function useGroups() {
@@ -31,6 +32,13 @@ export function useGroupMembers(groupId: string) {
     queryKey: groupKeys.members(groupId),
     queryFn: () => groupsApi.getMembers(groupId),
     enabled: !!groupId,
+  })
+}
+
+export function useAllGroupMembers() {
+  return useQuery({
+    queryKey: groupKeys.allMembers(),
+    queryFn: () => groupsApi.getAllMembers(),
   })
 }
 
@@ -84,6 +92,7 @@ export function useAddGroupMember() {
     }) => groupsApi.addMember(groupId, userId, role),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: groupKeys.members(variables.groupId) })
+      queryClient.invalidateQueries({ queryKey: groupKeys.allMembers() })
     },
   })
 }
@@ -96,6 +105,7 @@ export function useRemoveGroupMember() {
       groupsApi.removeMember(groupId, userId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: groupKeys.members(variables.groupId) })
+      queryClient.invalidateQueries({ queryKey: groupKeys.allMembers() })
     },
   })
 }
@@ -115,6 +125,7 @@ export function useUpdateMemberRole() {
     }) => groupsApi.updateMemberRole(groupId, userId, role),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: groupKeys.members(variables.groupId) })
+      queryClient.invalidateQueries({ queryKey: groupKeys.allMembers() })
     },
   })
 }

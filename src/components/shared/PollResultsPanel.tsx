@@ -9,13 +9,6 @@ interface PollResultsPanelProps {
   question: Question
 }
 
-const neutralBars = [
-  'bg-gradient-to-r from-stone-400 via-stone-300 to-stone-200',
-  'bg-gradient-to-r from-stone-500 via-stone-400 to-stone-300',
-  'bg-gradient-to-r from-stone-300 via-stone-200 to-stone-100',
-  'bg-gradient-to-r from-stone-600 via-stone-500 to-stone-400',
-]
-
 export function PollResultsPanel({ question }: PollResultsPanelProps) {
   const summary = useMemo(
     () =>
@@ -32,109 +25,100 @@ export function PollResultsPanel({ question }: PollResultsPanelProps) {
     [summary.options]
   )
 
-  const maxVotes = sortedOptions[0]?.vote_count || 0
-  const totalVotes = summary.total_votes
-
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
+      {/* Winner announcement */}
       {summary.winner && (
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
+          initial={{ opacity: 0, y: -5 }}
           animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-2 p-3 bg-amber-50 border border-amber-200"
+          className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200/60 rounded-md"
         >
-          <Trophy className="w-4 h-4 text-amber-600" />
+          <div className="w-10 h-10 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0">
+            <Trophy className="w-5 h-5 text-amber-900" />
+          </div>
           <div className="flex-1 min-w-0">
-            <p className="text-xs text-amber-600 font-medium uppercase tracking-wider">Winnaar</p>
-            <p className="text-sm font-medium text-amber-900 truncate">{summary.winner.label}</p>
+            <p className="text-xs text-amber-600 uppercase tracking-wide font-medium">Winnaar</p>
+            <p className="text-base font-medium text-amber-900 truncate">{summary.winner.label}</p>
+          </div>
+          <div className="text-right flex-shrink-0">
+            <p className="text-lg font-semibold text-amber-800">
+              {summary.total_votes > 0 && summary.winner.vote_count
+                ? Math.round((summary.winner.vote_count / summary.total_votes) * 100)
+                : 0}
+              %
+            </p>
+            <p className="text-xs text-amber-600">{summary.winner.vote_count ?? 0} stemmen</p>
           </div>
         </motion.div>
       )}
 
-      <div className="rounded-lg border border-stone-200 bg-stone-50/70 p-3">
-        <div className="flex items-center justify-between">
-          <span className="text-[11px] uppercase tracking-wider text-stone-500">Verdeling</span>
-          <span className="text-xs text-stone-500">
-            {summary.total_voters} {summary.total_voters === 1 ? 'stemmer' : 'stemmers'}
-          </span>
-        </div>
-        <div className="mt-2 h-2.5 rounded-full bg-stone-100 overflow-hidden flex">
-          {totalVotes === 0 ? (
-            <div className="h-full w-full bg-stone-200/70" />
-          ) : (
-            sortedOptions.map((item, index) => {
-              const width = totalVotes > 0 ? (item.vote_count / totalVotes) * 100 : 0
-              const isWinner = item.option.id === question.winning_option_id
-              const barClass = isWinner
-                ? 'bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400'
-                : neutralBars[index % neutralBars.length]
+      {/* All results - prominent bars */}
+      <div className="space-y-4">
+        <p className="text-xs font-medium text-stone-500 uppercase tracking-wide">
+          Alle resultaten
+        </p>
 
-              return (
-                <div
-                  key={item.option.id}
-                  className={cn('h-full', barClass)}
-                  style={{ width: `${width}%` }}
-                />
-              )
-            })
-          )}
+        <div className="space-y-3">
+          {sortedOptions.map((item, index) => {
+            const isWinner = item.option.id === question.winning_option_id
+
+            return (
+              <motion.div
+                key={item.option.id}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.06 }}
+                className="space-y-1.5"
+              >
+                <div className="flex items-center justify-between">
+                  <span
+                    className={cn(
+                      'text-sm font-medium',
+                      isWinner ? 'text-primary-800' : 'text-stone-600'
+                    )}
+                  >
+                    {item.option.label}
+                  </span>
+                  <span
+                    className={cn(
+                      'text-sm',
+                      isWinner ? 'text-primary-600 font-semibold' : 'text-stone-500'
+                    )}
+                  >
+                    {item.vote_count} ({item.percentage}%)
+                  </span>
+                </div>
+
+                <div className="h-4 rounded-sm bg-stone-100 overflow-hidden">
+                  <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${item.percentage}%` }}
+                    transition={{
+                      duration: 0.6,
+                      delay: index * 0.06,
+                      ease: [0.22, 1, 0.36, 1],
+                    }}
+                    className={cn(
+                      'h-full rounded-sm',
+                      isWinner
+                        ? 'bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400'
+                        : 'bg-stone-300'
+                    )}
+                  />
+                </div>
+              </motion.div>
+            )
+          })}
         </div>
       </div>
 
-      <div className="space-y-3">
-        {sortedOptions.map((item, index) => {
-          const isWinner = item.option.id === question.winning_option_id
-          const barWidth = maxVotes > 0 ? (item.vote_count / maxVotes) * 100 : 0
-
-          return (
-            <motion.div
-              key={item.option.id}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: index * 0.05 }}
-              className="space-y-1.5 rounded-md p-2"
-            >
-              <div className="flex items-center justify-between text-sm">
-                <span
-                  className={cn(
-                    'font-medium truncate',
-                    isWinner ? 'text-primary-800' : 'text-stone-700'
-                  )}
-                >
-                  {item.option.label}
-                </span>
-                <span
-                  className={cn(
-                    'text-xs flex-shrink-0 ml-2',
-                    isWinner ? 'text-primary-600 font-medium' : 'text-stone-500'
-                  )}
-                >
-                  {item.vote_count} ({item.percentage}%)
-                </span>
-              </div>
-
-              <div className="h-2.5 bg-stone-100 overflow-hidden rounded-full">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${barWidth}%` }}
-                  transition={{ duration: 0.6, delay: index * 0.05, ease: [0.22, 1, 0.36, 1] }}
-                  className={cn(
-                    'h-full',
-                    isWinner
-                      ? 'bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400'
-                      : neutralBars[index % neutralBars.length]
-                  )}
-                />
-              </div>
-            </motion.div>
-          )
-        })}
-      </div>
-
-      <div className="flex items-center justify-center gap-2 pt-2 text-xs text-stone-500">
+      {/* Footer stats */}
+      <div className="flex items-center justify-center gap-2 pt-3 border-t border-stone-100 text-xs text-stone-500">
         <Users className="w-3.5 h-3.5" />
         <span>
-          {summary.total_voters} {summary.total_voters === 1 ? 'stem' : 'stemmen'} uitgebracht
+          {summary.total_voters} {summary.total_voters === 1 ? 'stemmer' : 'stemmers'} ·{' '}
+          {summary.total_votes} stemmen
         </span>
       </div>
     </div>

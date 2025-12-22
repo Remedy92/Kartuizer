@@ -12,20 +12,6 @@ interface PollVotingPanelProps {
   onMultiVote: (optionIds: string[]) => void
 }
 
-const neutralBars = [
-  'bg-gradient-to-r from-stone-400 via-stone-300 to-stone-200',
-  'bg-gradient-to-r from-stone-500 via-stone-400 to-stone-300',
-  'bg-gradient-to-r from-stone-300 via-stone-200 to-stone-100',
-  'bg-gradient-to-r from-stone-600 via-stone-500 to-stone-400',
-]
-
-const neutralDots = [
-  'bg-stone-400',
-  'bg-stone-500',
-  'bg-stone-300',
-  'bg-stone-600',
-]
-
 export function PollVotingPanel({
   question,
   userVotes,
@@ -68,104 +54,130 @@ export function PollVotingPanel({
     [question.votes]
   )
 
-  const winningOption = useMemo(
-    () => options.find((o) => o.id === question.winning_option_id),
-    [options, question.winning_option_id]
-  )
-  const winningCount = winningOption ? voteCounts.get(winningOption.id) || 0 : 0
-  const winningPercentage = totalVotes > 0 ? Math.round((winningCount / totalVotes) * 100) : 0
+  const requiredVotes = question.groups?.required_votes || 1
+  const quorumPercentage = Math.min((totalVoters / requiredVotes) * 100, 100)
 
+  // Voted state - clear hierarchy with better visualization
   if (hasVoted && !isEditing) {
     const selectedLabels = options
       .filter((o) => userSelectedOptionIds.has(o.id))
       .map((o) => o.label)
 
     return (
-      <div className="text-center py-4">
-        <div className="w-10 h-10 bg-emerald-100 flex items-center justify-center mx-auto mb-3">
-          <Check className="w-5 h-5 text-emerald-600" />
+      <div className="space-y-5">
+        {/* Your selection confirmation */}
+        <div className="flex items-start gap-3 pb-4 border-b border-stone-100">
+          <div className="w-8 h-8 rounded-full bg-emerald-500 flex items-center justify-center flex-shrink-0">
+            <Check className="w-4 h-4 text-white" strokeWidth={3} />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-stone-400 uppercase tracking-wide mb-0.5">Uw keuze</p>
+            <p className="text-sm font-medium text-stone-800">{selectedLabels.join(', ')}</p>
+          </div>
+          <button
+            onClick={() => {
+              setIsEditing(true)
+              setSelectedOptions(new Set(userSelectedOptionIds))
+            }}
+            className="text-xs text-stone-400 hover:text-primary-600 transition-colors flex items-center gap-1 flex-shrink-0"
+          >
+            <Pencil size={11} />
+            Wijzigen
+          </button>
         </div>
-        <p className="text-sm font-medium text-stone-700 mb-1">Stem uitgebracht</p>
-        <p className="text-xs text-stone-500">{selectedLabels.join(', ')}</p>
 
-        {question.winning_option_id && winningOption && totalVotes > 0 && (
-          <p className="text-xs text-amber-600 mt-2 font-medium">
-            Tussenstand: {winningOption.label} • {winningPercentage}% ({winningCount} stemmen)
-          </p>
-        )}
-
+        {/* Results visualization */}
         {totalVotes > 0 && (
-          <div className="mt-3 rounded-md border border-stone-200 bg-stone-50/70 p-3 text-left">
-            <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-stone-500">
-              <span>Tussenstand</span>
-              <span>
-                {totalVotes} {totalVotes === 1 ? 'stem' : 'stemmen'}
+          <div className="space-y-4">
+            <div className="flex items-baseline justify-between">
+              <span className="text-xs font-medium text-stone-500 uppercase tracking-wide">
+                Tussenstand
               </span>
+              <span className="text-xs text-stone-400">{totalVotes} stemmen</span>
             </div>
-            <div className="mt-2 h-2.5 rounded-full bg-stone-100 overflow-hidden flex">
+
+            {/* Stacked results - each option gets a prominent bar */}
+            <div className="space-y-2.5">
               {options.map((option, index) => {
                 const count = voteCounts.get(option.id) || 0
                 const percentage = totalVotes > 0 ? (count / totalVotes) * 100 : 0
                 const isWinner = option.id === question.winning_option_id
-                const barClass = isWinner
-                  ? 'bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400'
-                  : neutralBars[index % neutralBars.length]
 
                 return (
-                  <div key={option.id} className="h-full" style={{ width: `${percentage}%` }}>
-                    <div className={cn('h-full w-full', barClass)} />
-                  </div>
-                )
-              })}
-            </div>
-            <div className="mt-2 space-y-1">
-              {options.map((option, index) => {
-                const count = voteCounts.get(option.id) || 0
-                const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0
-                const isWinner = option.id === question.winning_option_id
-                const dotClass = isWinner
-                  ? 'bg-primary-500'
-                  : neutralDots[index % neutralDots.length]
-
-                return (
-                  <div key={option.id} className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <span className={cn('h-2 w-2 rounded-full', dotClass)} />
-                      <span className="truncate text-stone-600">{option.label}</span>
-                      {isWinner && (
-                        <span className="text-[10px] uppercase tracking-wider text-primary-600">
-                          Koploper
-                        </span>
-                      )}
+                  <motion.div
+                    key={option.id}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="space-y-1"
+                  >
+                    <div className="flex items-center justify-between text-xs">
+                      <span
+                        className={cn(
+                          'font-medium',
+                          isWinner ? 'text-primary-700' : 'text-stone-600'
+                        )}
+                      >
+                        {option.label}
+                        {isWinner && (
+                          <span className="ml-1.5 text-[10px] text-primary-500 uppercase tracking-wide">
+                            Koploper
+                          </span>
+                        )}
+                      </span>
+                      <span
+                        className={cn(isWinner ? 'text-primary-600 font-medium' : 'text-stone-400')}
+                      >
+                        {count} · {Math.round(percentage)}%
+                      </span>
                     </div>
-                    <span className="text-stone-500">
-                      {count} · {percentage}%
-                    </span>
-                  </div>
+
+                    <div className="h-3 rounded-sm bg-stone-100 overflow-hidden">
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${percentage}%` }}
+                        transition={{
+                          duration: 0.5,
+                          delay: index * 0.05,
+                          ease: [0.22, 1, 0.36, 1],
+                        }}
+                        className={cn(
+                          'h-full rounded-sm',
+                          isWinner
+                            ? 'bg-gradient-to-r from-primary-500 to-primary-400'
+                            : 'bg-stone-300'
+                        )}
+                      />
+                    </div>
+                  </motion.div>
                 )
               })}
             </div>
           </div>
         )}
 
-        <p className="text-xs text-stone-400 mt-3">
-          {totalVoters} / {question.groups?.required_votes} stemmers
-        </p>
-
-        <button
-          onClick={() => {
-            setIsEditing(true)
-            setSelectedOptions(new Set(userSelectedOptionIds))
-          }}
-          className="mt-4 inline-flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-700"
-        >
-          <Pencil size={12} />
-          <span>Stem wijzigen</span>
-        </button>
+        {/* Quorum progress */}
+        <div className="pt-3 border-t border-stone-100">
+          <div className="flex items-center justify-between text-xs text-stone-400 mb-1.5">
+            <span>Deelname</span>
+            <span>
+              {totalVoters} / {requiredVotes} stemmers
+            </span>
+          </div>
+          <div className="h-1.5 rounded-full bg-stone-100 overflow-hidden">
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${quorumPercentage}%` }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+              className="h-full rounded-full bg-primary-400"
+            />
+          </div>
+        </div>
       </div>
     )
   }
 
+  // Voting state - options to choose from
   const handleOptionClick = (optionId: string) => {
     if (isVoting) return
 
@@ -191,72 +203,19 @@ export function PollVotingPanel({
   }
 
   return (
-    <div className="space-y-2">
-      <p className="text-xs text-stone-400 uppercase tracking-wider mb-4 text-center lg:text-left">
-        {isEditing ? 'Wijzig uw keuze' : question.allow_multiple ? 'Kies meerdere' : 'Maak uw keuze'}
+    <div className="space-y-4">
+      <p className="text-xs text-stone-500 uppercase tracking-wide">
+        {isEditing ? 'Wijzig uw keuze' : question.allow_multiple ? 'Kies meerdere opties' : 'Maak uw keuze'}
       </p>
 
-      {totalVotes > 0 && (
-        <div className="rounded-lg border border-stone-200 bg-stone-50/70 p-3 mb-2">
-          <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-stone-500">
-            <span>Tussenstand</span>
-            <span>
-              {totalVotes} {totalVotes === 1 ? 'stem' : 'stemmen'}
-            </span>
-          </div>
-          <div className="mt-2 h-2.5 rounded-full bg-stone-100 overflow-hidden flex">
-            {options.map((option, index) => {
-              const count = voteCounts.get(option.id) || 0
-              const percentage = totalVotes > 0 ? (count / totalVotes) * 100 : 0
-              const isWinner = option.id === question.winning_option_id
-              const barClass = isWinner
-                ? 'bg-gradient-to-r from-primary-600 via-primary-500 to-primary-400'
-                : neutralBars[index % neutralBars.length]
-
-              return (
-                <div key={option.id} className="h-full" style={{ width: `${percentage}%` }}>
-                  <div className={cn('h-full w-full', barClass)} />
-                </div>
-              )
-            })}
-          </div>
-          <div className="mt-2 space-y-1">
-            {options.map((option, index) => {
-              const count = voteCounts.get(option.id) || 0
-              const percentage = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0
-              const isWinner = option.id === question.winning_option_id
-              const dotClass = isWinner
-                ? 'bg-primary-500'
-                : neutralDots[index % neutralDots.length]
-
-              return (
-                <div key={option.id} className="flex items-center justify-between text-xs">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <span className={cn('h-2 w-2 rounded-full', dotClass)} />
-                    <span className="truncate text-stone-600">{option.label}</span>
-                    {isWinner && (
-                      <span className="text-[10px] uppercase tracking-wider text-primary-600">
-                        Koploper
-                      </span>
-                    )}
-                  </div>
-                  <span className="text-stone-500">
-                    {count} · {percentage}%
-                  </span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
+      {/* Poll options */}
       <div className="space-y-2">
         {options.map((option, index) => {
           const isSelected = question.allow_multiple
             ? selectedOptions.has(option.id)
             : userSelectedOptionIds.has(option.id)
           const voteCount = voteCounts.get(option.id) || 0
-          const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0
+          const percentage = totalVotes > 0 ? (voteCount / totalVotes) * 100 : 0
           const isWinner = option.id === question.winning_option_id
 
           return (
@@ -265,34 +224,43 @@ export function PollVotingPanel({
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ delay: index * 0.05 }}
+              whileHover={isVoting ? undefined : { scale: 1.01 }}
+              whileTap={isVoting ? undefined : { scale: 0.99 }}
               onClick={() => handleOptionClick(option.id)}
               disabled={isVoting}
               className={cn(
-                'w-full text-left p-3 border-2 transition-all duration-200 relative overflow-hidden',
+                'w-full text-left p-3.5 border-2 transition-all duration-200 relative overflow-hidden',
                 'rounded-md',
                 isSelected
                   ? 'border-primary-600 bg-primary-50'
                   : 'border-stone-200 hover:border-stone-300 bg-white'
               )}
             >
+              {/* Background percentage bar */}
+              {totalVotes > 0 && percentage > 0 && (
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${percentage}%` }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  className={cn(
+                    'absolute inset-y-0 left-0 z-0 opacity-40',
+                    isSelected ? 'bg-primary-100' : isWinner ? 'bg-primary-50' : 'bg-stone-50'
+                  )}
+                />
+              )}
+
               <div className="flex items-start gap-3 relative z-10">
                 <div
                   className={cn(
-                    'w-4 h-4 flex-shrink-0 mt-0.5 border-2 transition-all duration-200',
-                    question.allow_multiple ? '' : 'rounded-full',
-                    isSelected
-                      ? 'border-primary-600 bg-primary-600'
-                      : 'border-stone-300 bg-white'
+                    'w-4 h-4 flex-shrink-0 mt-0.5 border-2 transition-all duration-200 flex items-center justify-center',
+                    question.allow_multiple ? 'rounded-sm' : 'rounded-full',
+                    isSelected ? 'border-primary-600 bg-primary-600' : 'border-stone-300 bg-white'
                   )}
                 >
                   {isSelected && (
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ scale: 1 }}
-                      className="w-full h-full flex items-center justify-center"
-                    >
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
                       {question.allow_multiple ? (
-                        <Check className="w-2.5 h-2.5 text-white" />
+                        <Check className="w-2.5 h-2.5 text-white" strokeWidth={3} />
                       ) : (
                         <div className="w-1.5 h-1.5 rounded-full bg-white" />
                       )}
@@ -310,9 +278,7 @@ export function PollVotingPanel({
                     {option.label}
                   </span>
                   {option.description && (
-                    <span className="text-xs text-stone-500 block mt-0.5">
-                      {option.description}
-                    </span>
+                    <span className="text-xs text-stone-500 block mt-0.5">{option.description}</span>
                   )}
                 </div>
 
@@ -320,36 +286,19 @@ export function PollVotingPanel({
                   <span
                     className={cn(
                       'text-[11px] font-medium px-2 py-0.5 rounded-full flex-shrink-0',
-                      isWinner
-                        ? 'bg-primary-100 text-primary-700'
-                        : 'bg-stone-100 text-stone-500'
+                      isWinner ? 'bg-primary-100 text-primary-700' : 'bg-stone-100 text-stone-500'
                     )}
                   >
-                    {percentage}%
+                    {Math.round(percentage)}%
                   </span>
                 )}
               </div>
-
-              {totalVotes > 0 && (
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${percentage}%` }}
-                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-                  className={cn(
-                    'absolute inset-y-0 left-0 z-0 opacity-80',
-                    isSelected
-                      ? 'bg-primary-100'
-                      : isWinner
-                        ? 'bg-primary-50'
-                        : 'bg-stone-50'
-                  )}
-                />
-              )}
             </motion.button>
-          )}
+          )
         })}
       </div>
 
+      {/* Submit button for multi-select */}
       {question.allow_multiple && (
         <motion.button
           initial={{ opacity: 0 }}
@@ -357,7 +306,7 @@ export function PollVotingPanel({
           onClick={handleSubmitMulti}
           disabled={isVoting || selectedOptions.size === 0}
           className={cn(
-            'w-full mt-3 py-2.5 text-sm font-medium transition-all duration-200',
+            'w-full mt-2 py-2.5 rounded-md text-sm font-medium transition-all duration-200',
             selectedOptions.size > 0
               ? 'bg-primary-800 text-white hover:bg-primary-900'
               : 'bg-stone-100 text-stone-400 cursor-not-allowed'
@@ -367,13 +316,18 @@ export function PollVotingPanel({
         </motion.button>
       )}
 
+      {/* Voter count */}
+      <p className="text-xs text-stone-400 text-center pt-2">
+        {totalVoters} van {requiredVotes} stemmers
+      </p>
+
       {isEditing && (
         <button
           onClick={() => {
             setIsEditing(false)
             setSelectedOptions(new Set())
           }}
-          className="w-full text-xs text-stone-400 hover:text-stone-600 mt-2 py-2"
+          className="w-full text-xs text-stone-400 hover:text-stone-600 py-2 transition-colors"
         >
           Annuleren
         </button>
