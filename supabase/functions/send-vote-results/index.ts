@@ -96,7 +96,7 @@ Deno.serve(async (req) => {
             },
             body: JSON.stringify({
                 from: 'Karthuizer Voting <onboarding@resend.dev>',
-                to: ['johanvh@gmail.com'], // TODO: change to 'emails' after verifying domain in Resend
+                to: ['RaadKarthuizer@gmail.com'], // TODO: change to 'emails' after verifying domain in Resend
                 subject: `${resultText} - ${q.title}`,
                 html: emailContent,
             }),
