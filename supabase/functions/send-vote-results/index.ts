@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
-const SMTP2GO_API_KEY = Deno.env.get('SMTP2GO_API_KEY');
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 
 Deno.serve(async (req) => {
     try {
@@ -118,23 +118,23 @@ Deno.serve(async (req) => {
 </html>
     `;
 
-        const res = await fetch('https://api.smtp2go.com/v3/email/send', {
+        const res = await fetch('https://api.resend.com/emails', {
             method: 'POST',
             headers: {
+                'Authorization': `Bearer ${RESEND_API_KEY}`,
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                api_key: SMTP2GO_API_KEY,
-                sender: 'Karthuizer Voting <johanvanhoutven@gmail.com>',
+                from: 'Karthuizer Voting <johanvanhoutven@gmail.com>',
                 to: emails,
                 subject: `${resultText} - ${question.title}`,
-                html_body: emailContent,
+                html: emailContent,
             }),
         });
 
         if (!res.ok) {
             const errorText = await res.text();
-            throw new Error(`SMTP2GO API error (${res.status}): ${errorText}`);
+            throw new Error(`Resend API error (${res.status}): ${errorText}`);
         }
 
         const resData = await res.json();

@@ -20,7 +20,7 @@ npm run preview  # Preview production build
 - **Frontend**: React 19, TypeScript, Vite 7, Tailwind CSS 4 (via @tailwindcss/vite plugin)
 - **Backend**: Supabase (Auth, Database, Edge Functions)
 - **UI**: Framer Motion for animations, Lucide React for icons, clsx/tailwind-merge for class utilities
-- **Email**: Resend API (via Edge Function)
+- **Email**: Resend (via Edge Function)
 
 ## Architecture
 
@@ -34,7 +34,7 @@ The entire UI lives in `src/App.tsx` as a single component with view-based routi
 - `group_members` - Links users to groups
 
 ### Edge Functions
-`supabase/functions/send-vote-results/` - Triggered when question status changes to "completed", sends email summary to all group members via Resend API.
+`supabase/functions/send-vote-results/` - Triggered when question status changes to "completed", sends email summary to all group members via Resend.
 
 ## Environment Variables
 
