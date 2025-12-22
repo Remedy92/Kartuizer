@@ -258,6 +258,10 @@ export function ManageQuestionsPage() {
             />
           </div>
 
+          <p className="text-xs text-stone-400">
+            Niet bewerkbaar zodra er stemmen zijn uitgebracht.
+          </p>
+
           <div className="space-y-3">
             {editOptions.map((option, index) => (
               <div key={option.id} className="flex gap-3 items-start">
@@ -316,11 +320,20 @@ export function ManageQuestionsPage() {
               onClick={() => {
                 setPollToEdit(null)
                 setEditOptions([])
+                setEditTitle('')
+                setEditDescription('')
               }}
             >
               Annuleren
             </Button>
-            <Button type="submit" loading={updatePollDraft.isPending}>
+            <Button
+              type="submit"
+              loading={updatePollDraft.isPending}
+              disabled={
+                !editTitle.trim() ||
+                editOptions.filter((o) => o.label.trim()).length < 2
+              }
+            >
               Opslaan
             </Button>
           </div>
