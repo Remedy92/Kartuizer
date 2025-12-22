@@ -26,7 +26,8 @@ export function VotingPanel({ question, userVote, isVoting, onVote }: VotingPane
   const decidedResult = question.decided_result
 
   // User has voted and is not editing - show current vote with edit option
-  if (userVote && !isEditing) {
+  // Note: userVote.vote can be null for poll votes, but this panel is only for standard votes
+  if (userVote && userVote.vote && !isEditing) {
     return (
       <div className="text-center py-4">
         <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-3">

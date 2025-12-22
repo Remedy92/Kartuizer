@@ -1,5 +1,5 @@
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
-import type { Question, QuestionStatus, CompletionMethod } from '@/types'
+import type { Question, QuestionStatus, CompletionMethod, QuestionType } from '@/types'
 
 function ensureSupabaseConfigured() {
   if (!isSupabaseConfigured) {
@@ -12,6 +12,13 @@ export interface CreateQuestionInput {
   description?: string
   group_id: string
   deadline?: string
+  question_type?: QuestionType
+  allow_multiple?: boolean
+}
+
+export interface CreatePollInput extends CreateQuestionInput {
+  question_type: 'poll'
+  options: { label: string; description?: string }[]
 }
 
 export interface UpdateQuestionInput {
@@ -20,12 +27,20 @@ export interface UpdateQuestionInput {
   deadline?: string
 }
 
+// Select query with all relations
+const QUESTION_SELECT = `
+  *,
+  groups(id, name, required_votes),
+  votes(id, question_id, user_id, vote, poll_option_id, created_at),
+  poll_options(id, question_id, label, description, sort_order, created_at)
+`
+
 export const questionsApi = {
   async getByStatus(status: QuestionStatus): Promise<Question[]> {
     ensureSupabaseConfigured()
     const { data, error } = await supabase
       .from('questions')
-      .select('*, groups(id, name, required_votes), votes(id, question_id, user_id, vote, created_at)')
+      .select(QUESTION_SELECT)
       .eq('status', status)
       .order('created_at', { ascending: false })
 
@@ -37,7 +52,7 @@ export const questionsApi = {
     ensureSupabaseConfigured()
     const { data, error } = await supabase
       .from('questions')
-      .select('*, groups(id, name, required_votes), votes(id, question_id, user_id, vote, created_at)')
+      .select(QUESTION_SELECT)
       .eq('id', id)
       .single()
 
@@ -52,7 +67,7 @@ export const questionsApi = {
     ensureSupabaseConfigured()
     const { data, error } = await supabase
       .from('questions')
-      .select('*, groups(id, name, required_votes), votes(id, question_id, user_id, vote, created_at)')
+      .select(QUESTION_SELECT)
       .order('created_at', { ascending: false })
 
     if (error) throw error
@@ -64,14 +79,61 @@ export const questionsApi = {
     const { data, error } = await supabase
       .from('questions')
       .insert({
-        ...input,
+        title: input.title,
+        description: input.description,
+        group_id: input.group_id,
+        deadline: input.deadline,
+        question_type: input.question_type || 'standard',
+        allow_multiple: input.allow_multiple || false,
         status: 'open' as QuestionStatus,
       })
-      .select('*, groups(id, name, required_votes)')
+      .select(QUESTION_SELECT)
       .single()
 
     if (error) throw error
     return data
+  },
+
+  async createPoll(input: CreatePollInput): Promise<Question> {
+    ensureSupabaseConfigured()
+
+    // Create the question first
+    const { data: question, error: questionError } = await supabase
+      .from('questions')
+      .insert({
+        title: input.title,
+        description: input.description,
+        group_id: input.group_id,
+        deadline: input.deadline,
+        question_type: 'poll',
+        allow_multiple: input.allow_multiple || false,
+        status: 'open' as QuestionStatus,
+      })
+      .select()
+      .single()
+
+    if (questionError) throw questionError
+
+    // Create the poll options
+    const optionsToInsert = input.options.map((opt, index) => ({
+      question_id: question.id,
+      label: opt.label,
+      description: opt.description,
+      sort_order: index,
+    }))
+
+    const { error: optionsError } = await supabase
+      .from('poll_options')
+      .insert(optionsToInsert)
+
+    if (optionsError) {
+      // Rollback: delete the question if options fail
+      await supabase.from('questions').delete().eq('id', question.id)
+      throw optionsError
+    }
+
+    // Return the full question with relations
+    return this.getById(question.id) as Promise<Question>
   },
 
   async update(id: string, input: UpdateQuestionInput): Promise<Question> {
@@ -83,7 +145,7 @@ export const questionsApi = {
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
-      .select('*, groups(id, name, required_votes)')
+      .select(QUESTION_SELECT)
       .single()
 
     if (error) throw error
@@ -101,7 +163,7 @@ export const questionsApi = {
         updated_at: new Date().toISOString(),
       })
       .eq('id', id)
-      .select('*, groups(id, name, required_votes)')
+      .select(QUESTION_SELECT)
       .single()
 
     if (error) throw error

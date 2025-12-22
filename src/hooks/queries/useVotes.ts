@@ -21,3 +21,39 @@ export function useVote() {
     },
   })
 }
+
+export function usePollVote() {
+  const queryClient = useQueryClient()
+  const session = useAuthStore((s) => s.session)
+
+  return useMutation({
+    mutationFn: async ({ questionId, optionId }: { questionId: string; optionId: string }) => {
+      if (!session?.user?.id) {
+        throw new Error('Je moet ingelogd zijn om te stemmen.')
+      }
+      return votesApi.castPollVote(questionId, optionId, session.user.id)
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: questionKeys.all })
+      queryClient.invalidateQueries({ queryKey: questionKeys.detail(variables.questionId) })
+    },
+  })
+}
+
+export function useMultiPollVote() {
+  const queryClient = useQueryClient()
+  const session = useAuthStore((s) => s.session)
+
+  return useMutation({
+    mutationFn: async ({ questionId, optionIds }: { questionId: string; optionIds: string[] }) => {
+      if (!session?.user?.id) {
+        throw new Error('Je moet ingelogd zijn om te stemmen.')
+      }
+      return votesApi.castMultiplePollVotes(questionId, optionIds, session.user.id)
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: questionKeys.all })
+      queryClient.invalidateQueries({ queryKey: questionKeys.detail(variables.questionId) })
+    },
+  })
+}

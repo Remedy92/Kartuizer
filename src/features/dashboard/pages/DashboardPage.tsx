@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Circle, Loader2 } from 'lucide-react'
-import { useOpenQuestions, useVote } from '@/hooks'
+import { useOpenQuestions, useVote, usePollVote, useMultiPollVote } from '@/hooks'
 import { useAuthStore } from '@/stores'
 import { useToast } from '@/hooks'
 import { supabaseUrl } from '@/lib/supabase'
@@ -10,6 +10,8 @@ import type { VoteType, Vote } from '@/types'
 export function DashboardPage() {
   const { data: questions, isLoading, error } = useOpenQuestions()
   const voteMutation = useVote()
+  const pollVoteMutation = usePollVote()
+  const multiPollVoteMutation = useMultiPollVote()
   const session = useAuthStore((s) => s.session)
   const { error: showError } = useToast()
   const [votingQuestionId, setVotingQuestionId] = useState<string | null>(null)
@@ -55,9 +57,42 @@ export function DashboardPage() {
     }
   }
 
+  const handlePollVote = async (questionId: string, optionId: string) => {
+    if (votingQuestionId) return
+
+    setVotingQuestionId(questionId)
+    try {
+      await pollVoteMutation.mutateAsync({ questionId, optionId })
+    } catch (err) {
+      showError('Stem mislukt', err instanceof Error ? err.message : 'Er is een fout opgetreden')
+    } finally {
+      setVotingQuestionId(null)
+    }
+  }
+
+  const handleMultiPollVote = async (questionId: string, optionIds: string[]) => {
+    if (votingQuestionId) return
+
+    setVotingQuestionId(questionId)
+    try {
+      await multiPollVoteMutation.mutateAsync({ questionId, optionIds })
+    } catch (err) {
+      showError('Stem mislukt', err instanceof Error ? err.message : 'Er is een fout opgetreden')
+    } finally {
+      setVotingQuestionId(null)
+    }
+  }
+
   const getUserVote = (votes: Vote[] | undefined): Vote | undefined => {
     if (!session?.user?.id || !votes) return undefined
-    return votes.find((v) => v.user_id === session.user.id)
+    // For standard votes, find the vote with a vote type (not poll_option_id)
+    return votes.find((v) => v.user_id === session.user.id && v.vote !== null)
+  }
+
+  const getUserPollVotes = (votes: Vote[] | undefined): Vote[] => {
+    if (!session?.user?.id || !votes) return []
+    // For poll votes, find all votes with poll_option_id
+    return votes.filter((v) => v.user_id === session.user.id && v.poll_option_id)
   }
 
   if (error) {
@@ -123,8 +158,11 @@ export function DashboardPage() {
               key={question.id}
               question={question}
               userVote={getUserVote(question.votes)}
+              userPollVotes={getUserPollVotes(question.votes)}
               isVoting={votingQuestionId === question.id}
               onVote={(vote) => handleVote(question.id, vote)}
+              onPollVote={(optionId) => handlePollVote(question.id, optionId)}
+              onMultiPollVote={(optionIds) => handleMultiPollVote(question.id, optionIds)}
               index={index}
             />
           ))}

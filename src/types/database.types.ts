@@ -4,6 +4,7 @@ export type CompletionMethod = 'manual' | 'threshold' | 'deadline'
 export type UserRole = 'member' | 'admin' | 'super_admin'
 export type GroupMemberRole = 'member' | 'chair' | 'admin'
 export type NotificationType = 'new_question' | 'vote_reminder' | 'question_completed' | 'deadline_approaching'
+export type QuestionType = 'standard' | 'poll'
 
 export interface Group {
   id: string
@@ -16,30 +17,49 @@ export interface Group {
 
 export type DecidedResult = 'yes' | 'no' | null
 
+export interface PollOption {
+  id: string
+  question_id: string
+  label: string
+  description?: string
+  sort_order: number
+  created_at: string
+  // Computed (not in DB)
+  vote_count?: number
+}
+
 export interface Question {
   id: string
   title: string
   description: string
   status: QuestionStatus
   group_id: string
+  question_type: QuestionType
+  allow_multiple: boolean
   deadline?: string
   completed_at?: string
   completion_method?: CompletionMethod
-  decided_result?: DecidedResult // Server-computed majority result
+  decided_result?: DecidedResult // Server-computed majority result (for standard votes)
+  winning_option_id?: string // Server-computed winner (for polls)
   created_at: string
   updated_at?: string
   // Joined data
   groups?: Group
   votes?: Vote[]
+  poll_options?: PollOption[]
+  winning_option?: PollOption
 }
 
 export interface Vote {
   id: string
   question_id: string
   user_id: string
-  vote: VoteType
+  vote: VoteType | null // null for poll votes
+  poll_option_id?: string // set for poll votes
   created_at: string
   updated_at?: string
+  // Joined data
+  poll_options?: PollOption
 }
 
 export interface UserProfile {
@@ -104,9 +124,68 @@ export function getVoteResult(summary: VoteSummary): VoteResult {
 export function calculateVoteSummary(votes: Vote[]): VoteSummary {
   return votes.reduce(
     (acc, v) => {
-      acc[v.vote] = (acc[v.vote] || 0) + 1
+      if (v.vote) {
+        acc[v.vote] = (acc[v.vote] || 0) + 1
+      }
       return acc
     },
     { yes: 0, no: 0, abstain: 0 } as VoteSummary
   )
+}
+
+// Poll-specific types and helpers
+export interface PollOptionSummary {
+  option: PollOption
+  vote_count: number
+  percentage: number
+}
+
+export interface PollSummary {
+  options: PollOptionSummary[]
+  total_votes: number
+  total_voters: number
+  winner?: PollOption
+}
+
+export function calculatePollSummary(
+  options: PollOption[],
+  votes: Vote[],
+  winningOptionId?: string
+): PollSummary {
+  // Count votes per option
+  const voteCounts = new Map<string, number>()
+  const uniqueVoters = new Set<string>()
+
+  for (const vote of votes) {
+    if (vote.poll_option_id) {
+      voteCounts.set(
+        vote.poll_option_id,
+        (voteCounts.get(vote.poll_option_id) || 0) + 1
+      )
+      uniqueVoters.add(vote.user_id)
+    }
+  }
+
+  const totalVotes = votes.filter(v => v.poll_option_id).length
+
+  const optionSummaries: PollOptionSummary[] = options
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map(option => ({
+      option,
+      vote_count: voteCounts.get(option.id) || 0,
+      percentage: totalVotes > 0
+        ? Math.round(((voteCounts.get(option.id) || 0) / totalVotes) * 100)
+        : 0
+    }))
+
+  const winner = winningOptionId
+    ? options.find(o => o.id === winningOptionId)
+    : undefined
+
+  return {
+    options: optionSummaries,
+    total_votes: totalVotes,
+    total_voters: uniqueVoters.size,
+    winner
+  }
 }

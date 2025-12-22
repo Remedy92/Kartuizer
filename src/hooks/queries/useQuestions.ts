@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { questionsApi, type CreateQuestionInput, type UpdateQuestionInput } from '@/api'
+import { questionsApi, type CreateQuestionInput, type CreatePollInput, type UpdateQuestionInput } from '@/api'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import type { QuestionStatus, CompletionMethod } from '@/types'
 
@@ -51,6 +51,17 @@ export function useCreateQuestion() {
 
   return useMutation({
     mutationFn: (input: CreateQuestionInput) => questionsApi.create(input),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: questionKeys.all })
+    },
+  })
+}
+
+export function useCreatePoll() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: CreatePollInput) => questionsApi.createPoll(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: questionKeys.all })
     },
