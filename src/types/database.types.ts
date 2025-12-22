@@ -189,3 +189,21 @@ export function calculatePollSummary(
     winner
   }
 }
+
+export function calculateTotalVotes(question: Question): number {
+  if (!question.votes) return 0
+
+  if (question.question_type === 'poll') {
+    // For polls, count distinct users who cast at least one poll vote
+    const uniqueVoters = new Set(
+      question.votes
+        .filter((v) => v.poll_option_id)
+        .map((v) => v.user_id)
+    )
+    return uniqueVoters.size
+  }
+
+  // For standard questions, use calculateVoteSummary
+  const summary = calculateVoteSummary(question.votes)
+  return summary.yes + summary.no + summary.abstain
+}

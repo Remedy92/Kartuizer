@@ -5,7 +5,7 @@ import { useAllQuestions, useCloseQuestion, useDeleteQuestion, useUpdatePollDraf
 import { useToast } from '@/hooks'
 import { Button, Badge, Modal, Input, Textarea } from '@/components/ui'
 import { formatDate, cn } from '@/lib/utils'
-import { calculateVoteSummary, getVoteResult } from '@/types'
+import { calculateTotalVotes, calculateVoteSummary, getVoteResult } from '@/types'
 import type { Question } from '@/types'
 
 interface EditableOption {
@@ -44,9 +44,9 @@ export function ManageQuestionsPage() {
       existingOptions.length > 0
         ? existingOptions
         : [
-            { id: generateId(), label: '', description: '' },
-            { id: generateId(), label: '', description: '' },
-          ]
+          { id: generateId(), label: '', description: '' },
+          { id: generateId(), label: '', description: '' },
+        ]
     )
   }
 
@@ -353,7 +353,7 @@ interface QuestionRowProps {
 function QuestionRow({ question, onClose, onEditPoll, onDelete }: QuestionRowProps) {
   const summary = calculateVoteSummary(question.votes ?? [])
   const result = getVoteResult(summary)
-  const totalVotes = summary.yes + summary.no + summary.abstain
+  const totalVotes = calculateTotalVotes(question)
   const canEditPoll =
     question.question_type === 'poll' &&
     question.status === 'open' &&
