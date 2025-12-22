@@ -94,7 +94,7 @@ export function LandingPage() {
       <footer className="relative py-8 text-center">
         <div className="h-px w-32 bg-gradient-to-r from-transparent via-stone-300 to-transparent mx-auto mb-6" />
         <p className="text-xs text-stone-400 tracking-wider uppercase">
-          &copy; {new Date().getFullYear()} Residentie Karthuizer
+          &copy; {new Date().getFullYear()} Domein Karthuizer
         </p>
       </footer>
     </div>

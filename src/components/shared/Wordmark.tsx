@@ -26,7 +26,7 @@ export function Wordmark({ size = 'default', onClick }: WordmarkProps) {
           size === 'large' ? 'text-[11px] mt-1' : 'text-[9px] mt-0.5'
         )}
       >
-        Residentie
+        Domein
       </div>
     </div>
   )

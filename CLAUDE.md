@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Kartuizer is a digital voting platform for the Board of Directors and Block Chairs of Residentie Karthuizer. It's a Dutch-language React SPA with Supabase backend that allows authenticated users to vote on questions (yes/no/abstain) organized by groups, with automatic email notifications when voting completes.
+Kartuizer is a digital voting platform for the Board of Directors and Block Chairs of Domein Karthuizer. It's a Dutch-language React SPA with Supabase backend that allows authenticated users to vote on questions (yes/no/abstain) organized by groups, with automatic email notifications when voting completes.
 
 ## Commands
 
