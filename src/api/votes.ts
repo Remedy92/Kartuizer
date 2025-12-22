@@ -68,11 +68,12 @@ export const votesApi = {
     ensureSupabaseConfigured()
 
     // First, delete existing votes for this user on this question
-    await supabase
+    const { error: deleteError } = await supabase
       .from('votes')
       .delete()
       .eq('question_id', questionId)
       .eq('user_id', userId)
+    if (deleteError) throw deleteError
 
     // Insert new votes for each selected option
     const votesToInsert = optionIds.map(optionId => ({

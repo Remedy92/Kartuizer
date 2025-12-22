@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Check, Pencil } from 'lucide-react'
 import type { Question, Vote, VoteType } from '@/types'
 import { VoteButton } from './VoteButton'
+import { Tooltip } from '@/components/ui'
+import { cn } from '@/lib/utils'
 
 interface VotingPanelProps {
   question: Question
@@ -21,12 +23,85 @@ const decidedLabels = {
   no: 'Afgewezen',
 }
 
+const segments = [
+  {
+    key: 'yes',
+    label: 'Akkoord',
+    bar: 'bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-400',
+    text: 'text-emerald-600',
+  },
+  {
+    key: 'no',
+    label: 'Niet akkoord',
+    bar: 'bg-gradient-to-r from-rose-600 via-rose-500 to-rose-400',
+    text: 'text-rose-600',
+  },
+  {
+    key: 'abstain',
+    label: 'Onthouding',
+    bar: 'bg-gradient-to-r from-stone-500 via-stone-400 to-stone-300',
+    text: 'text-stone-600',
+  },
+] as const
+
 export function VotingPanel({ question, userVote, isVoting, onVote }: VotingPanelProps) {
   const [isEditing, setIsEditing] = useState(false)
   const decidedResult = question.decided_result
 
-  // User has voted and is not editing - show current vote with edit option
-  // Note: userVote.vote can be null for poll votes, but this panel is only for standard votes
+  const voteSummary = useMemo(() => {
+    const summary = { yes: 0, no: 0, abstain: 0 }
+    for (const vote of question.votes ?? []) {
+      if (vote.vote) {
+        summary[vote.vote] = (summary[vote.vote] || 0) + 1
+      }
+    }
+    return summary
+  }, [question.votes])
+
+  const totalVotes = voteSummary.yes + voteSummary.no + voteSummary.abstain
+
+  const renderDistribution = () => {
+    if (totalVotes === 0) return null
+
+    return (
+      <div className="mt-4 rounded-lg border border-stone-200 bg-stone-50/70 p-3">
+        <div className="flex items-center justify-between text-[11px] uppercase tracking-wider text-stone-500">
+          <span>Tussenstand</span>
+          <span>{totalVotes} stemmen</span>
+        </div>
+        <div className="mt-2 h-2.5 rounded-full bg-stone-100 overflow-hidden flex">
+          {segments.map((segment) => {
+            const value = voteSummary[segment.key]
+            const percentage = totalVotes > 0 ? (value / totalVotes) * 100 : 0
+
+            return (
+              <div
+                key={segment.key}
+                className="h-full"
+                style={{ width: `${percentage}%` }}
+              >
+                <Tooltip
+                  className="h-full w-full"
+                  content={
+                    <div className="flex items-center gap-2">
+                      <span className={cn('font-medium', segment.text)}>{segment.label}</span>
+                      <span className="text-stone-300">•</span>
+                      <span>{value} {value === 1 ? 'stem' : 'stemmen'}</span>
+                      <span className="text-stone-300">•</span>
+                      <span>{Math.round(percentage)}%</span>
+                    </div>
+                  }
+                >
+                  <div className={cn('h-full w-full', segment.bar)} />
+                </Tooltip>
+              </div>
+            )
+          })}
+        </div>
+      </div>
+    )
+  }
+
   if (userVote && userVote.vote && !isEditing) {
     return (
       <div className="text-center py-4">
@@ -36,18 +111,18 @@ export function VotingPanel({ question, userVote, isVoting, onVote }: VotingPane
         <p className="text-sm font-medium text-stone-700 mb-1">Stem uitgebracht</p>
         <p className="text-xs text-stone-500">{voteLabels[userVote.vote]}</p>
 
-        {/* Show majority status if decided */}
         {decidedResult && (
           <p className="text-xs text-amber-600 mt-2 font-medium">
             Meerderheid bereikt: {decidedLabels[decidedResult]}
           </p>
         )}
 
+        {renderDistribution()}
+
         <p className="text-xs text-stone-400 mt-3">
-          {question.votes?.length || 0} / {question.groups?.required_votes} stemmen
+          {totalVotes} / {question.groups?.required_votes} stemmen
         </p>
 
-        {/* Edit button */}
         <button
           onClick={() => setIsEditing(true)}
           className="mt-4 inline-flex items-center gap-1.5 text-xs text-primary-600 hover:text-primary-700"
@@ -59,7 +134,6 @@ export function VotingPanel({ question, userVote, isVoting, onVote }: VotingPane
     )
   }
 
-  // Show voting buttons (for initial vote or when editing)
   const handleVote = (vote: VoteType) => {
     onVote(vote)
     setIsEditing(false)
@@ -91,6 +165,8 @@ export function VotingPanel({ question, userVote, isVoting, onVote }: VotingPane
         loading={isVoting}
         selected={userVote?.vote === 'abstain'}
       />
+
+      {renderDistribution()}
 
       {isEditing && (
         <button
