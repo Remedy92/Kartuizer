@@ -49,6 +49,12 @@ export function PollVotingPanel({
     () => (question.votes ?? []).filter((v) => v.poll_option_id).length,
     [question.votes]
   )
+  const winningOption = useMemo(
+    () => options.find((o) => o.id === question.winning_option_id),
+    [options, question.winning_option_id]
+  )
+  const winningCount = winningOption ? voteCounts.get(winningOption.id) || 0 : 0
+  const winningPercentage = totalVotes > 0 ? Math.round((winningCount / totalVotes) * 100) : 0
 
   // User has voted and is not editing - show confirmation
   if (hasVoted && !isEditing) {
@@ -65,9 +71,9 @@ export function PollVotingPanel({
         <p className="text-xs text-stone-500">{selectedLabels.join(', ')}</p>
 
         {/* Show current leader if there's a winner */}
-        {question.winning_option_id && (
+        {question.winning_option_id && winningOption && totalVotes > 0 && (
           <p className="text-xs text-amber-600 mt-2 font-medium">
-            Koploper: {options.find((o) => o.id === question.winning_option_id)?.label}
+            Tussenstand: {winningOption.label} • {winningPercentage}% ({winningCount} stemmen)
           </p>
         )}
 

@@ -33,6 +33,22 @@ export function QuestionCard({
 }: QuestionCardProps) {
   const isPoll = question.question_type === 'poll'
   const summary: VoteSummary = calculateVoteSummary(question.votes ?? [])
+  const pollVoteCounts = new Map<string, number>()
+  for (const vote of question.votes ?? []) {
+    if (vote.poll_option_id) {
+      pollVoteCounts.set(
+        vote.poll_option_id,
+        (pollVoteCounts.get(vote.poll_option_id) || 0) + 1
+      )
+    }
+  }
+  const pollTotalVotes = (question.votes ?? []).filter((v) => v.poll_option_id).length
+  const winningOption = question.poll_options?.find(
+    (option) => option.id === question.winning_option_id
+  )
+  const winningCount = winningOption ? pollVoteCounts.get(winningOption.id) || 0 : 0
+  const winningPercentage =
+    pollTotalVotes > 0 ? Math.round((winningCount / pollTotalVotes) * 100) : 0
 
   // Render the appropriate voting/results panel
   const renderVotingSection = () => {
@@ -89,9 +105,10 @@ export function QuestionCard({
                 {question.decided_result === 'yes' ? 'Besloten: Goedgekeurd' : 'Besloten: Afgewezen'}
               </Badge>
             )}
-            {question.status === 'open' && isPoll && question.winning_option_id && (
+            {question.status === 'open' && isPoll && question.winning_option_id && winningOption && (
               <Badge variant="decided">
-                Koploper: {question.poll_options?.find(o => o.id === question.winning_option_id)?.label}
+                Tussenstand: {winningOption?.label}
+                {pollTotalVotes > 0 ? ` · ${winningPercentage}%` : ''}
               </Badge>
             )}
             <span className="text-xs text-stone-400">
