@@ -73,7 +73,7 @@ export function AdminDashboard() {
           to="/admin/groups"
           icon={Settings}
           title="Groepen beheren"
-          description="Beheer organen en hun leden"
+          description="Raad van mede eigendom en blokraden"
         />
         <QuickAction
           to="/admin/analytics"

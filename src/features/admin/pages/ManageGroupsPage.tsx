@@ -381,7 +381,7 @@ export function ManageGroupsPage() {
       <header className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-3xl font-serif text-stone-800 mb-2">Groepen</h1>
-          <p className="text-stone-500">Beheer organen en hun leden</p>
+          <p className="text-stone-500">Raad van mede eigendom en blokraden</p>
         </div>
         <Button onClick={() => setShowCreateModal(true)}>
           <Plus size={16} className="mr-2" />
