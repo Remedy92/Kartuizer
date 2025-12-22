@@ -92,6 +92,13 @@ export function CreateQuestionPage() {
     setOptions(options.map((o) => (o.id === id ? { ...o, [field]: value } : o)))
   }
 
+  const handleOptionKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      addOption()
+    }
+  }
+
   const groupOptions = (groups ?? []).map((g) => ({
     value: g.id,
     label: g.name,
@@ -291,6 +298,7 @@ export function CreateQuestionPage() {
                                   placeholder="Optie naam"
                                   value={option.label}
                                   onChange={(e) => updateOption(option.id, 'label', e.target.value)}
+                                  onKeyDown={handleOptionKeyDown}
                                   className="w-full bg-transparent border-0 p-0 text-stone-800 placeholder:text-stone-400 focus:ring-0 font-medium"
                                 />
                                 <input
@@ -300,6 +308,7 @@ export function CreateQuestionPage() {
                                   onChange={(e) =>
                                     updateOption(option.id, 'description', e.target.value)
                                   }
+                                  onKeyDown={handleOptionKeyDown}
                                   className="w-full bg-transparent border-0 p-0 mt-2 text-sm text-stone-500 placeholder:text-stone-300 focus:ring-0"
                                 />
                               </div>

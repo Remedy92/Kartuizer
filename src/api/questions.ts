@@ -27,6 +27,12 @@ export interface UpdateQuestionInput {
   deadline?: string
 }
 
+export interface UpdatePollDraftInput {
+  title: string
+  description?: string | null
+  options: { label: string; description?: string }[]
+}
+
 // Select query with all relations
 // Note: poll_options!question_id uses FK hint to avoid PostgREST 300 ambiguous relationship error
 const QUESTION_SELECT = `
@@ -151,6 +157,59 @@ export const questionsApi = {
 
     if (error) throw error
     return data
+  },
+
+  async updatePollDraft(id: string, input: UpdatePollDraftInput): Promise<Question> {
+    ensureSupabaseConfigured()
+
+    if (!input.title.trim()) {
+      throw new Error('Onderwerp is verplicht')
+    }
+
+    const validOptions = input.options.filter((o) => o.label.trim())
+    if (validOptions.length < 2) {
+      throw new Error('Een poll moet minimaal 2 opties hebben')
+    }
+
+    const { count, error: countError } = await supabase
+      .from('votes')
+      .select('id', { count: 'exact', head: true })
+      .eq('question_id', id)
+
+    if (countError) throw countError
+    if ((count ?? 0) > 0) {
+      throw new Error('Deze poll heeft al stemmen en kan niet meer aangepast worden.')
+    }
+
+    const { error: updateError } = await supabase
+      .from('questions')
+      .update({
+        title: input.title.trim(),
+        description: input.description,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+
+    if (updateError) throw updateError
+
+    const { error: deleteError } = await supabase
+      .from('poll_options')
+      .delete()
+      .eq('question_id', id)
+
+    if (deleteError) throw deleteError
+
+    const optionsToInsert = validOptions.map((opt, index) => ({
+      question_id: id,
+      label: opt.label.trim(),
+      description: opt.description?.trim() || undefined,
+      sort_order: index,
+    }))
+
+    const { error: insertError } = await supabase.from('poll_options').insert(optionsToInsert)
+    if (insertError) throw insertError
+
+    return this.getById(id) as Promise<Question>
   },
 
   async close(id: string, method: CompletionMethod = 'manual'): Promise<Question> {

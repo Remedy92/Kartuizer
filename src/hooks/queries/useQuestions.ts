@@ -1,5 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { questionsApi, type CreateQuestionInput, type CreatePollInput, type UpdateQuestionInput } from '@/api'
+import {
+  questionsApi,
+  type CreateQuestionInput,
+  type CreatePollInput,
+  type UpdateQuestionInput,
+  type UpdatePollDraftInput,
+} from '@/api'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import type { QuestionStatus, CompletionMethod } from '@/types'
 
@@ -87,6 +93,19 @@ export function useCloseQuestion() {
   return useMutation({
     mutationFn: ({ id, method = 'manual' }: { id: string; method?: CompletionMethod }) =>
       questionsApi.close(id, method),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: questionKeys.all })
+      queryClient.invalidateQueries({ queryKey: questionKeys.detail(variables.id) })
+    },
+  })
+}
+
+export function useUpdatePollDraft() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ id, ...input }: UpdatePollDraftInput & { id: string }) =>
+      questionsApi.updatePollDraft(id, input),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: questionKeys.all })
       queryClient.invalidateQueries({ queryKey: questionKeys.detail(variables.id) })

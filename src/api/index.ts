@@ -4,7 +4,12 @@ export { groupsApi } from './groups'
 export { usersApi } from './users'
 export { analyticsApi } from './analytics'
 
-export type { CreateQuestionInput, CreatePollInput, UpdateQuestionInput } from './questions'
+export type {
+  CreateQuestionInput,
+  CreatePollInput,
+  UpdateQuestionInput,
+  UpdatePollDraftInput,
+} from './questions'
 export type { CreateGroupInput, UpdateGroupInput } from './groups'
 export type { UpdateUserProfileInput } from './users'
 export type { AnalyticsStats } from './analytics'

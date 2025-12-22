@@ -36,21 +36,22 @@ export const votesApi = {
   // Cast a poll vote (single choice)
   async castPollVote(questionId: string, optionId: string, userId: string): Promise<Vote> {
     ensureSupabaseConfigured()
-    // For single-choice polls, upsert to replace any existing vote
+    // For single-choice polls, replace any existing vote
+    const { error: deleteError } = await supabase
+      .from('votes')
+      .delete()
+      .eq('question_id', questionId)
+      .eq('user_id', userId)
+    if (deleteError) throw deleteError
+
     const { data, error } = await supabase
       .from('votes')
-      .upsert(
-        {
-          question_id: questionId,
-          poll_option_id: optionId,
-          user_id: userId,
-          vote: null,
-        },
-        {
-          onConflict: 'question_id,user_id',
-          ignoreDuplicates: false,
-        }
-      )
+      .insert({
+        question_id: questionId,
+        poll_option_id: optionId,
+        user_id: userId,
+        vote: null,
+      })
       .select()
       .single()
 
