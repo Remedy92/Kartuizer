@@ -2,7 +2,6 @@ import { motion } from 'framer-motion'
 import type { VoteSummary, VoteResult } from '@/types'
 import { getVoteResult } from '@/types'
 import { cn } from '@/lib/utils'
-import { Tooltip } from '@/components/ui'
 
 interface ResultsPanelProps {
   summary: VoteSummary
@@ -94,34 +93,20 @@ function ResultRow({ label, value, total, bar, text }: ResultRowProps) {
   const percentage = total > 0 ? Math.round((value / total) * 100) : 0
 
   return (
-    <Tooltip
-      className="block"
-      align="start"
-      content={
-        <div className="flex items-center gap-2">
-          <span className={cn('font-medium', text)}>{label}</span>
-          <span className="text-stone-300">•</span>
-          <span>{value} {value === 1 ? 'stem' : 'stemmen'}</span>
-          <span className="text-stone-300">•</span>
-          <span>{percentage}%</span>
-        </div>
-      }
-    >
-      <div className="rounded-md p-2 transition-colors hover:bg-stone-50">
-        <div className="flex items-center justify-between text-xs text-stone-500 mb-1">
-          <span className="font-medium text-stone-700">{label}</span>
-          <span className={cn('font-semibold', text)}>{percentage}%</span>
-        </div>
-        <div className="h-2.5 bg-stone-100 rounded-full overflow-hidden">
-          <motion.div
-            className={cn('h-full rounded-full', bar)}
-            initial={{ width: 0 }}
-            animate={{ width: `${percentage}%` }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          />
-        </div>
+    <div className="rounded-md p-2">
+      <div className="flex items-center justify-between text-xs text-stone-500 mb-1">
+        <span className="font-medium text-stone-700">{label}</span>
+        <span className={cn('font-semibold', text)}>{percentage}%</span>
       </div>
-    </Tooltip>
+      <div className="h-2.5 bg-stone-100 rounded-full overflow-hidden">
+        <motion.div
+          className={cn('h-full rounded-full', bar)}
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        />
+      </div>
+    </div>
   )
 }
 
@@ -163,11 +148,7 @@ function DonutChart({ summary, total }: DonutChartProps) {
             strokeDasharray={dashArray}
             strokeDashoffset={dashOffset}
             className={segment.color}
-          >
-            <title>
-              {segment.label}: {value} {value === 1 ? 'stem' : 'stemmen'}
-            </title>
-          </circle>
+          />
         )
       })}
     </svg>

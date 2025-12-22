@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react'
 import { Check, Pencil } from 'lucide-react'
 import type { Question, Vote, VoteType } from '@/types'
 import { VoteButton } from './VoteButton'
-import { Tooltip } from '@/components/ui'
 import { cn } from '@/lib/utils'
 
 interface VotingPanelProps {
@@ -77,24 +76,9 @@ export function VotingPanel({ question, userVote, isVoting, onVote }: VotingPane
             return (
               <div
                 key={segment.key}
-                className="h-full"
+                className={cn('h-full', segment.bar)}
                 style={{ width: `${percentage}%` }}
-              >
-                <Tooltip
-                  className="h-full w-full"
-                  content={
-                    <div className="flex items-center gap-2">
-                      <span className={cn('font-medium', segment.text)}>{segment.label}</span>
-                      <span className="text-stone-300">•</span>
-                      <span>{value} {value === 1 ? 'stem' : 'stemmen'}</span>
-                      <span className="text-stone-300">•</span>
-                      <span>{Math.round(percentage)}%</span>
-                    </div>
-                  }
-                >
-                  <div className={cn('h-full w-full', segment.bar)} />
-                </Tooltip>
-              </div>
+              />
             )
           })}
         </div>

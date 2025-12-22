@@ -3,7 +3,6 @@ import { motion } from 'framer-motion'
 import { Check, Pencil } from 'lucide-react'
 import type { Question, Vote } from '@/types'
 import { cn } from '@/lib/utils'
-import { Tooltip } from '@/components/ui'
 
 interface PollVotingPanelProps {
   question: Question
@@ -69,15 +68,6 @@ export function PollVotingPanel({
   const winningCount = winningOption ? voteCounts.get(winningOption.id) || 0 : 0
   const winningPercentage = totalVotes > 0 ? Math.round((winningCount / totalVotes) * 100) : 0
 
-  const rankMap = useMemo(() => {
-    const sorted = [...options].sort(
-      (a, b) => (voteCounts.get(b.id) || 0) - (voteCounts.get(a.id) || 0)
-    )
-    const map = new Map<string, number>()
-    sorted.forEach((option, index) => map.set(option.id, index + 1))
-    return map
-  }, [options, voteCounts])
-
   if (hasVoted && !isEditing) {
     const selectedLabels = options
       .filter((o) => userSelectedOptionIds.has(o.id))
@@ -114,22 +104,7 @@ export function PollVotingPanel({
 
                 return (
                   <div key={option.id} className="h-full" style={{ width: `${percentage}%` }}>
-                    <Tooltip
-                      className="h-full w-full"
-                      content={
-                        <div className="flex items-center gap-2">
-                          <span className={cn('font-medium', isWinner ? 'text-primary-200' : '')}>
-                            {option.label}
-                          </span>
-                          <span className="text-stone-300">•</span>
-                          <span>{count} {count === 1 ? 'stem' : 'stemmen'}</span>
-                          <span className="text-stone-300">•</span>
-                          <span>{Math.round(percentage)}%</span>
-                        </div>
-                      }
-                    >
-                      <div className={cn('h-full w-full', barClass)} />
-                    </Tooltip>
+                    <div className={cn('h-full w-full', barClass)} />
                   </div>
                 )
               })}
@@ -202,22 +177,7 @@ export function PollVotingPanel({
 
               return (
                 <div key={option.id} className="h-full" style={{ width: `${percentage}%` }}>
-                  <Tooltip
-                    className="h-full w-full"
-                    content={
-                      <div className="flex items-center gap-2">
-                        <span className={cn('font-medium', isWinner ? 'text-primary-200' : '')}>
-                          {option.label}
-                        </span>
-                        <span className="text-stone-300">•</span>
-                        <span>{count} {count === 1 ? 'stem' : 'stemmen'}</span>
-                        <span className="text-stone-300">•</span>
-                        <span>{Math.round(percentage)}%</span>
-                      </div>
-                    }
-                  >
-                    <div className={cn('h-full w-full', barClass)} />
-                  </Tooltip>
+                  <div className={cn('h-full w-full', barClass)} />
                 </div>
               )
             })}
@@ -233,117 +193,94 @@ export function PollVotingPanel({
           const voteCount = voteCounts.get(option.id) || 0
           const percentage = totalVotes > 0 ? Math.round((voteCount / totalVotes) * 100) : 0
           const isWinner = option.id === question.winning_option_id
-          const rank = rankMap.get(option.id)
 
           return (
-            <Tooltip
+            <motion.button
               key={option.id}
-              className="block"
-              align="start"
-              content={
-                <div className="flex items-center gap-2">
-                  <span className={cn('font-medium', isWinner ? 'text-primary-200' : '')}>
-                    {option.label}
-                  </span>
-                  <span className="text-stone-300">•</span>
-                  <span>{voteCount} {voteCount === 1 ? 'stem' : 'stemmen'}</span>
-                  <span className="text-stone-300">•</span>
-                  <span>{percentage}%</span>
-                  {rank ? (
-                    <>
-                      <span className="text-stone-300">•</span>
-                      <span>#{rank}</span>
-                    </>
-                  ) : null}
-                </div>
-              }
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05 }}
+              onClick={() => handleOptionClick(option.id)}
+              disabled={isVoting}
+              className={cn(
+                'w-full text-left p-3 border-2 transition-all duration-200 relative overflow-hidden',
+                'rounded-md',
+                isSelected
+                  ? 'border-primary-600 bg-primary-50'
+                  : 'border-stone-200 hover:border-stone-300 bg-white'
+              )}
             >
-              <motion.button
-                initial={{ opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                onClick={() => handleOptionClick(option.id)}
-                disabled={isVoting}
-                className={cn(
-                  'w-full text-left p-3 border-2 transition-all duration-200 relative overflow-hidden',
-                  'rounded-md',
-                  isSelected
-                    ? 'border-primary-600 bg-primary-50'
-                    : 'border-stone-200 hover:border-stone-300 bg-white'
-                )}
-              >
-                <div className="flex items-start gap-3 relative z-10">
-                  <div
+              <div className="flex items-start gap-3 relative z-10">
+                <div
+                  className={cn(
+                    'w-4 h-4 flex-shrink-0 mt-0.5 border-2 transition-all duration-200',
+                    question.allow_multiple ? '' : 'rounded-full',
+                    isSelected
+                      ? 'border-primary-600 bg-primary-600'
+                      : 'border-stone-300 bg-white'
+                  )}
+                >
+                  {isSelected && (
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="w-full h-full flex items-center justify-center"
+                    >
+                      {question.allow_multiple ? (
+                        <Check className="w-2.5 h-2.5 text-white" />
+                      ) : (
+                        <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                      )}
+                    </motion.div>
+                  )}
+                </div>
+
+                <div className="flex-1 min-w-0">
+                  <span
                     className={cn(
-                      'w-4 h-4 flex-shrink-0 mt-0.5 border-2 transition-all duration-200',
-                      question.allow_multiple ? '' : 'rounded-full',
-                      isSelected
-                        ? 'border-primary-600 bg-primary-600'
-                        : 'border-stone-300 bg-white'
+                      'text-sm font-medium block',
+                      isSelected ? 'text-primary-800' : 'text-stone-700'
                     )}
                   >
-                    {isSelected && (
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        className="w-full h-full flex items-center justify-center"
-                      >
-                        {question.allow_multiple ? (
-                          <Check className="w-2.5 h-2.5 text-white" />
-                        ) : (
-                          <div className="w-1.5 h-1.5 rounded-full bg-white" />
-                        )}
-                      </motion.div>
-                    )}
-                  </div>
-
-                  <div className="flex-1 min-w-0">
-                    <span
-                      className={cn(
-                        'text-sm font-medium block',
-                        isSelected ? 'text-primary-800' : 'text-stone-700'
-                      )}
-                    >
-                      {option.label}
-                    </span>
-                    {option.description && (
-                      <span className="text-xs text-stone-500 block mt-0.5">
-                        {option.description}
-                      </span>
-                    )}
-                  </div>
-
-                  {totalVotes > 0 && (
-                    <span
-                      className={cn(
-                        'text-[11px] font-medium px-2 py-0.5 rounded-full flex-shrink-0',
-                        isWinner
-                          ? 'bg-primary-100 text-primary-700'
-                          : 'bg-stone-100 text-stone-500'
-                      )}
-                    >
-                      {percentage}%
+                    {option.label}
+                  </span>
+                  {option.description && (
+                    <span className="text-xs text-stone-500 block mt-0.5">
+                      {option.description}
                     </span>
                   )}
                 </div>
 
                 {totalVotes > 0 && (
-                  <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${percentage}%` }}
-                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  <span
                     className={cn(
-                      'absolute inset-y-0 left-0 z-0 opacity-80',
-                      isSelected
-                        ? 'bg-primary-100'
-                        : isWinner
-                          ? 'bg-primary-50'
-                          : 'bg-stone-50'
+                      'text-[11px] font-medium px-2 py-0.5 rounded-full flex-shrink-0',
+                      isWinner
+                        ? 'bg-primary-100 text-primary-700'
+                        : 'bg-stone-100 text-stone-500'
                     )}
-                  />
+                  >
+                    {percentage}%
+                  </span>
                 )}
-              </motion.button>
-            </Tooltip>
+              </div>
+
+              {totalVotes > 0 && (
+                <motion.div
+                  initial={{ width: 0 }}
+                  animate={{ width: `${percentage}%` }}
+                  transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  className={cn(
+                    'absolute inset-y-0 left-0 z-0 opacity-80',
+                    isSelected
+                      ? 'bg-primary-100'
+                      : isWinner
+                        ? 'bg-primary-50'
+                        : 'bg-stone-50'
+                  )}
+                />
+              )}
+            </motion.button>
           )
         })}
       </div>
