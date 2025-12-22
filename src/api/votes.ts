@@ -10,22 +10,24 @@ function ensureSupabaseConfigured() {
 export const votesApi = {
   async cast(questionId: string, vote: VoteType, userId: string): Promise<Vote> {
     ensureSupabaseConfigured()
+    // Use upsert to handle both new votes and vote changes
     const { data, error } = await supabase
       .from('votes')
-      .insert({
-        question_id: questionId,
-        vote,
-        user_id: userId,
-      })
+      .upsert(
+        {
+          question_id: questionId,
+          vote,
+          user_id: userId,
+        },
+        {
+          onConflict: 'question_id,user_id',
+          ignoreDuplicates: false,
+        }
+      )
       .select()
       .single()
 
-    if (error) {
-      if (error.code === '23505') {
-        throw new Error('Je hebt al gestemd op deze vraag.')
-      }
-      throw error
-    }
+    if (error) throw error
     return data
   },
 

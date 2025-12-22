@@ -1,4 +1,4 @@
-import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { NavLink, useNavigate } from 'react-router-dom'
 import { LogOut, Menu } from 'lucide-react'
 import { useAuthStore, useUIStore } from '@/stores'
 import { useToast } from '@/hooks'
@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils'
 
 export function Navbar() {
   const navigate = useNavigate()
-  const location = useLocation()
   const session = useAuthStore((s) => s.session)
   const isAdmin = useAuthStore((s) => s.isAdmin)
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)

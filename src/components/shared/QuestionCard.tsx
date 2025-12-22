@@ -36,6 +36,11 @@ export function QuestionCard({
         <div className="flex-1 min-w-0">
           <div className="flex flex-wrap items-center gap-3 mb-4">
             <Badge variant="primary">{question.groups?.name}</Badge>
+            {question.status === 'open' && question.decided_result && (
+              <Badge variant="decided">
+                {question.decided_result === 'yes' ? 'Besloten: Goedgekeurd' : 'Besloten: Afgewezen'}
+              </Badge>
+            )}
             <span className="text-xs text-stone-400">
               {formatDate(question.created_at)}
             </span>

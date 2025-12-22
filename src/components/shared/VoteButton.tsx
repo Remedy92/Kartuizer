@@ -7,6 +7,7 @@ interface VoteButtonProps {
   onClick: () => void
   disabled?: boolean
   loading?: boolean
+  selected?: boolean
 }
 
 const config = {
@@ -14,21 +15,24 @@ const config = {
     label: 'Akkoord',
     icon: Check,
     hover: 'hover:border-emerald-500 hover:bg-emerald-50 hover:text-emerald-700',
+    selected: 'border-emerald-500 bg-emerald-50 text-emerald-700',
   },
   no: {
     label: 'Niet akkoord',
     icon: X,
     hover: 'hover:border-rose-500 hover:bg-rose-50 hover:text-rose-700',
+    selected: 'border-rose-500 bg-rose-50 text-rose-700',
   },
   abstain: {
     label: 'Onthouding',
     icon: Minus,
     hover: 'hover:border-stone-400 hover:bg-stone-100',
+    selected: 'border-stone-400 bg-stone-100 text-stone-700',
   },
 }
 
-export function VoteButton({ variant, onClick, disabled, loading }: VoteButtonProps) {
-  const { label, icon: Icon, hover } = config[variant]
+export function VoteButton({ variant, onClick, disabled, loading, selected }: VoteButtonProps) {
+  const { label, icon: Icon, hover, selected: selectedStyle } = config[variant]
 
   return (
     <button
@@ -38,13 +42,15 @@ export function VoteButton({ variant, onClick, disabled, loading }: VoteButtonPr
         'w-full flex items-center gap-3 px-4 py-3',
         'border border-stone-200 text-stone-600 text-sm',
         'transition-all duration-200',
-        disabled ? 'opacity-50 cursor-not-allowed' : hover
+        selected && selectedStyle,
+        disabled && !selected && 'opacity-50 cursor-not-allowed',
+        !disabled && !selected && hover
       )}
     >
       {loading ? (
         <Loader2 size={16} className="animate-spin" />
       ) : (
-        <Icon size={16} className="opacity-50" />
+        <Icon size={16} className={selected ? 'opacity-100' : 'opacity-50'} />
       )}
       <span>{label}</span>
     </button>

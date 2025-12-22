@@ -14,6 +14,8 @@ export interface Group {
   created_by?: string
 }
 
+export type DecidedResult = 'yes' | 'no' | null
+
 export interface Question {
   id: string
   title: string
@@ -23,6 +25,7 @@ export interface Question {
   deadline?: string
   completed_at?: string
   completion_method?: CompletionMethod
+  decided_result?: DecidedResult // Server-computed majority result
   created_at: string
   updated_at?: string
   // Joined data
@@ -36,6 +39,7 @@ export interface Vote {
   user_id: string
   vote: VoteType
   created_at: string
+  updated_at?: string
 }
 
 export interface UserProfile {

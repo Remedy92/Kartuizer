@@ -1,10 +1,8 @@
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { LayoutDashboard, FileQuestion, Users, Settings, BarChart3, ArrowLeft } from 'lucide-react'
+import { NavLink, Outlet } from 'react-router-dom'
+import { LayoutDashboard, FileQuestion, Users, Settings, BarChart3 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 export function AdminLayout() {
-  const navigate = useNavigate()
-
   return (
     <div className="flex gap-8">
       {/* Sidebar */}
