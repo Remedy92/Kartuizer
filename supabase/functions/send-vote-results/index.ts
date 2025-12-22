@@ -196,8 +196,8 @@ Deno.serve(async (req) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                from: 'Karthuizer Voting <johanvanhoutven@gmail.com>',
-                to: emails,
+                from: 'Karthuizer Voting <onboarding@resend.dev>',
+                to: ['johanvh@gmail.com'], // TODO: change to 'emails' after verifying domain in Resend
                 subject: `${resultText} - ${question.title}`,
                 html: emailContent,
             }),
