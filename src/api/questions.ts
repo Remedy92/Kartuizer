@@ -28,11 +28,12 @@ export interface UpdateQuestionInput {
 }
 
 // Select query with all relations
+// Note: poll_options!question_id uses FK hint to avoid PostgREST 300 ambiguous relationship error
 const QUESTION_SELECT = `
   *,
   groups(id, name, required_votes),
   votes(id, question_id, user_id, vote, poll_option_id, created_at),
-  poll_options(id, question_id, label, description, sort_order, created_at)
+  poll_options!question_id(id, question_id, label, description, sort_order, created_at)
 `
 
 export const questionsApi = {
