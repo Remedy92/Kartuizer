@@ -24,16 +24,16 @@ export function ArchivePage() {
   }, [error, showError])
 
   useEffect(() => {
-    if (!isLoading) {
-      setShowSlowLoading(false)
-      return
-    }
+    if (!isLoading) return
 
     const timeoutId = window.setTimeout(() => {
       setShowSlowLoading(true)
     }, 6000)
 
-    return () => window.clearTimeout(timeoutId)
+    return () => {
+      window.clearTimeout(timeoutId)
+      setShowSlowLoading(false)
+    }
   }, [isLoading])
 
   if (error) {

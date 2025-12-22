@@ -1,7 +1,7 @@
-import { useEffect, type ReactNode } from 'react'
+import { useCallback, useEffect, type ReactNode } from 'react'
 import { supabase, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuthStore } from '@/stores'
-import { queryClient } from './QueryProvider'
+import { queryClient } from '@/lib/queryClient'
 
 interface AuthProviderProps {
   children: ReactNode
@@ -9,6 +9,39 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const { setSession, setUser, setLoading } = useAuthStore()
+
+  const fetchUserProfile = useCallback(async (userId: string) => {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('*')
+      .eq('id', userId)
+      .single()
+
+    if (error) {
+      // If no profile exists yet, create a default one
+      if (error.code === 'PGRST116') {
+        const session = useAuthStore.getState().session
+        if (session?.user.email) {
+          const { data: newProfile } = await supabase
+            .from('user_profiles')
+            .insert({
+              id: userId,
+              email: session.user.email,
+              role: 'member',
+            })
+            .select()
+            .single()
+
+          if (newProfile) {
+            setUser(newProfile)
+          }
+        }
+      }
+    } else {
+      setUser(data)
+    }
+    setLoading(false)
+  }, [setUser, setLoading])
 
   useEffect(() => {
     if (!isSupabaseConfigured) {
@@ -86,40 +119,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     })
 
     return () => subscription.unsubscribe()
-  }, [setSession, setUser, setLoading])
-
-  async function fetchUserProfile(userId: string) {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-
-    if (error) {
-      // If no profile exists yet, create a default one
-      if (error.code === 'PGRST116') {
-        const session = useAuthStore.getState().session
-        if (session?.user.email) {
-          const { data: newProfile } = await supabase
-            .from('user_profiles')
-            .insert({
-              id: userId,
-              email: session.user.email,
-              role: 'member',
-            })
-            .select()
-            .single()
-
-          if (newProfile) {
-            setUser(newProfile)
-          }
-        }
-      }
-    } else {
-      setUser(data)
-    }
-    setLoading(false)
-  }
+  }, [setSession, setUser, setLoading, fetchUserProfile])
 
   return <>{children}</>
 }

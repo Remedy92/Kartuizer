@@ -1,7 +1,7 @@
 import { useEffect, type ReactNode } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore, useUIStore, useRealtimeStore } from '@/stores'
-import { queryClient } from './QueryProvider'
+import { queryClient } from '@/lib/queryClient'
 import { questionKeys } from '@/hooks/queries/useQuestions'
 
 interface RealtimeProviderProps {

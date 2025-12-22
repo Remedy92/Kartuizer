@@ -5,10 +5,10 @@ const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 
 Deno.serve(async (req) => {
     try {
-        // Use service role key to access auth.users
+        // Use anon key - emails are stored in user_profiles table
         const supabase = createClient(
             Deno.env.get('SUPABASE_URL') ?? '',
-            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+            Deno.env.get('SUPABASE_ANON_KEY') ?? ''
         );
 
         const { record } = await req.json();
@@ -35,16 +35,13 @@ Deno.serve(async (req) => {
 
         if (mError) throw mError;
 
-        // Fetch emails from auth.users using service role
+        // Fetch emails from user_profiles table
         const memberIds = members?.map(m => m.user_id) || [];
-        const emails: string[] = [];
-        
-        for (const userId of memberIds) {
-            const { data: userData, error: userError } = await supabase.auth.admin.getUserById(userId);
-            if (!userError && userData?.user?.email) {
-                emails.push(userData.user.email);
-            }
-        }
+        const { data: profiles } = await supabase
+            .from('user_profiles')
+            .select('email')
+            .in('id', memberIds);
+        const emails = profiles?.map(p => p.email).filter(Boolean) || [];
 
         if (emails.length === 0) {
             return new Response(JSON.stringify({ message: 'No member emails found' }), { status: 200 });
@@ -65,55 +62,129 @@ Deno.serve(async (req) => {
             resultText = '❌ Afgewezen';
         }
 
+        // Determine colors based on result
+        const resultBgColor = voteSummary.yes > voteSummary.no ? '#f0fdf4' : voteSummary.no > voteSummary.yes ? '#fef2f2' : '#fefce8';
+        const resultBorderColor = voteSummary.yes > voteSummary.no ? '#86efac' : voteSummary.no > voteSummary.yes ? '#fecaca' : '#fde047';
+        const resultTextColor = voteSummary.yes > voteSummary.no ? '#166534' : voteSummary.no > voteSummary.yes ? '#991b1b' : '#854d0e';
+
         const emailContent = `
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #1c1917; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: #5e4339; color: white; padding: 24px; border-radius: 8px 8px 0 0; }
-        .content { background: #fafaf9; padding: 24px; border: 1px solid #e7e5e4; border-top: none; border-radius: 0 0 8px 8px; }
-        .result { font-size: 24px; font-weight: bold; margin: 16px 0; }
-        .votes { background: white; padding: 16px; border-radius: 8px; margin: 16px 0; }
-        .vote-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e7e5e4; }
-        .vote-row:last-child { border-bottom: none; }
-        .footer { text-align: center; color: #78716c; font-size: 12px; margin-top: 24px; }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Stemming Afgerond</title>
+    <!--[if mso]>
+    <style type="text/css">
+        table { border-collapse: collapse; }
+        .fallback-font { font-family: Georgia, serif !important; }
     </style>
+    <![endif]-->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1 style="margin: 0;">Stemming Afgerond</h1>
-            <p style="margin: 8px 0 0 0; opacity: 0.9;">${question.groups.name}</p>
-        </div>
-        <div class="content">
-            <h2 style="margin-top: 0;">${question.title}</h2>
-            <p>${question.description || 'Geen beschrijving'}</p>
-            
-            <div class="result">${resultText}</div>
-            
-            <div class="votes">
-                <div class="vote-row">
-                    <span>✅ Akkoord</span>
-                    <strong>${voteSummary.yes}</strong>
-                </div>
-                <div class="vote-row">
-                    <span>❌ Niet Akkoord</span>
-                    <strong>${voteSummary.no}</strong>
-                </div>
-                <div class="vote-row">
-                    <span>➖ Onthouding</span>
-                    <strong>${voteSummary.abstain}</strong>
-                </div>
-            </div>
-            
-            <div class="footer">
-                <p>Dit is een automatisch bericht van het Karthuizer Voting Platform.</p>
-            </div>
-        </div>
-    </div>
+<body style="margin: 0; padding: 0; background-color: #f5f3f0; font-family: Georgia, 'Times New Roman', serif;">
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #f5f3f0;">
+        <tr>
+            <td style="padding: 40px 20px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" align="center" style="max-width: 600px; margin: 0 auto;">
+                    <!-- Decorative top border -->
+                    <tr>
+                        <td style="height: 4px; background: linear-gradient(90deg, #5e4339 0%, #8b6f61 50%, #5e4339 100%);"></td>
+                    </tr>
+                    <!-- Header -->
+                    <tr>
+                        <td style="background-color: #5e4339; padding: 48px 40px; text-align: center;">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td style="text-align: center;">
+                                        <div style="font-size: 24px; letter-spacing: 8px; color: #c4a98a; margin-bottom: 16px;">✦ ✦ ✦</div>
+                                        <h1 style="margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: 32px; font-weight: 600; color: #ffffff; letter-spacing: 1px;">Stemming Afgerond</h1>
+                                        <div style="width: 60px; height: 2px; background-color: #c4a98a; margin: 20px auto;"></div>
+                                        <p style="margin: 0; font-family: Georgia, serif; font-size: 16px; color: #d4c4b5; font-style: italic;">${question.groups.name}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <!-- Main content -->
+                    <tr>
+                        <td style="background-color: #fffdf9; padding: 48px 40px;">
+                            <h2 style="margin: 0 0 16px 0; font-family: 'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 600; color: #3d2c24; line-height: 1.3;">${question.title}</h2>
+                            <p style="margin: 0 0 32px 0; font-family: Georgia, serif; font-size: 16px; color: #6b5c52; line-height: 1.7;">${question.description || 'Geen beschrijving opgegeven.'}</p>
+                            <!-- Result banner -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="margin-bottom: 32px;">
+                                <tr>
+                                    <td style="background-color: ${resultBgColor}; border: 2px solid ${resultBorderColor}; border-radius: 8px; padding: 24px; text-align: center;">
+                                        <p style="margin: 0 0 8px 0; font-family: Georgia, serif; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: #78716c;">Uitslag</p>
+                                        <p style="margin: 0; font-family: 'Playfair Display', Georgia, serif; font-size: 28px; font-weight: 700; color: ${resultTextColor};">${resultText}</p>
+                                    </td>
+                                </tr>
+                            </table>
+                            <!-- Vote breakdown -->
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #fafaf7; border-radius: 8px; overflow: hidden;">
+                                <tr>
+                                    <td style="padding: 20px 24px; border-bottom: 1px solid #e8e4de;">
+                                        <p style="margin: 0; font-family: Georgia, serif; font-size: 13px; text-transform: uppercase; letter-spacing: 2px; color: #78716c;">Stemverdeling</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 16px 24px; border-bottom: 1px solid #e8e4de;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="font-family: Georgia, serif; font-size: 16px; color: #3d2c24;">
+                                                    <span style="display: inline-block; width: 24px; height: 24px; background-color: #dcfce7; border-radius: 50%; text-align: center; line-height: 24px; margin-right: 12px; font-size: 14px;">✓</span>
+                                                    Akkoord
+                                                </td>
+                                                <td style="font-family: 'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 700; color: #166534; text-align: right;">${voteSummary.yes}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 16px 24px; border-bottom: 1px solid #e8e4de;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="font-family: Georgia, serif; font-size: 16px; color: #3d2c24;">
+                                                    <span style="display: inline-block; width: 24px; height: 24px; background-color: #fee2e2; border-radius: 50%; text-align: center; line-height: 24px; margin-right: 12px; font-size: 14px;">✗</span>
+                                                    Niet Akkoord
+                                                </td>
+                                                <td style="font-family: 'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 700; color: #991b1b; text-align: right;">${voteSummary.no}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 16px 24px;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td style="font-family: Georgia, serif; font-size: 16px; color: #3d2c24;">
+                                                    <span style="display: inline-block; width: 24px; height: 24px; background-color: #f5f5f4; border-radius: 50%; text-align: center; line-height: 24px; margin-right: 12px; font-size: 14px;">–</span>
+                                                    Onthouding
+                                                </td>
+                                                <td style="font-family: 'Playfair Display', Georgia, serif; font-size: 24px; font-weight: 700; color: #78716c; text-align: right;">${voteSummary.abstain}</td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <!-- Footer -->
+                    <tr>
+                        <td style="background-color: #3d2c24; padding: 32px 40px; text-align: center;">
+                            <p style="margin: 0 0 8px 0; font-family: 'Playfair Display', Georgia, serif; font-size: 18px; color: #c4a98a; letter-spacing: 1px;">Karthuizer</p>
+                            <p style="margin: 0; font-family: Georgia, serif; font-size: 13px; color: #a39080; line-height: 1.6;">Dit is een automatisch bericht van het<br>Karthuizer Voting Platform.</p>
+                        </td>
+                    </tr>
+                    <!-- Decorative bottom border -->
+                    <tr>
+                        <td style="height: 4px; background: linear-gradient(90deg, #5e4339 0%, #8b6f61 50%, #5e4339 100%);"></td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
 </body>
 </html>
     `;
