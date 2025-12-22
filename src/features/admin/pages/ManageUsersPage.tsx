@@ -13,19 +13,16 @@ export function ManageUsersPage() {
   const roleLabels = {
     member: 'Lid',
     admin: 'Beheerder',
-    super_admin: 'Super Admin',
   }
 
   const roleVariants = {
     member: 'default' as const,
     admin: 'primary' as const,
-    super_admin: 'warning' as const,
   }
 
   const roleOptions: { value: UserRole; label: string }[] = [
     { value: 'member', label: roleLabels.member },
     { value: 'admin', label: roleLabels.admin },
-    { value: 'super_admin', label: roleLabels.super_admin },
   ]
 
   const handleRoleChange = async (userId: string, role: UserRole) => {
@@ -59,7 +56,7 @@ export function ManageUsersPage() {
               <CardContent className="flex items-center justify-between">
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center">
-                    {user.role === 'admin' || user.role === 'super_admin' ? (
+                    {user.role === 'admin' ? (
                       <Shield className="w-5 h-5 text-primary-600" />
                     ) : (
                       <User className="w-5 h-5 text-stone-400" />

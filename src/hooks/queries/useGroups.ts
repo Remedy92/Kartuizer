@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { groupsApi, type CreateGroupInput, type UpdateGroupInput } from '@/api'
-import type { GroupMemberRole } from '@/types'
+
 
 export const groupKeys = {
   all: ['groups'] as const,
@@ -84,12 +84,10 @@ export function useAddGroupMember() {
     mutationFn: ({
       groupId,
       userId,
-      role = 'member',
     }: {
       groupId: string
       userId: string
-      role?: GroupMemberRole
-    }) => groupsApi.addMember(groupId, userId, role),
+    }) => groupsApi.addMember(groupId, userId),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: groupKeys.members(variables.groupId) })
       queryClient.invalidateQueries({ queryKey: groupKeys.allMembers() })
@@ -110,22 +108,4 @@ export function useRemoveGroupMember() {
   })
 }
 
-export function useUpdateMemberRole() {
-  const queryClient = useQueryClient()
 
-  return useMutation({
-    mutationFn: ({
-      groupId,
-      userId,
-      role,
-    }: {
-      groupId: string
-      userId: string
-      role: GroupMemberRole
-    }) => groupsApi.updateMemberRole(groupId, userId, role),
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: groupKeys.members(variables.groupId) })
-      queryClient.invalidateQueries({ queryKey: groupKeys.allMembers() })
-    },
-  })
-}

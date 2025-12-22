@@ -26,7 +26,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   setUser: (user) =>
     set({
       user,
-      isAdmin: user?.role === 'admin' || user?.role === 'super_admin',
+      isAdmin: user?.role === 'admin',
     }),
 
   setLoading: (isLoading) => set({ isLoading }),
@@ -42,7 +42,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({ session: null, user: null, isAdmin: false })
 
     // Attempt to revoke server-side session without blocking the UI.
-    supabase.auth.signOut({ scope: 'global' }).catch(() => {})
+    supabase.auth.signOut({ scope: 'global' }).catch(() => { })
 
     // If storage somehow got corrupted, aggressively remove Supabase auth tokens so the app
     // doesn't require a full "Clear Site Data" in the browser to recover.

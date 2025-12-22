@@ -10,13 +10,11 @@ function ensureSupabaseConfigured() {
 export interface CreateGroupInput {
   name: string
   description?: string
-  required_votes: number
 }
 
 export interface UpdateGroupInput {
   name?: string
   description?: string
-  required_votes?: number
 }
 
 export const groupsApi = {
@@ -61,7 +59,10 @@ export const groupsApi = {
     ensureSupabaseConfigured()
     const { data, error } = await supabase
       .from('groups')
-      .insert(input)
+      .insert({
+        ...input,
+        required_votes: 0 // Trigger will update this when members are added
+      })
       .select()
       .single()
 
@@ -73,7 +74,10 @@ export const groupsApi = {
     ensureSupabaseConfigured()
     const { data, error } = await supabase
       .from('groups')
-      .update(input)
+      .update({
+        name: input.name,
+        description: input.description,
+      })
       .eq('id', id)
       .select()
       .single()
@@ -100,14 +104,13 @@ export const groupsApi = {
     return data ?? []
   },
 
-  async addMember(groupId: string, userId: string, role: 'member' | 'chair' | 'admin' = 'member'): Promise<GroupMember> {
+  async addMember(groupId: string, userId: string): Promise<GroupMember> {
     ensureSupabaseConfigured()
     const { data, error } = await supabase
       .from('group_members')
       .insert({
         group_id: groupId,
         user_id: userId,
-        role,
       })
       .select()
       .single()
@@ -127,17 +130,5 @@ export const groupsApi = {
     if (error) throw error
   },
 
-  async updateMemberRole(groupId: string, userId: string, role: 'member' | 'chair' | 'admin'): Promise<GroupMember> {
-    ensureSupabaseConfigured()
-    const { data, error } = await supabase
-      .from('group_members')
-      .update({ role })
-      .eq('group_id', groupId)
-      .eq('user_id', userId)
-      .select()
-      .single()
 
-    if (error) throw error
-    return data
-  },
 }

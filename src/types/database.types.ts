@@ -1,8 +1,8 @@
 export type VoteType = 'yes' | 'no' | 'abstain'
 export type QuestionStatus = 'open' | 'completed'
 export type CompletionMethod = 'manual' | 'threshold' | 'deadline'
-export type UserRole = 'member' | 'admin' | 'super_admin'
-export type GroupMemberRole = 'member' | 'chair' | 'admin'
+export type UserRole = 'member' | 'admin'
+
 export type NotificationType = 'new_question' | 'vote_reminder' | 'question_completed' | 'deadline_approaching'
 export type QuestionType = 'standard' | 'poll'
 
@@ -75,7 +75,6 @@ export interface UserProfile {
 export interface GroupMember {
   user_id: string
   group_id: string
-  role: GroupMemberRole
   joined_at: string
   // Joined data
   user_profiles?: UserProfile

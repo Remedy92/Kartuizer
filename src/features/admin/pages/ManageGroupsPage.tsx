@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Plus,
@@ -12,48 +12,34 @@ import {
 } from 'lucide-react'
 import {
   useGroups,
-  useAllGroupMembers,
+  useGroupMembers,
   useCreateGroup,
   useUpdateGroup,
   useDeleteGroup,
   useAddGroupMember,
   useRemoveGroupMember,
-  useUpdateMemberRole,
   useUsers,
 } from '@/hooks'
 import { useToast } from '@/hooks'
 import { Button, Input, Modal, Card, CardContent, Select } from '@/components/ui'
-import type { Group, GroupMember, GroupMemberRole, UserProfile } from '@/types'
+import type { Group, GroupMember, UserProfile } from '@/types'
 
-const roleOptions = [
-  { value: 'member', label: 'Lid' },
-  { value: 'chair', label: 'Voorzitter' },
-  { value: 'admin', label: 'Admin' },
-]
 
-const roleLabels: Record<GroupMemberRole, string> = {
-  member: 'Lid',
-  chair: 'Voorzitter',
-  admin: 'Admin',
-}
 
 interface GroupMembersSectionProps {
   groupId: string
-  members: GroupMember[]
   allUsers: UserProfile[]
 }
 
-function GroupMembersSection({ groupId, members, allUsers }: GroupMembersSectionProps) {
+function GroupMembersSection({ groupId, allUsers }: GroupMembersSectionProps) {
+  const { data: members = [], isLoading, error: membersError } = useGroupMembers(groupId)
   const addMember = useAddGroupMember()
   const removeMember = useRemoveGroupMember()
-  const updateRole = useUpdateMemberRole()
   const { success, error: showError } = useToast()
 
   const [showAddForm, setShowAddForm] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState('')
-  const [selectedRole, setSelectedRole] = useState<GroupMemberRole>('member')
   const [removingMember, setRemovingMember] = useState<GroupMember | null>(null)
-  const [updatingRoleForUser, setUpdatingRoleForUser] = useState<string | null>(null)
 
   // Filter out users already in the group
   const availableUsers = allUsers.filter(
@@ -67,12 +53,10 @@ function GroupMembersSection({ groupId, members, allUsers }: GroupMembersSection
       await addMember.mutateAsync({
         groupId,
         userId: selectedUserId,
-        role: selectedRole,
       })
       success('Lid toegevoegd', 'Het lid is aan de groep toegevoegd')
       setShowAddForm(false)
       setSelectedUserId('')
-      setSelectedRole('member')
     } catch (err) {
       showError('Fout', err instanceof Error ? err.message : 'Er is een fout opgetreden')
     }
@@ -93,22 +77,14 @@ function GroupMembersSection({ groupId, members, allUsers }: GroupMembersSection
     }
   }
 
-  const handleRoleChange = async (member: GroupMember, newRole: GroupMemberRole) => {
-    if (newRole === member.role) return
 
-    setUpdatingRoleForUser(member.user_id)
-    try {
-      await updateRole.mutateAsync({
-        groupId,
-        userId: member.user_id,
-        role: newRole,
-      })
-      success('Rol bijgewerkt', `Rol gewijzigd naar ${roleLabels[newRole]}`)
-    } catch (err) {
-      showError('Fout', err instanceof Error ? err.message : 'Er is een fout opgetreden')
-    } finally {
-      setUpdatingRoleForUser(null)
-    }
+
+  if (isLoading) {
+    return (
+      <div className="pt-4 border-t border-stone-100 flex justify-center py-4">
+        <Loader2 className="w-4 h-4 animate-spin text-stone-300" />
+      </div>
+    )
   }
 
   return (
@@ -118,7 +94,7 @@ function GroupMembersSection({ groupId, members, allUsers }: GroupMembersSection
         <span className="text-xs font-medium text-stone-500 tracking-wider uppercase">
           Leden ({members.length})
         </span>
-        {!showAddForm && availableUsers.length > 0 && (
+        {!showAddForm && (
           <Button
             variant="ghost"
             size="sm"
@@ -131,6 +107,13 @@ function GroupMembersSection({ groupId, members, allUsers }: GroupMembersSection
         )}
       </div>
 
+      {/* Error state */}
+      {membersError && (
+        <p className="text-xs text-rose-500 mb-4 bg-rose-50 p-2 rounded">
+          Leden konden niet worden geladen.
+        </p>
+      )}
+
       {/* Add member form */}
       <AnimatePresence>
         {showAddForm && (
@@ -142,40 +125,41 @@ function GroupMembersSection({ groupId, members, allUsers }: GroupMembersSection
             className="overflow-hidden"
           >
             <div className="bg-stone-50 rounded-lg p-4 mb-4 space-y-3">
-              <Select
-                id="add-user"
-                placeholder="Selecteer gebruiker..."
-                options={availableUsers.map((u) => ({
-                  value: u.id,
-                  label: u.display_name || u.email,
-                }))}
-                value={selectedUserId}
-                onChange={(e) => setSelectedUserId(e.target.value)}
-                className="bg-white"
-              />
-              <Select
-                id="add-role"
-                options={roleOptions}
-                value={selectedRole}
-                onChange={(e) => setSelectedRole(e.target.value as GroupMemberRole)}
-                className="bg-white"
-              />
+              {availableUsers.length > 0 ? (
+                <Select
+                  id="add-user"
+                  placeholder="Selecteer gebruiker..."
+                  options={availableUsers.map((u) => ({
+                    value: u.id,
+                    label: u.display_name || u.email,
+                  }))}
+                  value={selectedUserId}
+                  onChange={(e) => setSelectedUserId(e.target.value)}
+                  className="bg-white"
+                />
+              ) : (
+                <p className="text-sm text-stone-500 italic py-2">
+                  Alle actieve gebruikers zijn al lid van deze groep.
+                </p>
+              )}
+
               <div className="flex gap-2 pt-1">
-                <Button
-                  size="sm"
-                  onClick={handleAddMember}
-                  loading={addMember.isPending}
-                  disabled={!selectedUserId}
-                >
-                  Toevoegen
-                </Button>
+                {availableUsers.length > 0 && (
+                  <Button
+                    size="sm"
+                    onClick={handleAddMember}
+                    loading={addMember.isPending}
+                    disabled={!selectedUserId}
+                  >
+                    Toevoegen
+                  </Button>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => {
                     setShowAddForm(false)
                     setSelectedUserId('')
-                    setSelectedRole('member')
                   }}
                 >
                   Annuleren
@@ -190,64 +174,48 @@ function GroupMembersSection({ groupId, members, allUsers }: GroupMembersSection
       {members.length === 0 ? (
         <p className="text-sm text-stone-400 italic py-2">Nog geen leden</p>
       ) : (
-        <div className="space-y-2">
-          {members.map((member) => (
-            <div
-              key={member.user_id}
-              className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-stone-50 transition-colors group"
-            >
-              <div className="flex items-center gap-3 min-w-0 flex-1">
-                <div className="w-8 h-8 rounded-full bg-stone-200 flex items-center justify-center flex-shrink-0">
-                  <span className="text-xs font-medium text-stone-600">
-                    {(member.user_profiles?.display_name || member.user_profiles?.email || '?')
-                      .charAt(0)
-                      .toUpperCase()}
-                  </span>
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium text-stone-800 text-sm truncate">
-                    {member.user_profiles?.display_name || 'Onbekend'}
-                  </div>
-                  <div className="flex items-center gap-1 text-xs text-stone-400 truncate">
-                    <Mail size={10} />
-                    {member.user_profiles?.email}
-                  </div>
-                </div>
-              </div>
+        <div className="space-y-1">
+          {members.map((member) => {
+            const displayName = member.user_profiles?.display_name || member.user_profiles?.email?.split('@')[0] || 'Onbekend'
+            const email = member.user_profiles?.email
 
-              <div className="flex items-center gap-2 flex-shrink-0">
-                {/* Role selector */}
-                <div className="relative">
-                  {updatingRoleForUser === member.user_id ? (
-                    <Loader2 className="w-4 h-4 animate-spin text-stone-400" />
-                  ) : (
-                    <select
-                      value={member.role}
-                      onChange={(e) =>
-                        handleRoleChange(member, e.target.value as GroupMemberRole)
-                      }
-                      className="appearance-none bg-transparent text-xs font-medium px-2 py-1 pr-6 rounded border border-stone-200 hover:border-stone-300 focus:border-primary-500 focus:ring-0 cursor-pointer transition-colors"
-                    >
-                      {roleOptions.map((opt) => (
-                        <option key={opt.value} value={opt.value}>
-                          {opt.label}
-                        </option>
-                      ))}
-                    </select>
-                  )}
+            return (
+              <div
+                key={member.user_id}
+                className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-stone-50 transition-colors group"
+              >
+                <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-stone-50 to-stone-100 border border-stone-200 flex items-center justify-center flex-shrink-0 shadow-sm group-hover:border-stone-300 transition-colors">
+                    <span className="text-xs font-bold text-stone-500">
+                      {displayName.charAt(0).toUpperCase()}
+                    </span>
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="font-semibold text-stone-800 text-sm truncate group-hover:text-primary-900 transition-colors">
+                      {displayName}
+                    </div>
+                    {email && email.toLowerCase() !== displayName.toLowerCase() && (
+                      <div className="flex items-center gap-1.5 text-[11px] text-stone-400 truncate mt-0.5 font-medium">
+                        <Mail size={10} className="opacity-60" />
+                        {email}
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                {/* Remove button */}
-                <button
-                  onClick={() => setRemovingMember(member)}
-                  className="p-1.5 rounded-full opacity-0 group-hover:opacity-100 hover:bg-rose-50 text-stone-400 hover:text-rose-500 transition-all"
-                  title="Verwijderen"
-                >
-                  <X size={14} />
-                </button>
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {/* Remove button with subtle hover effect */}
+                  <button
+                    onClick={() => setRemovingMember(member)}
+                    className="p-2 rounded-full opacity-0 group-hover:opacity-100 hover:bg-rose-50 text-stone-300 hover:text-rose-400 transition-all duration-200"
+                    title="Verwijderen"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       )}
 
@@ -284,24 +252,13 @@ function GroupMembersSection({ groupId, members, allUsers }: GroupMembersSection
 
 export function ManageGroupsPage() {
   const { data: groups, isLoading: isLoadingGroups } = useGroups()
-  const { data: allMembers, isLoading: isLoadingMembers } = useAllGroupMembers()
   const { data: users } = useUsers()
   const createGroup = useCreateGroup()
   const updateGroup = useUpdateGroup()
   const deleteGroup = useDeleteGroup()
   const { success, error: showError } = useToast()
 
-  // Group members by group_id for efficient lookup
-  const membersByGroup = useMemo(() => {
-    const map = new Map<string, GroupMember[]>()
-    for (const member of allMembers ?? []) {
-      const existing = map.get(member.group_id) ?? []
-      map.set(member.group_id, [...existing, member])
-    }
-    return map
-  }, [allMembers])
-
-  const isLoading = isLoadingGroups || isLoadingMembers
+  const isLoading = isLoadingGroups
 
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [editingGroup, setEditingGroup] = useState<Group | null>(null)
@@ -309,19 +266,16 @@ export function ManageGroupsPage() {
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
-  const [requiredVotes, setRequiredVotes] = useState('')
 
   const resetForm = () => {
     setName('')
     setDescription('')
-    setRequiredVotes('')
   }
 
   const openEditModal = (group: Group) => {
     setEditingGroup(group)
     setName(group.name)
     setDescription(group.description ?? '')
-    setRequiredVotes(String(group.required_votes))
   }
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -330,7 +284,6 @@ export function ManageGroupsPage() {
       await createGroup.mutateAsync({
         name,
         description: description || undefined,
-        required_votes: parseInt(requiredVotes, 10),
       })
       success('Groep aangemaakt', 'De groep is succesvol aangemaakt')
       setShowCreateModal(false)
@@ -347,9 +300,8 @@ export function ManageGroupsPage() {
     try {
       await updateGroup.mutateAsync({
         id: editingGroup.id,
-        name,
+        name: name,
         description: description || undefined,
-        required_votes: parseInt(requiredVotes, 10),
       })
       success('Groep bijgewerkt', 'De groep is succesvol bijgewerkt')
       setEditingGroup(null)
@@ -406,7 +358,7 @@ export function ManageGroupsPage() {
                     <div>
                       <h3 className="font-medium text-stone-800">{group.name}</h3>
                       <p className="text-sm text-stone-500">
-                        Drempel: {group.required_votes} stemmen
+                        Leden: {group.required_votes}
                       </p>
                     </div>
                   </div>
@@ -431,7 +383,6 @@ export function ManageGroupsPage() {
                 {/* Members section */}
                 <GroupMembersSection
                   groupId={group.id}
-                  members={membersByGroup.get(group.id) ?? []}
                   allUsers={users || []}
                 />
               </CardContent>
@@ -464,16 +415,6 @@ export function ManageGroupsPage() {
             placeholder="Korte beschrijving van de groep"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-          />
-          <Input
-            id="requiredVotes"
-            label="Vereiste stemmen"
-            type="number"
-            min="1"
-            placeholder="5"
-            value={requiredVotes}
-            onChange={(e) => setRequiredVotes(e.target.value)}
-            required
           />
           <div className="flex justify-end gap-3 pt-4">
             <Button
@@ -515,15 +456,6 @@ export function ManageGroupsPage() {
             label="Beschrijving (optioneel)"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-          />
-          <Input
-            id="edit-requiredVotes"
-            label="Vereiste stemmen"
-            type="number"
-            min="1"
-            value={requiredVotes}
-            onChange={(e) => setRequiredVotes(e.target.value)}
-            required
           />
           <div className="flex justify-end gap-3 pt-4">
             <Button
