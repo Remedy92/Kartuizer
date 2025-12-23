@@ -6,7 +6,7 @@ export function MobileNav() {
   const isAdmin = useAuthStore((s) => s.isAdmin)
 
   return (
-    <div className="md:hidden bg-white border-b border-stone-100 px-4 py-2 flex gap-2 overflow-x-auto">
+    <div className="md:hidden bg-white border-b border-stone-100 px-4 py-2 flex gap-2 overflow-x-auto scrollbar-hide">
       <MobileNavTab to="/dashboard">Overzicht</MobileNavTab>
       <MobileNavTab to="/groepen">Groepen</MobileNavTab>
       <MobileNavTab to="/archive">Archief</MobileNavTab>
@@ -28,7 +28,7 @@ function MobileNavTab({ to, children }: MobileNavTabProps) {
       to={to}
       className={({ isActive }) =>
         cn(
-          'flex items-center px-4 py-2 text-sm rounded-full whitespace-nowrap transition-all',
+          'flex items-center px-4 py-2.5 text-sm rounded-full whitespace-nowrap transition-all min-h-[44px]',
           isActive
             ? 'bg-primary-800 text-white'
             : 'bg-stone-100 text-stone-600 hover:bg-stone-200'

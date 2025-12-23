@@ -53,32 +53,35 @@ export function ManageUsersPage() {
         <div className="space-y-3">
           {users.map((user) => (
             <Card key={user.id}>
-              <CardContent className="flex items-center justify-between">
+              <CardContent className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                {/* User info section */}
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center flex-shrink-0">
                     {user.role === 'admin' ? (
                       <Shield className="w-5 h-5 text-primary-600" />
                     ) : (
                       <User className="w-5 h-5 text-stone-400" />
                     )}
                   </div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-stone-800">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="font-medium text-stone-800 truncate">
                         {user.display_name || user.email}
                       </p>
                       <Badge variant={roleVariants[user.role]}>{roleLabels[user.role]}</Badge>
                     </div>
                     <div className="flex items-center gap-1 text-sm text-stone-500">
-                      <Mail size={12} />
-                      <span>{user.email}</span>
+                      <Mail size={12} className="flex-shrink-0" />
+                      <span className="truncate">{user.email}</span>
                     </div>
                   </div>
                 </div>
-                <div className="flex flex-col items-end gap-3">
+
+                {/* Controls section - stacks on mobile */}
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 ml-14 md:ml-0">
                   <div className="flex items-center gap-2">
                     <select
-                      className="text-sm bg-white border border-stone-200 rounded-md px-2 py-1 text-stone-700 focus:border-primary-600 focus:ring-0"
+                      className="text-sm bg-white border border-stone-200 rounded-md px-3 py-2 text-stone-700 focus:border-primary-600 focus:ring-0 min-h-[44px]"
                       value={user.role}
                       onChange={(e) => handleRoleChange(user.id, e.target.value as UserRole)}
                       disabled={updatingUserId === user.id}
@@ -95,9 +98,10 @@ export function ManageUsersPage() {
                       </Button>
                     )}
                   </div>
-                  <div className="text-right text-sm text-stone-400">
-                    <p>Aangemaakt</p>
-                    <p>{formatDate(user.created_at)}</p>
+                  <div className="text-sm text-stone-400">
+                    <span className="md:hidden">Aangemaakt: </span>
+                    <span className="hidden md:inline">Aangemaakt</span>
+                    <span className="md:block">{formatDate(user.created_at)}</span>
                   </div>
                 </div>
               </CardContent>
