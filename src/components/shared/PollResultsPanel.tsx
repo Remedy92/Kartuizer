@@ -61,7 +61,8 @@ export function PollResultsPanel({ question }: PollResultsPanelProps) {
 
         <div className="space-y-3">
           {sortedOptions.map((item, index) => {
-            const isWinner = item.option.id === question.winning_option_id
+            // Only highlight as winner if there's actually a winner (not a tie)
+            const isWinner = summary.winner && item.option.id === summary.winner.id
 
             return (
               <motion.div

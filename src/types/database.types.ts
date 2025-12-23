@@ -184,7 +184,16 @@ export function calculatePollSummary(
         : 0
     }))
 
-  const winner = winningOptionId
+  // Detect ties: if multiple options share the max vote count, there's no winner
+  const voteCountValues = Array.from(voteCounts.values())
+  const maxVotes = voteCountValues.length > 0 ? Math.max(...voteCountValues) : 0
+  const optionsWithMaxVotes = Array.from(voteCounts.entries()).filter(
+    ([, count]) => count === maxVotes
+  )
+  const hasTie = maxVotes > 0 && optionsWithMaxVotes.length > 1
+
+  // Only declare a winner if there's no tie
+  const winner = !hasTie && winningOptionId
     ? options.find(o => o.id === winningOptionId)
     : undefined
 
