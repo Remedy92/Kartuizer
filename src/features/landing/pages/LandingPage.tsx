@@ -43,7 +43,7 @@ export function LandingPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-svh bg-gradient-to-b from-stone-50 to-stone-100 overflow-hidden">
+    <div className="flex flex-col h-svh bg-gradient-to-b from-stone-50 to-stone-100 overflow-hidden">
       {/* Subtle grain overlay */}
       <div
         className="fixed inset-0 opacity-[0.015] pointer-events-none"
@@ -53,35 +53,35 @@ export function LandingPage() {
         }}
       />
 
-      <header className="relative py-6 md:py-8 px-6 md:px-8 flex justify-between items-center max-w-6xl mx-auto w-full">
+      <header className="relative shrink-0 py-4 md:py-6 px-6 md:px-8 flex justify-between items-center max-w-6xl mx-auto w-full">
         <Wordmark size="large" />
         <div className="h-px w-24 bg-gradient-to-r from-transparent via-stone-300 to-transparent hidden md:block" />
       </header>
 
-      <main className="relative flex-1 flex flex-col items-center justify-center text-center px-6 py-10 sm:py-12 md:py-16">
+      <main className="relative flex-1 min-h-0 flex flex-col items-center justify-center text-center px-6">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-2xl space-y-8"
+          className="max-w-2xl space-y-6 md:space-y-8"
         >
           {/* Decorative line */}
-          <div className="w-px h-14 sm:h-16 bg-gradient-to-b from-transparent via-primary-400 to-transparent mx-auto" />
+          <div className="w-px h-10 sm:h-14 bg-gradient-to-b from-transparent via-primary-400 to-transparent mx-auto" />
 
-          <h1 className="text-4xl md:text-6xl font-serif text-stone-800 leading-[1.15] tracking-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-6xl font-serif text-stone-800 leading-[1.15] tracking-tight">
             Jouw stem
             <br />
             <span className="text-primary-600 italic">jouw mening</span>
           </h1>
 
-          <p className="text-lg md:text-xl text-stone-500 max-w-lg mx-auto leading-relaxed font-light">
+          <p className="text-base sm:text-lg md:text-xl text-stone-500 max-w-lg mx-auto leading-relaxed font-light">
             Het digitale stemplatform voor de Raad van Bestuur en Blokvoorzitters. Veilig,
             transparant en efficiënt.
           </p>
 
           <motion.button
             onClick={() => navigate(session ? '/dashboard' : '/login')}
-            className="group relative bg-primary-800 text-white px-10 py-4 text-sm tracking-widest uppercase font-medium hover:bg-primary-900 transition-all duration-300"
+            className="group relative bg-primary-800 text-white px-8 sm:px-10 py-3 sm:py-4 text-sm tracking-widest uppercase font-medium hover:bg-primary-900 transition-all duration-300"
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.98 }}
           >
@@ -91,8 +91,8 @@ export function LandingPage() {
         </motion.div>
       </main>
 
-      <footer className="relative py-8 text-center">
-        <div className="h-px w-32 bg-gradient-to-r from-transparent via-stone-300 to-transparent mx-auto mb-6" />
+      <footer className="relative shrink-0 py-4 md:py-6 text-center">
+        <div className="h-px w-32 bg-gradient-to-r from-transparent via-stone-300 to-transparent mx-auto mb-4 md:mb-6" />
         <p className="text-xs text-stone-400 tracking-wider uppercase">
           &copy; {new Date().getFullYear()} Domein Karthuizer
         </p>
