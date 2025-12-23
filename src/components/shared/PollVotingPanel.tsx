@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Check, Pencil } from 'lucide-react'
 import type { Question, Vote } from '@/types'
+import { VotersList } from './VotersList'
 import { cn } from '@/lib/utils'
 
 interface PollVotingPanelProps {
@@ -149,6 +150,15 @@ export function PollVotingPanel({
                         )}
                       />
                     </div>
+
+                    {/* Voters for this option */}
+                    {count > 0 && (
+                      <VotersList
+                        votes={question.votes ?? []}
+                        variant="poll"
+                        pollOptionId={option.id}
+                      />
+                    )}
                   </motion.div>
                 )
               })}

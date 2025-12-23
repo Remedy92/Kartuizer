@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Check, Pencil } from 'lucide-react'
 import type { Question, Vote, VoteType } from '@/types'
 import { VoteButton } from './VoteButton'
+import { VotersList } from './VotersList'
 import { cn } from '@/lib/utils'
 
 interface VotingPanelProps {
@@ -161,6 +162,13 @@ export function VotingPanel({ question, userVote, isVoting, onVote }: VotingPane
             />
           </div>
         </div>
+
+        {/* Voters list - show who voted what */}
+        {totalVotes > 0 && (
+          <div className="pt-3 border-t border-stone-100">
+            <VotersList votes={question.votes ?? []} variant="standard" />
+          </div>
+        )}
       </div>
     )
   }
