@@ -28,19 +28,23 @@ export function PollResultsPanel({ question }: PollResultsPanelProps) {
   return (
     <div className="space-y-5">
       {/* Winner announcement */}
-      {summary.winner && (
-        <motion.div
-          initial={{ opacity: 0, y: -5 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200/60 rounded-md"
-        >
-          <div className="w-10 h-10 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0">
-            <Trophy className="w-5 h-5 text-amber-900" />
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-xs text-amber-600 uppercase tracking-wide font-medium">Winnaar</p>
-            <p className="text-base font-medium text-amber-900 truncate">{summary.winner.label}</p>
-          </div>
+      {summary.winner && (() => {
+        const isUnanimous = summary.winner.vote_count === summary.total_votes
+        return (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200/60 rounded-md"
+          >
+            <div className="w-10 h-10 rounded-full bg-amber-400 flex items-center justify-center flex-shrink-0">
+              <Trophy className="w-5 h-5 text-amber-900" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-xs text-amber-600 uppercase tracking-wide font-medium">
+                {isUnanimous ? 'Unaniem' : 'Winnaar'}
+              </p>
+              <p className="text-base font-medium text-amber-900 truncate">{summary.winner.label}</p>
+            </div>
           <div className="text-right flex-shrink-0">
             <p className="text-lg font-semibold text-amber-800">
               {summary.total_votes > 0 && summary.winner.vote_count
@@ -51,7 +55,8 @@ export function PollResultsPanel({ question }: PollResultsPanelProps) {
             <p className="text-xs text-amber-600">{summary.winner.vote_count ?? 0} stemmen</p>
           </div>
         </motion.div>
-      )}
+        )
+      })()}
 
       {/* All results - prominent bars */}
       <div className="space-y-4">
