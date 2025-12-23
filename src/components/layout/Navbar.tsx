@@ -31,8 +31,8 @@ export function Navbar() {
 
             <div className="hidden md:flex items-center gap-1">
               <NavTab to="/dashboard">Overzicht</NavTab>
-              <NavTab to="/groepen">Groepen</NavTab>
               <NavTab to="/archive">Archief</NavTab>
+              <NavTab to="/groepen">Groepen</NavTab>
               {isAdmin && (
                 <NavTab to="/admin">Beheer</NavTab>
               )}
@@ -40,10 +40,10 @@ export function Navbar() {
           </div>
 
           <div className="flex items-center gap-6">
-            {/* Mobile menu button */}
+            {/* Mobile menu button - 44px touch target */}
             <button
               onClick={toggleSidebar}
-              className="md:hidden w-10 h-10 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-all rounded-full"
+              className="md:hidden w-11 h-11 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-all rounded-full"
             >
               <Menu size={20} />
             </button>
@@ -59,7 +59,7 @@ export function Navbar() {
 
             <button
               onClick={handleSignOut}
-              className="w-10 h-10 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-all rounded-full"
+              className="w-11 h-11 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-all rounded-full"
               title="Uitloggen"
             >
               <LogOut size={18} />

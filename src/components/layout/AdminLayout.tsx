@@ -4,9 +4,31 @@ import { cn } from '@/lib/utils'
 
 export function AdminLayout() {
   return (
-    <div className="flex gap-8">
-      {/* Sidebar */}
-      <aside className="w-64 flex-shrink-0 hidden lg:block">
+    <div>
+      {/* Mobile Admin Navigation - visible only below lg breakpoint */}
+      <nav className="lg:hidden mb-6 -mx-6 px-4 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-2 pb-2">
+          <AdminMobileNavLink to="/admin" end icon={LayoutDashboard}>
+            Overzicht
+          </AdminMobileNavLink>
+          <AdminMobileNavLink to="/admin/questions" icon={FileQuestion}>
+            Vragen
+          </AdminMobileNavLink>
+          <AdminMobileNavLink to="/admin/groups" icon={Settings}>
+            Groepen
+          </AdminMobileNavLink>
+          <AdminMobileNavLink to="/admin/users" icon={Users}>
+            Gebruikers
+          </AdminMobileNavLink>
+          <AdminMobileNavLink to="/admin/analytics" icon={BarChart3}>
+            Statistieken
+          </AdminMobileNavLink>
+        </div>
+      </nav>
+
+      <div className="flex gap-8">
+        {/* Desktop Sidebar - visible only at lg breakpoint and above */}
+        <aside className="w-64 flex-shrink-0 hidden lg:block">
         <div className="sticky top-32">
           <nav className="space-y-1">
             <AdminNavLink to="/admin" end icon={LayoutDashboard}>
@@ -28,9 +50,10 @@ export function AdminLayout() {
         </div>
       </aside>
 
-      {/* Main content */}
-      <div className="flex-1 min-w-0">
-        <Outlet />
+        {/* Main content */}
+        <div className="flex-1 min-w-0">
+          <Outlet />
+        </div>
       </div>
     </div>
   )
@@ -58,6 +81,26 @@ function AdminNavLink({ to, icon: Icon, children, end }: AdminNavLinkProps) {
       }
     >
       <Icon size={18} />
+      {children}
+    </NavLink>
+  )
+}
+
+function AdminMobileNavLink({ to, icon: Icon, children, end }: AdminNavLinkProps) {
+  return (
+    <NavLink
+      to={to}
+      end={end}
+      className={({ isActive }) =>
+        cn(
+          'flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-full whitespace-nowrap transition-all min-h-[44px]',
+          isActive
+            ? 'bg-primary-800 text-white'
+            : 'bg-stone-100 text-stone-600 hover:bg-stone-200'
+        )
+      }
+    >
+      <Icon size={16} />
       {children}
     </NavLink>
   )

@@ -487,13 +487,14 @@ function QuestionRow({ question, onClose, onEditQuestion, onEditPoll, onDelete }
   }
 
   return (
-    <div className="bg-white border border-stone-200 p-4 flex items-center justify-between gap-4">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 mb-1">
+    <div className="bg-white border border-stone-200 p-4">
+      {/* Question info */}
+      <div className="flex-1 min-w-0 mb-3 md:mb-0">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
           <Badge variant="primary">{question.groups?.name}</Badge>
           <span className="text-xs text-stone-400">{formatDate(question.created_at)}</span>
         </div>
-        <h3 className="font-medium text-stone-800 truncate">{question.title}</h3>
+        <h3 className="font-medium text-stone-800 break-words">{question.title}</h3>
         <p className="text-sm text-stone-500">
           {totalVotes} stemmen
           {question.status === 'completed' && (
@@ -502,15 +503,16 @@ function QuestionRow({ question, onClose, onEditQuestion, onEditPoll, onDelete }
         </p>
       </div>
 
-      <div className="flex items-center gap-2">
+      {/* Action buttons - wrap on mobile, row on desktop */}
+      <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-stone-100 md:border-0 md:pt-0 md:mt-3">
         {question.status === 'open' && onClose && (
-          <Button variant="outline" size="sm" onClick={onClose}>
+          <Button variant="outline" size="sm" onClick={onClose} className="flex-1 md:flex-none min-h-[44px]">
             <XCircle size={14} className="mr-1.5" />
             Sluiten
           </Button>
         )}
         {canEditQuestion && onEditQuestion && (
-          <Button variant="outline" size="sm" onClick={onEditQuestion}>
+          <Button variant="outline" size="sm" onClick={onEditQuestion} className="flex-1 md:flex-none min-h-[44px]">
             <Pencil size={14} className="mr-1.5" />
             Bewerk vraag
           </Button>
@@ -521,13 +523,14 @@ function QuestionRow({ question, onClose, onEditQuestion, onEditPoll, onDelete }
             size="sm"
             disabled
             title="Niet bewerkbaar zodra er stemmen zijn uitgebracht."
+            className="flex-1 md:flex-none min-h-[44px]"
           >
             <Pencil size={14} className="mr-1.5" />
             Bewerk vraag
           </Button>
         )}
         {canEditPoll && onEditPoll && (
-          <Button variant="outline" size="sm" onClick={onEditPoll}>
+          <Button variant="outline" size="sm" onClick={onEditPoll} className="flex-1 md:flex-none min-h-[44px]">
             <Pencil size={14} className="mr-1.5" />
             Bewerk opties
           </Button>
@@ -538,12 +541,13 @@ function QuestionRow({ question, onClose, onEditQuestion, onEditPoll, onDelete }
             size="sm"
             disabled
             title="Niet bewerkbaar zodra er stemmen zijn uitgebracht."
+            className="flex-1 md:flex-none min-h-[44px]"
           >
             <Pencil size={14} className="mr-1.5" />
             Bewerk opties
           </Button>
         )}
-        <Button variant="ghost" size="sm" onClick={onDelete}>
+        <Button variant="ghost" size="sm" onClick={onDelete} className="min-h-[44px] min-w-[44px]">
           <Trash2 size={14} className="text-rose-500" />
         </Button>
       </div>

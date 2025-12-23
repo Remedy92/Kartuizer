@@ -162,7 +162,7 @@ export function CreateQuestionPage() {
       >
         <form onSubmit={handleSubmit}>
           {/* Main form fields */}
-          <div className="p-8 space-y-6">
+          <div className="p-4 sm:p-6 md:p-8 space-y-6">
             <Select
               id="group"
               label="Doelgroep"
@@ -218,7 +218,7 @@ export function CreateQuestionPage() {
               >
                 <div className="border-t border-stone-100">
                   {/* Multi-choice toggle */}
-                  <div className="px-8 py-5 bg-stone-50/50 border-b border-stone-100">
+                  <div className="px-4 sm:px-6 md:px-8 py-5 bg-stone-50/50 border-b border-stone-100">
                     <button
                       type="button"
                       onClick={() => setAllowMultiple(!allowMultiple)}
@@ -258,7 +258,7 @@ export function CreateQuestionPage() {
                   </div>
 
                   {/* Options list */}
-                  <div className="p-8 pt-6">
+                  <div className="p-4 sm:p-6 md:p-8 pt-6">
                     <label className="block text-xs font-medium text-stone-500 mb-4 tracking-wider uppercase">
                       Opties
                     </label>
@@ -349,7 +349,7 @@ export function CreateQuestionPage() {
           </AnimatePresence>
 
           {/* Submit section */}
-          <div className="px-8 py-6 bg-stone-50/50 border-t border-stone-100 flex items-center justify-between">
+          <div className="px-4 sm:px-6 md:px-8 py-4 sm:py-6 bg-stone-50/50 border-t border-stone-100 flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3">
             <Button variant="ghost" type="button" onClick={() => navigate('/admin/questions')}>
               Annuleren
             </Button>
