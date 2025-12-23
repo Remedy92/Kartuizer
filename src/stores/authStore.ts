@@ -7,6 +7,7 @@ interface AuthState {
   session: Session | null
   user: UserProfile | null
   isAdmin: boolean
+  isPending: boolean
   isLoading: boolean
 
   setSession: (session: Session | null) => void
@@ -19,6 +20,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   session: null,
   user: null,
   isAdmin: false,
+  isPending: false,
   isLoading: true,
 
   setSession: (session) => set({ session }),
@@ -27,6 +29,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     set({
       user,
       isAdmin: user?.role === 'admin',
+      isPending: user?.approval_status === 'pending',
     }),
 
   setLoading: (isLoading) => set({ isLoading }),
@@ -39,7 +42,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       // Ignore local sign-out errors (stale tokens).
     }
 
-    set({ session: null, user: null, isAdmin: false })
+    set({ session: null, user: null, isAdmin: false, isPending: false })
 
     // Attempt to revoke server-side session without blocking the UI.
     supabase.auth.signOut({ scope: 'global' }).catch(() => { })

@@ -2,6 +2,7 @@ export type VoteType = 'yes' | 'no' | 'abstain'
 export type QuestionStatus = 'open' | 'completed'
 export type CompletionMethod = 'manual' | 'threshold' | 'deadline'
 export type UserRole = 'member' | 'admin'
+export type ApprovalStatus = 'pending' | 'approved' | null
 
 export type NotificationType = 'new_question' | 'vote_reminder' | 'question_completed' | 'deadline_approaching'
 export type QuestionType = 'standard' | 'poll'
@@ -74,9 +75,17 @@ export interface UserProfile {
   email: string
   display_name?: string
   role: UserRole
+  approval_status?: ApprovalStatus
   created_at: string
   updated_at?: string
   last_active_at?: string
+}
+
+export interface AppSettings {
+  id: string
+  require_user_approval: boolean
+  updated_at: string
+  updated_by?: string
 }
 
 export interface GroupMember {
