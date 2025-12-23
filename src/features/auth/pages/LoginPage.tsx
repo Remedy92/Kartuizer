@@ -111,12 +111,15 @@ export function LoginPage() {
                 <Mail className="w-8 h-8 text-emerald-600" />
               </div>
               <h3 className="text-lg font-medium text-stone-800 mb-2">Controleer je inbox</h3>
-              <p className="text-stone-500 text-sm mb-6">
+              <p className="text-stone-500 text-sm mb-4">
                 {resetEmailSent
                   ? 'We hebben een link gestuurd om je wachtwoord te resetten naar'
                   : 'We hebben een inloglink gestuurd naar'}
                 <br />
                 <span className="font-medium text-stone-700">{email}</span>
+              </p>
+              <p className="text-xs text-stone-400 mb-6">
+                De link komt van karthuizer.vercel.app
               </p>
               <button
                 onClick={() => {

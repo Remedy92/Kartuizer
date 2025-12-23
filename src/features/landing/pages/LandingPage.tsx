@@ -69,9 +69,9 @@ export function LandingPage() {
           <div className="w-px h-16 bg-gradient-to-b from-transparent via-primary-400 to-transparent mx-auto mb-12" />
 
           <h1 className="text-4xl md:text-6xl font-serif text-stone-800 mb-8 leading-[1.15] tracking-tight">
-            Besluitvorming
+            Jouw stem
             <br />
-            <span className="text-primary-600 italic">met klasse</span>
+            <span className="text-primary-600 italic">jouw mening</span>
           </h1>
 
           <p className="text-lg md:text-xl text-stone-500 mb-16 max-w-lg mx-auto leading-relaxed font-light">

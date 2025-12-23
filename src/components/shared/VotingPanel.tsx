@@ -50,6 +50,7 @@ const segments = [
 
 export function VotingPanel({ question, userVote, isVoting, onVote }: VotingPanelProps) {
   const [isEditing, setIsEditing] = useState(false)
+  const [showConfirmation, setShowConfirmation] = useState(false)
   const decidedResult = question.decided_result
 
   const voteSummary = useMemo(() => {
@@ -65,6 +66,43 @@ export function VotingPanel({ question, userVote, isVoting, onVote }: VotingPane
   const totalVotes = voteSummary.yes + voteSummary.no + voteSummary.abstain
   const requiredVotes = question.groups?.required_votes || 1
   const quorumPercentage = Math.min((totalVotes / requiredVotes) * 100, 100)
+
+  // Vote confirmation screen - shows immediately after voting
+  if (showConfirmation && userVote && userVote.vote) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="space-y-5"
+      >
+        <div className="flex flex-col items-center text-center py-4">
+          <div className="w-14 h-14 rounded-full bg-emerald-500 flex items-center justify-center mb-4">
+            <Check className="w-7 h-7 text-white" strokeWidth={3} />
+          </div>
+          <p className="text-xs text-stone-400 uppercase tracking-wide mb-1">Uw stem is uitgebracht</p>
+          <p className="text-lg font-medium text-stone-800">{voteLabels[userVote.vote]}</p>
+        </div>
+
+        <button
+          onClick={() => setShowConfirmation(false)}
+          className="w-full bg-primary-800 text-white py-3 text-sm tracking-widest uppercase font-medium hover:bg-primary-900 transition-colors"
+        >
+          Volgende
+        </button>
+
+        <button
+          onClick={() => {
+            setShowConfirmation(false)
+            setIsEditing(true)
+          }}
+          className="w-full text-xs text-stone-400 hover:text-stone-600 py-2 transition-colors flex items-center justify-center gap-1"
+        >
+          <Pencil size={11} />
+          Toch wijzigen
+        </button>
+      </motion.div>
+    )
+  }
 
   // Voted state - clear hierarchy with chunky visualization
   if (userVote && userVote.vote && !isEditing) {
@@ -177,6 +215,7 @@ export function VotingPanel({ question, userVote, isVoting, onVote }: VotingPane
   const handleVote = (vote: VoteType) => {
     onVote(vote)
     setIsEditing(false)
+    setShowConfirmation(true)
   }
 
   return (
