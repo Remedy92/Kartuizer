@@ -45,3 +45,41 @@ export function useUpdateUser() {
     },
   })
 }
+
+// Pending users hooks
+export function usePendingUsers() {
+  return useQuery({
+    queryKey: [...userKeys.all, 'pending'],
+    queryFn: () => usersApi.getPending(),
+  })
+}
+
+export function usePendingUsersCount() {
+  return useQuery({
+    queryKey: [...userKeys.all, 'pending-count'],
+    queryFn: () => usersApi.getPendingCount(),
+    refetchInterval: 30000, // Refresh every 30 seconds
+  })
+}
+
+export function useApproveUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (userId: string) => usersApi.approve(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.all })
+    },
+  })
+}
+
+export function useRejectUser() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (userId: string) => usersApi.reject(userId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: userKeys.all })
+    },
+  })
+}

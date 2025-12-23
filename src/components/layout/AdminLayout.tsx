@@ -1,10 +1,12 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, FileQuestion, Users, Settings, BarChart3 } from 'lucide-react'
+import { LayoutDashboard, FileQuestion, Users, Settings, BarChart3, Cog } from 'lucide-react'
 import { useUIStore } from '@/stores'
+import { usePendingUsersCount } from '@/hooks'
 import { cn } from '@/lib/utils'
 
 export function AdminLayout() {
   const sidebarOpen = useUIStore((s) => s.sidebarOpen)
+  const { data: pendingCount } = usePendingUsersCount()
 
   return (
     <div>
@@ -30,11 +32,14 @@ export function AdminLayout() {
             <AdminMobileNavLink to="/admin/groups" icon={Settings}>
               Groepen
             </AdminMobileNavLink>
-            <AdminMobileNavLink to="/admin/users" icon={Users}>
+            <AdminMobileNavLink to="/admin/users" icon={Users} badge={pendingCount}>
               Gebruikers
             </AdminMobileNavLink>
             <AdminMobileNavLink to="/admin/analytics" icon={BarChart3}>
               Statistieken
+            </AdminMobileNavLink>
+            <AdminMobileNavLink to="/admin/settings" icon={Cog}>
+              Instellingen
             </AdminMobileNavLink>
           </div>
         </nav>
@@ -54,11 +59,14 @@ export function AdminLayout() {
             <AdminNavLink to="/admin/groups" icon={Settings}>
               Groepen
             </AdminNavLink>
-            <AdminNavLink to="/admin/users" icon={Users}>
+            <AdminNavLink to="/admin/users" icon={Users} badge={pendingCount}>
               Gebruikers
             </AdminNavLink>
             <AdminNavLink to="/admin/analytics" icon={BarChart3}>
               Statistieken
+            </AdminNavLink>
+            <AdminNavLink to="/admin/settings" icon={Cog}>
+              Instellingen
             </AdminNavLink>
           </nav>
         </div>
@@ -78,9 +86,10 @@ interface AdminNavLinkProps {
   icon: React.ComponentType<{ size?: number; className?: string }>
   children: React.ReactNode
   end?: boolean
+  badge?: number
 }
 
-function AdminNavLink({ to, icon: Icon, children, end }: AdminNavLinkProps) {
+function AdminNavLink({ to, icon: Icon, children, end, badge }: AdminNavLinkProps) {
   return (
     <NavLink
       to={to}
@@ -95,12 +104,17 @@ function AdminNavLink({ to, icon: Icon, children, end }: AdminNavLinkProps) {
       }
     >
       <Icon size={18} />
-      {children}
+      <span className="flex-1">{children}</span>
+      {badge !== undefined && badge > 0 && (
+        <span className="bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full min-w-[20px] text-center">
+          {badge}
+        </span>
+      )}
     </NavLink>
   )
 }
 
-function AdminMobileNavLink({ to, icon: Icon, children, end }: AdminNavLinkProps) {
+function AdminMobileNavLink({ to, icon: Icon, children, end, badge }: AdminNavLinkProps) {
   return (
     <NavLink
       to={to}
@@ -115,7 +129,12 @@ function AdminMobileNavLink({ to, icon: Icon, children, end }: AdminNavLinkProps
       }
     >
       <Icon size={16} />
-      {children}
+      <span>{children}</span>
+      {badge !== undefined && badge > 0 && (
+        <span className="bg-amber-500 text-white text-xs font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center">
+          {badge}
+        </span>
+      )}
     </NavLink>
   )
 }
