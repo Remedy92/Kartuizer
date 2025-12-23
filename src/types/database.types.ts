@@ -50,6 +50,12 @@ export interface Question {
   winning_option?: PollOption
 }
 
+export interface VoteUserProfile {
+  id: string
+  display_name?: string
+  email: string
+}
+
 export interface Vote {
   id: string
   question_id: string
@@ -60,6 +66,7 @@ export interface Vote {
   updated_at?: string
   // Joined data
   poll_options?: PollOption
+  user_profiles?: VoteUserProfile // who cast this vote (non-anonymous voting)
 }
 
 export interface UserProfile {

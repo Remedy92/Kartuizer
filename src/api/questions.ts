@@ -35,10 +35,11 @@ export interface UpdatePollDraftInput {
 
 // Select query with all relations
 // Note: poll_options!question_id uses FK hint to avoid PostgREST 300 ambiguous relationship error
+// votes include user_profiles to show who voted what (non-anonymous voting)
 const QUESTION_SELECT = `
   *,
   groups(id, name, required_votes),
-  votes(id, question_id, user_id, vote, poll_option_id, created_at),
+  votes(id, question_id, user_id, vote, poll_option_id, created_at, user_profiles(id, display_name, email)),
   poll_options!question_id(id, question_id, label, description, sort_order, created_at)
 `
 
