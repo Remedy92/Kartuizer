@@ -45,7 +45,7 @@ Deno.serve(async (req) => {
         // Fetch question details, votes, poll options, and group name
         const { data: question, error: qError } = await supabase
             .from('questions')
-            .select('*, groups(name), votes(vote, user_id, poll_option_id), poll_options(id, label, sort_order)')
+            .select('*, groups(name), votes(vote, user_id, poll_option_id), poll_options!question_id(id, label, sort_order)')
             .eq('id', record.id)
             .single();
 
