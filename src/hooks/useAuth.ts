@@ -6,6 +6,8 @@ interface AuthResult {
   success: boolean
   error?: string
   needsVerification?: boolean
+  needsPasswordReset?: boolean
+  notice?: string
 }
 
 export function useAuth() {
@@ -47,18 +49,87 @@ export function useAuth() {
       })
 
       if (signInError) {
-        // If user doesn't exist, try sign up
-        if (signInError.message.includes('Invalid login credentials')) {
-          const { error: signUpError } = await supabase.auth.signUp({
+        const signInMessage = signInError.message.toLowerCase()
+        if (signInMessage.includes('email not confirmed')) {
+          const { error: resendError } = await supabase.auth.resend({
+            type: 'signup',
             email,
-            password,
+            options: {
+              emailRedirectTo: `${window.location.origin}/dashboard`,
+            },
           })
 
-          if (signUpError) {
-            return { success: false, error: signUpError.message }
+          if (resendError) {
+            return { success: false, error: resendError.message }
           }
 
-          return { success: true, needsVerification: true }
+          return {
+            success: true,
+            needsVerification: true,
+            notice: 'We hebben je bevestigingsmail opnieuw verstuurd.',
+          }
+        }
+
+        // If user doesn't exist, try sign up
+        if (signInMessage.includes('invalid login credentials')) {
+          const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              emailRedirectTo: `${window.location.origin}/dashboard`,
+            },
+          })
+
+          if (!signUpError) {
+            if (signUpData.session) {
+              return { success: true }
+            }
+
+            return { success: true, needsVerification: true }
+          }
+
+          const signUpMessage = signUpError.message.toLowerCase()
+          if (signUpMessage.includes('user already registered')) {
+            const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+              redirectTo: `${window.location.origin}/reset-password`,
+            })
+
+            if (!resetError) {
+              return {
+                success: true,
+                needsPasswordReset: true,
+                notice: 'We hebben je een link gestuurd om een wachtwoord in te stellen.',
+              }
+            }
+
+            const resetMessage = resetError.message.toLowerCase()
+            if (resetMessage.includes('email not confirmed') || resetMessage.includes('not confirmed')) {
+              const { error: resendError } = await supabase.auth.resend({
+                type: 'signup',
+                email,
+                options: {
+                  emailRedirectTo: `${window.location.origin}/dashboard`,
+                },
+              })
+
+              if (!resendError) {
+                return {
+                  success: true,
+                  needsVerification: true,
+                  notice: 'We hebben je bevestigingsmail opnieuw verstuurd.',
+                }
+              }
+
+              return { success: false, error: resendError.message }
+            }
+
+            return {
+              success: false,
+              error: resetError.message,
+            }
+          }
+
+          return { success: false, error: signUpError.message }
         }
 
         return { success: false, error: signInError.message }
