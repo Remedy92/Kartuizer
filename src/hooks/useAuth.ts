@@ -81,6 +81,47 @@ export function useAuth() {
           })
 
           if (!signUpError) {
+            // Check if this is an existing user (identities array is empty for repeated signups)
+            // This is Supabase's documented behavior - signUp returns 200 OK with empty identities
+            if (signUpData.user && signUpData.user.identities?.length === 0) {
+              // Existing user without password - send password reset email
+              const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/reset-password`,
+              })
+
+              if (!resetError) {
+                return {
+                  success: true,
+                  needsPasswordReset: true,
+                  notice: 'We hebben je een link gestuurd om een wachtwoord in te stellen.',
+                }
+              }
+
+              // Handle case where reset fails due to unconfirmed email
+              const resetMessage = resetError.message.toLowerCase()
+              if (resetMessage.includes('email not confirmed') || resetMessage.includes('not confirmed')) {
+                const { error: resendError } = await supabase.auth.resend({
+                  type: 'signup',
+                  email,
+                  options: {
+                    emailRedirectTo: `${window.location.origin}/dashboard`,
+                  },
+                })
+
+                if (!resendError) {
+                  return {
+                    success: true,
+                    needsVerification: true,
+                    notice: 'We hebben je bevestigingsmail opnieuw verstuurd.',
+                  }
+                }
+
+                return { success: false, error: resendError.message }
+              }
+
+              return { success: false, error: resetError.message }
+            }
+
             if (signUpData.session) {
               return { success: true }
             }
@@ -88,47 +129,7 @@ export function useAuth() {
             return { success: true, needsVerification: true }
           }
 
-          const signUpMessage = signUpError.message.toLowerCase()
-          if (signUpMessage.includes('user already registered')) {
-            const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
-              redirectTo: `${window.location.origin}/reset-password`,
-            })
-
-            if (!resetError) {
-              return {
-                success: true,
-                needsPasswordReset: true,
-                notice: 'We hebben je een link gestuurd om een wachtwoord in te stellen.',
-              }
-            }
-
-            const resetMessage = resetError.message.toLowerCase()
-            if (resetMessage.includes('email not confirmed') || resetMessage.includes('not confirmed')) {
-              const { error: resendError } = await supabase.auth.resend({
-                type: 'signup',
-                email,
-                options: {
-                  emailRedirectTo: `${window.location.origin}/dashboard`,
-                },
-              })
-
-              if (!resendError) {
-                return {
-                  success: true,
-                  needsVerification: true,
-                  notice: 'We hebben je bevestigingsmail opnieuw verstuurd.',
-                }
-              }
-
-              return { success: false, error: resendError.message }
-            }
-
-            return {
-              success: false,
-              error: resetError.message,
-            }
-          }
-
+          // Fallback for actual signUp errors (rare edge cases)
           return { success: false, error: signUpError.message }
         }
 
