@@ -1,7 +1,13 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Plus, Loader2, CheckCircle, Clock, Trash2, XCircle, Pencil } from 'lucide-react'
-import { useAllQuestions, useCloseQuestion, useDeleteQuestion, useUpdatePollDraft } from '@/hooks'
+import {
+  useAllQuestions,
+  useCloseQuestion,
+  useDeleteQuestion,
+  useUpdatePollDraft,
+  useUpdateQuestion,
+} from '@/hooks'
 import { useToast } from '@/hooks'
 import { Button, Badge, Modal, Input, Textarea } from '@/components/ui'
 import { formatDate, cn } from '@/lib/utils'
@@ -21,14 +27,35 @@ export function ManageQuestionsPage() {
   const closeQuestion = useCloseQuestion()
   const deleteQuestion = useDeleteQuestion()
   const updatePollDraft = useUpdatePollDraft()
+  const updateQuestion = useUpdateQuestion()
   const { success, error: showError } = useToast()
 
   const [questionToClose, setQuestionToClose] = useState<Question | null>(null)
   const [questionToDelete, setQuestionToDelete] = useState<Question | null>(null)
+  const [questionToEdit, setQuestionToEdit] = useState<Question | null>(null)
+  const [editQuestionTitle, setEditQuestionTitle] = useState('')
+  const [editQuestionDescription, setEditQuestionDescription] = useState('')
+  const [editQuestionDeadline, setEditQuestionDeadline] = useState('')
   const [pollToEdit, setPollToEdit] = useState<Question | null>(null)
   const [editOptions, setEditOptions] = useState<EditableOption[]>([])
   const [editTitle, setEditTitle] = useState('')
   const [editDescription, setEditDescription] = useState('')
+
+  const formatDeadlineInput = (deadline?: string) => {
+    if (!deadline) return ''
+    const date = new Date(deadline)
+    const pad = (value: number) => String(value).padStart(2, '0')
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(
+      date.getHours()
+    )}:${pad(date.getMinutes())}`
+  }
+
+  const openEditQuestion = (question: Question) => {
+    setQuestionToEdit(question)
+    setEditQuestionTitle(question.title)
+    setEditQuestionDescription(question.description ?? '')
+    setEditQuestionDeadline(formatDeadlineInput(question.deadline))
+  }
 
   const openEditPoll = (question: Question) => {
     const existingOptions = (question.poll_options ?? []).map((o) => ({
@@ -69,6 +96,33 @@ export function ManageQuestionsPage() {
       await closeQuestion.mutateAsync({ id: questionToClose.id, method: 'manual' })
       success('Stemming gesloten', 'De stemming is succesvol afgesloten')
       setQuestionToClose(null)
+    } catch (err) {
+      showError('Fout', err instanceof Error ? err.message : 'Er is een fout opgetreden')
+    }
+  }
+
+  const handleUpdateQuestion = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!questionToEdit) return
+
+    const trimmedTitle = editQuestionTitle.trim()
+    if (!trimmedTitle) {
+      showError('Fout', 'Onderwerp is verplicht')
+      return
+    }
+
+    try {
+      await updateQuestion.mutateAsync({
+        id: questionToEdit.id,
+        title: trimmedTitle,
+        description: editQuestionDescription.trim(),
+        deadline: editQuestionDeadline || undefined,
+      })
+      success('Vraag bijgewerkt', 'De vraag is succesvol aangepast')
+      setQuestionToEdit(null)
+      setEditQuestionTitle('')
+      setEditQuestionDescription('')
+      setEditQuestionDeadline('')
     } catch (err) {
       showError('Fout', err instanceof Error ? err.message : 'Er is een fout opgetreden')
     }
@@ -155,6 +209,7 @@ export function ManageQuestionsPage() {
                     key={question.id}
                     question={question}
                     onClose={() => setQuestionToClose(question)}
+                    onEditQuestion={() => openEditQuestion(question)}
                     onEditPoll={() => openEditPoll(question)}
                     onDelete={() => setQuestionToDelete(question)}
                   />
@@ -226,6 +281,61 @@ export function ManageQuestionsPage() {
             Verwijderen
           </Button>
         </div>
+      </Modal>
+
+      {/* Edit Question Modal */}
+      <Modal
+        open={!!questionToEdit}
+        onClose={() => {
+          setQuestionToEdit(null)
+          setEditQuestionTitle('')
+          setEditQuestionDescription('')
+          setEditQuestionDeadline('')
+        }}
+        title="Vraag bewerken"
+        description="Pas het onderwerp of de deadline aan zolang er nog geen stemmen zijn."
+      >
+        <form onSubmit={handleUpdateQuestion} className="space-y-4">
+          <Input
+            id="edit-question-title"
+            label="Onderwerp"
+            value={editQuestionTitle}
+            onChange={(e) => setEditQuestionTitle(e.target.value)}
+            required
+          />
+          <Textarea
+            id="edit-question-description"
+            label="Toelichting"
+            value={editQuestionDescription}
+            onChange={(e) => setEditQuestionDescription(e.target.value)}
+            rows={3}
+          />
+          <Input
+            id="edit-question-deadline"
+            label="Deadline (optioneel)"
+            type="datetime-local"
+            value={editQuestionDeadline}
+            onChange={(e) => setEditQuestionDeadline(e.target.value)}
+          />
+
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              type="button"
+              onClick={() => {
+                setQuestionToEdit(null)
+                setEditQuestionTitle('')
+                setEditQuestionDescription('')
+                setEditQuestionDeadline('')
+              }}
+            >
+              Annuleren
+            </Button>
+            <Button type="submit" loading={updateQuestion.isPending} disabled={!editQuestionTitle.trim()}>
+              Opslaan
+            </Button>
+          </div>
+        </form>
       </Modal>
 
       {/* Edit Poll Options Modal */}
@@ -346,18 +456,23 @@ export function ManageQuestionsPage() {
 interface QuestionRowProps {
   question: Question
   onClose?: () => void
+  onEditQuestion?: () => void
   onEditPoll?: () => void
   onDelete: () => void
 }
 
-function QuestionRow({ question, onClose, onEditPoll, onDelete }: QuestionRowProps) {
+function QuestionRow({ question, onClose, onEditQuestion, onEditPoll, onDelete }: QuestionRowProps) {
   const summary = calculateVoteSummary(question.votes ?? [])
   const result = getVoteResult(summary)
   const totalVotes = calculateTotalVotes(question)
+  const hasVotes = (question.votes?.length ?? 0) > 0
+  const canEditQuestion =
+    question.status === 'open' &&
+    !hasVotes
   const canEditPoll =
     question.question_type === 'poll' &&
     question.status === 'open' &&
-    (question.votes?.length ?? 0) === 0
+    !hasVotes
 
   const resultLabels = {
     approved: 'Goedgekeurd',
@@ -394,8 +509,36 @@ function QuestionRow({ question, onClose, onEditPoll, onDelete }: QuestionRowPro
             Sluiten
           </Button>
         )}
+        {canEditQuestion && onEditQuestion && (
+          <Button variant="outline" size="sm" onClick={onEditQuestion}>
+            <Pencil size={14} className="mr-1.5" />
+            Bewerk vraag
+          </Button>
+        )}
+        {!canEditQuestion && question.status === 'open' && (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled
+            title="Niet bewerkbaar zodra er stemmen zijn uitgebracht."
+          >
+            <Pencil size={14} className="mr-1.5" />
+            Bewerk vraag
+          </Button>
+        )}
         {canEditPoll && onEditPoll && (
           <Button variant="outline" size="sm" onClick={onEditPoll}>
+            <Pencil size={14} className="mr-1.5" />
+            Bewerk opties
+          </Button>
+        )}
+        {!canEditPoll && question.question_type === 'poll' && question.status === 'open' && (
+          <Button
+            variant="outline"
+            size="sm"
+            disabled
+            title="Niet bewerkbaar zodra er stemmen zijn uitgebracht."
+          >
             <Pencil size={14} className="mr-1.5" />
             Bewerk opties
           </Button>
