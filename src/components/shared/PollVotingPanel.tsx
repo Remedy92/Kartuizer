@@ -55,6 +55,16 @@ export function PollVotingPanel({
     [question.votes]
   )
 
+  // Detect ties: if multiple options share the max vote count, there's no leader
+  const hasTie = useMemo(() => {
+    const voteCountValues = Array.from(voteCounts.values())
+    if (voteCountValues.length === 0) return false
+    const maxVotes = Math.max(...voteCountValues)
+    if (maxVotes === 0) return false
+    const optionsWithMaxVotes = voteCountValues.filter((count) => count === maxVotes)
+    return optionsWithMaxVotes.length > 1
+  }, [voteCounts])
+
   const requiredVotes = question.groups?.required_votes || 1
   const quorumPercentage = Math.min((totalVoters / requiredVotes) * 100, 100)
 
@@ -102,7 +112,7 @@ export function PollVotingPanel({
               {options.map((option, index) => {
                 const count = voteCounts.get(option.id) || 0
                 const percentage = totalVotes > 0 ? (count / totalVotes) * 100 : 0
-                const isWinner = option.id === question.winning_option_id
+                const isWinner = option.id === question.winning_option_id && !hasTie
 
                 return (
                   <motion.div
@@ -226,7 +236,7 @@ export function PollVotingPanel({
             : userSelectedOptionIds.has(option.id)
           const voteCount = voteCounts.get(option.id) || 0
           const percentage = totalVotes > 0 ? (voteCount / totalVotes) * 100 : 0
-          const isWinner = option.id === question.winning_option_id
+          const isWinner = option.id === question.winning_option_id && !hasTie
 
           return (
             <motion.button
