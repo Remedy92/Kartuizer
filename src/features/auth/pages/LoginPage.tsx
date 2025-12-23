@@ -50,8 +50,9 @@ export function LoginPage() {
 
     const result = await signInWithPassword(email, password)
     if (result.success) {
-      if (result.needsVerification) {
-        setNotice('Controleer je e-mail om je account te bevestigen.')
+      if (result.needsVerification || result.needsPasswordReset) {
+        setNotice(result.notice ?? 'Controleer je e-mail om verder te gaan.')
+        setResetEmailSent(result.needsPasswordReset ?? false)
       } else {
         navigate(from, { replace: true })
       }
