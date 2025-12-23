@@ -31,6 +31,7 @@ export function Navbar() {
 
             <div className="hidden md:flex items-center gap-1">
               <NavTab to="/dashboard">Overzicht</NavTab>
+              <NavTab to="/groepen">Groepen</NavTab>
               <NavTab to="/archive">Archief</NavTab>
               {isAdmin && (
                 <NavTab to="/admin">Beheer</NavTab>
