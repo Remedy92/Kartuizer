@@ -15,6 +15,7 @@ import { CreateQuestionPage } from '@/features/admin/pages/CreateQuestionPage'
 import { ManageGroupsPage } from '@/features/admin/pages/ManageGroupsPage'
 import { ManageUsersPage } from '@/features/admin/pages/ManageUsersPage'
 import { AnalyticsPage } from '@/features/admin/pages/AnalyticsPage'
+import { MyGroupsPage } from '@/features/groups/pages/MyGroupsPage'
 
 export const router = createBrowserRouter([
   {
@@ -29,6 +30,7 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           { path: 'dashboard', element: <DashboardPage /> },
+          { path: 'groepen', element: <MyGroupsPage /> },
           { path: 'archive', element: <ArchivePage /> },
           {
             path: 'admin',

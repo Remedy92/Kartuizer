@@ -8,6 +8,7 @@ export function MobileNav() {
   return (
     <div className="md:hidden bg-white border-b border-stone-100 px-4 py-2 flex gap-2 overflow-x-auto">
       <MobileNavTab to="/dashboard">Overzicht</MobileNavTab>
+      <MobileNavTab to="/groepen">Groepen</MobileNavTab>
       <MobileNavTab to="/archive">Archief</MobileNavTab>
       {isAdmin && (
         <MobileNavTab to="/admin">Beheer</MobileNavTab>
