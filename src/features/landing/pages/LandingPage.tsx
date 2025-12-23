@@ -43,7 +43,7 @@ export function LandingPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-b from-stone-50 to-stone-100">
+    <div className="flex flex-col min-h-svh bg-gradient-to-b from-stone-50 to-stone-100 overflow-hidden">
       {/* Subtle grain overlay */}
       <div
         className="fixed inset-0 opacity-[0.015] pointer-events-none"
@@ -53,28 +53,28 @@ export function LandingPage() {
         }}
       />
 
-      <header className="relative py-8 px-8 flex justify-between items-center max-w-6xl mx-auto w-full">
+      <header className="relative py-6 md:py-8 px-6 md:px-8 flex justify-between items-center max-w-6xl mx-auto w-full">
         <Wordmark size="large" />
         <div className="h-px w-24 bg-gradient-to-r from-transparent via-stone-300 to-transparent hidden md:block" />
       </header>
 
-      <main className="relative flex-1 flex flex-col justify-center items-center text-center px-6 pb-20">
+      <main className="relative flex-1 flex flex-col items-center justify-center text-center px-6 py-10 sm:py-12 md:py-16">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-2xl"
+          className="max-w-2xl space-y-8"
         >
           {/* Decorative line */}
-          <div className="w-px h-16 bg-gradient-to-b from-transparent via-primary-400 to-transparent mx-auto mb-12" />
+          <div className="w-px h-14 sm:h-16 bg-gradient-to-b from-transparent via-primary-400 to-transparent mx-auto" />
 
-          <h1 className="text-4xl md:text-6xl font-serif text-stone-800 mb-8 leading-[1.15] tracking-tight">
+          <h1 className="text-4xl md:text-6xl font-serif text-stone-800 leading-[1.15] tracking-tight">
             Jouw stem
             <br />
             <span className="text-primary-600 italic">jouw mening</span>
           </h1>
 
-          <p className="text-lg md:text-xl text-stone-500 mb-16 max-w-lg mx-auto leading-relaxed font-light">
+          <p className="text-lg md:text-xl text-stone-500 max-w-lg mx-auto leading-relaxed font-light">
             Het digitale stemplatform voor de Raad van Bestuur en Blokvoorzitters. Veilig,
             transparant en efficiënt.
           </p>
