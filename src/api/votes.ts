@@ -11,21 +11,24 @@ export const votesApi = {
   // Cast a standard yes/no/abstain vote
   async cast(questionId: string, vote: VoteType, userId: string): Promise<Vote> {
     ensureSupabaseConfigured()
-    // Use upsert to handle both new votes and vote changes
+    // Delete any existing standard vote for this question (allows vote changes)
+    const { error: deleteError } = await supabase
+      .from('votes')
+      .delete()
+      .eq('question_id', questionId)
+      .eq('user_id', userId)
+      .is('poll_option_id', null)
+    if (deleteError) throw deleteError
+
+    // Insert the new vote
     const { data, error } = await supabase
       .from('votes')
-      .upsert(
-        {
-          question_id: questionId,
-          vote,
-          user_id: userId,
-          poll_option_id: null,
-        },
-        {
-          onConflict: 'question_id,user_id',
-          ignoreDuplicates: false,
-        }
-      )
+      .insert({
+        question_id: questionId,
+        vote,
+        user_id: userId,
+        poll_option_id: null,
+      })
       .select()
       .single()
 
