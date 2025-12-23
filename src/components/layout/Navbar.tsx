@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { LogOut, Menu } from 'lucide-react'
+import { ChevronDown, LogOut, Menu } from 'lucide-react'
 import { useAuthStore, useUIStore } from '@/stores'
 import { useToast } from '@/hooks'
 import { Wordmark } from '@/components/shared'
@@ -9,6 +9,7 @@ export function Navbar() {
   const navigate = useNavigate()
   const session = useAuthStore((s) => s.session)
   const isAdmin = useAuthStore((s) => s.isAdmin)
+  const sidebarOpen = useUIStore((s) => s.sidebarOpen)
   const toggleSidebar = useUIStore((s) => s.toggleSidebar)
   const { error: showError } = useToast()
   const signOut = useAuthStore((s) => s.signOut)
@@ -44,8 +45,17 @@ export function Navbar() {
             <button
               onClick={toggleSidebar}
               className="md:hidden w-11 h-11 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-all rounded-full"
+              aria-label={sidebarOpen ? 'Navigatie inklappen' : 'Navigatie uitklappen'}
+              aria-expanded={sidebarOpen}
+              aria-controls="admin-mobile-nav"
             >
-              <Menu size={20} />
+              <span className="flex items-center gap-1">
+                <Menu size={20} />
+                <ChevronDown
+                  size={14}
+                  className={cn('transition-transform duration-200', sidebarOpen && 'rotate-180')}
+                />
+              </span>
             </button>
 
             <div className="text-right hidden sm:block">

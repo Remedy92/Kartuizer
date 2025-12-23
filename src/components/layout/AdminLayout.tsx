@@ -1,30 +1,44 @@
 import { NavLink, Outlet } from 'react-router-dom'
 import { LayoutDashboard, FileQuestion, Users, Settings, BarChart3 } from 'lucide-react'
+import { useUIStore } from '@/stores'
 import { cn } from '@/lib/utils'
 
 export function AdminLayout() {
+  const sidebarOpen = useUIStore((s) => s.sidebarOpen)
+
   return (
     <div>
       {/* Mobile Admin Navigation - visible only below lg breakpoint */}
-      <nav className="lg:hidden mb-6 -mx-6 px-4 overflow-x-auto scrollbar-hide">
-        <div className="flex gap-2 pb-2">
-          <AdminMobileNavLink to="/admin" end icon={LayoutDashboard}>
-            Overzicht
-          </AdminMobileNavLink>
-          <AdminMobileNavLink to="/admin/questions" icon={FileQuestion}>
-            Vragen
-          </AdminMobileNavLink>
-          <AdminMobileNavLink to="/admin/groups" icon={Settings}>
-            Groepen
-          </AdminMobileNavLink>
-          <AdminMobileNavLink to="/admin/users" icon={Users}>
-            Gebruikers
-          </AdminMobileNavLink>
-          <AdminMobileNavLink to="/admin/analytics" icon={BarChart3}>
-            Statistieken
-          </AdminMobileNavLink>
-        </div>
-      </nav>
+      <div
+        className={cn(
+          'lg:hidden mb-6 transition-all duration-200 overflow-hidden',
+          sidebarOpen ? 'max-h-32 opacity-100' : 'max-h-0 opacity-0 pointer-events-none'
+        )}
+      >
+        <nav
+          id="admin-mobile-nav"
+          className="-mx-6 px-4 overflow-x-auto scrollbar-hide"
+          aria-hidden={!sidebarOpen}
+        >
+          <div className="flex gap-2 pb-2">
+            <AdminMobileNavLink to="/admin" end icon={LayoutDashboard}>
+              Overzicht
+            </AdminMobileNavLink>
+            <AdminMobileNavLink to="/admin/questions" icon={FileQuestion}>
+              Vragen
+            </AdminMobileNavLink>
+            <AdminMobileNavLink to="/admin/groups" icon={Settings}>
+              Groepen
+            </AdminMobileNavLink>
+            <AdminMobileNavLink to="/admin/users" icon={Users}>
+              Gebruikers
+            </AdminMobileNavLink>
+            <AdminMobileNavLink to="/admin/analytics" icon={BarChart3}>
+              Statistieken
+            </AdminMobileNavLink>
+          </div>
+        </nav>
+      </div>
 
       <div className="flex gap-8">
         {/* Desktop Sidebar - visible only at lg breakpoint and above */}
