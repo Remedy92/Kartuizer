@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom'
-import { ChevronDown, LogOut, Menu } from 'lucide-react'
+import { LogOut, Menu, X } from 'lucide-react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { useAuthStore, useUIStore } from '@/stores'
 import { useToast } from '@/hooks'
 import { Wordmark } from '@/components/shared'
@@ -9,8 +10,8 @@ export function Navbar() {
   const navigate = useNavigate()
   const session = useAuthStore((s) => s.session)
   const isAdmin = useAuthStore((s) => s.isAdmin)
-  const sidebarOpen = useUIStore((s) => s.sidebarOpen)
-  const toggleSidebar = useUIStore((s) => s.toggleSidebar)
+  const mobileMenuOpen = useUIStore((s) => s.mobileMenuOpen)
+  const toggleMobileMenu = useUIStore((s) => s.toggleMobileMenu)
   const { error: showError } = useToast()
   const signOut = useAuthStore((s) => s.signOut)
 
@@ -43,19 +44,35 @@ export function Navbar() {
           <div className="flex items-center gap-6">
             {/* Mobile menu button - 44px touch target */}
             <button
-              onClick={toggleSidebar}
-              className="md:hidden w-11 h-11 flex items-center justify-center text-stone-400 hover:text-stone-600 hover:bg-stone-100 transition-all rounded-full"
-              aria-label={sidebarOpen ? 'Navigatie inklappen' : 'Navigatie uitklappen'}
-              aria-expanded={sidebarOpen}
-              aria-controls="admin-mobile-nav"
+              onClick={toggleMobileMenu}
+              className="md:hidden w-11 h-11 flex items-center justify-center text-stone-600 hover:text-stone-800 hover:bg-stone-100 transition-all rounded-full"
+              aria-label={mobileMenuOpen ? 'Menu sluiten' : 'Menu openen'}
+              aria-expanded={mobileMenuOpen}
+              aria-controls="mobile-nav-overlay"
             >
-              <span className="flex items-center gap-1">
-                <Menu size={20} />
-                <ChevronDown
-                  size={14}
-                  className={cn('transition-transform duration-200', sidebarOpen && 'rotate-180')}
-                />
-              </span>
+              <AnimatePresence mode="wait" initial={false}>
+                {mobileMenuOpen ? (
+                  <motion.span
+                    key="close"
+                    initial={{ opacity: 0, rotate: -90 }}
+                    animate={{ opacity: 1, rotate: 0 }}
+                    exit={{ opacity: 0, rotate: 90 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <X size={22} strokeWidth={2} />
+                  </motion.span>
+                ) : (
+                  <motion.span
+                    key="menu"
+                    initial={{ opacity: 0, rotate: 90 }}
+                    animate={{ opacity: 1, rotate: 0 }}
+                    exit={{ opacity: 0, rotate: -90 }}
+                    transition={{ duration: 0.15 }}
+                  >
+                    <Menu size={22} strokeWidth={2} />
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </button>
 
             <div className="text-right hidden sm:block">

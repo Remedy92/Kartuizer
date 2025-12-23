@@ -14,10 +14,15 @@ interface UIState {
   addToast: (toast: Omit<Toast, 'id'>) => void
   removeToast: (id: string) => void
 
-  // Sidebar
+  // Sidebar (for AdminLayout collapsible section)
   sidebarOpen: boolean
   setSidebarOpen: (open: boolean) => void
   toggleSidebar: () => void
+
+  // Mobile menu overlay
+  mobileMenuOpen: boolean
+  setMobileMenuOpen: (open: boolean) => void
+  toggleMobileMenu: () => void
 
   // Modals
   activeModal: string | null
@@ -52,10 +57,15 @@ export const useUIStore = create<UIState>((set, get) => ({
       toasts: state.toasts.filter((t) => t.id !== id),
     })),
 
-  // Sidebar
+  // Sidebar (for AdminLayout collapsible section)
   sidebarOpen: true,
   setSidebarOpen: (sidebarOpen) => set({ sidebarOpen }),
   toggleSidebar: () => set((state) => ({ sidebarOpen: !state.sidebarOpen })),
+
+  // Mobile menu overlay
+  mobileMenuOpen: false,
+  setMobileMenuOpen: (mobileMenuOpen) => set({ mobileMenuOpen }),
+  toggleMobileMenu: () => set((state) => ({ mobileMenuOpen: !state.mobileMenuOpen })),
 
   // Modals
   activeModal: null,

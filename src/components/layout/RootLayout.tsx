@@ -3,7 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useAuthStore } from '@/stores'
 import { isSupabaseConfigured } from '@/lib/supabase'
 import { Navbar } from './Navbar'
-import { MobileNav } from './MobileNav'
+import { MobileOverlay } from './MobileOverlay'
 
 export function RootLayout() {
   const session = useAuthStore((s) => s.session)
@@ -22,7 +22,7 @@ export function RootLayout() {
         </div>
       )}
       <Navbar />
-      <MobileNav />
+      <MobileOverlay />
 
       <main className="flex-1 max-w-6xl w-full mx-auto py-12 px-6">
         <AnimatePresence mode="wait">
