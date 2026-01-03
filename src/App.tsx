@@ -3,15 +3,18 @@ import { QueryProvider, AuthProvider, RealtimeProvider, ToastProvider } from '@/
 import { router } from '@/routes'
 
 export default function App() {
+  console.log('App rendering...')
   return (
-    <QueryProvider>
-      <AuthProvider>
-        <RealtimeProvider>
-          <ToastProvider>
-            <RouterProvider router={router} />
-          </ToastProvider>
-        </RealtimeProvider>
-      </AuthProvider>
-    </QueryProvider>
+    <div className="min-h-screen bg-stone-50">
+      <QueryProvider>
+        <AuthProvider>
+          <RealtimeProvider>
+            <ToastProvider>
+              <RouterProvider router={router} />
+            </ToastProvider>
+          </RealtimeProvider>
+        </AuthProvider>
+      </QueryProvider>
+    </div>
   )
 }

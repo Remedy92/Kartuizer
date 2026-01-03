@@ -1,13 +1,16 @@
 import { useState } from 'react'
-import { Loader2, Mail, Shield, User } from 'lucide-react'
-import { useUsers, useUpdateUser } from '@/hooks'
+import { useNavigate } from 'react-router-dom'
+import { Clock, Loader2, Mail, Shield, User } from 'lucide-react'
+import { usePendingUsersCount, useUsers, useUpdateUser } from '@/hooks'
 import { Badge, Button, Card, CardContent } from '@/components/ui'
-import { formatDate } from '@/lib/utils'
+import { cn, formatDate } from '@/lib/utils'
 import type { UserRole } from '@/types'
 
 export function ManageUsersPage() {
   const { data: users, isLoading } = useUsers()
+  const { data: pendingCount = 0, isLoading: pendingCountLoading } = usePendingUsersCount()
   const updateUser = useUpdateUser()
+  const navigate = useNavigate()
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null)
 
   const roleLabels = {
@@ -40,6 +43,55 @@ export function ManageUsersPage() {
         <h1 className="text-3xl font-serif text-stone-800 mb-2">Gebruikers</h1>
         <p className="text-stone-500">Overzicht van alle gebruikers</p>
       </header>
+
+      <Card
+        className={cn(
+          'mb-6',
+          pendingCount > 0 ? 'border-amber-200 bg-amber-50/70' : 'border-stone-200 bg-stone-50'
+        )}
+      >
+        <CardContent className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <div
+              className={cn(
+                'w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0',
+                pendingCount > 0 ? 'bg-amber-100 text-amber-700' : 'bg-stone-100 text-stone-500'
+              )}
+            >
+              <Clock className="w-5 h-5" />
+            </div>
+            <div>
+              <p
+                className={cn(
+                  'text-xs font-semibold uppercase tracking-wide',
+                  pendingCount > 0 ? 'text-amber-700' : 'text-stone-500'
+                )}
+              >
+                Wachtende goedkeuringen
+              </p>
+              <p className="text-lg font-semibold text-stone-900">
+                {pendingCountLoading
+                  ? 'Wachtende registraties ophalen...'
+                  : pendingCount > 0
+                    ? `${pendingCount} ${
+                        pendingCount === 1 ? 'registratie wacht' : 'registraties wachten'
+                      } op goedkeuring`
+                    : 'Geen wachtende registraties'}
+              </p>
+              <p className="text-sm text-stone-600">
+                Beoordeel nieuwe aanmeldingen direct vanuit de wachtrij.
+              </p>
+            </div>
+          </div>
+          <Button
+            variant={pendingCount > 0 ? 'primary' : 'outline'}
+            disabled={pendingCountLoading}
+            onClick={() => navigate('/admin/users/pending')}
+          >
+            Wachtenden bekijken
+          </Button>
+        </CardContent>
+      </Card>
 
       {isLoading ? (
         <div className="py-12 flex justify-center">

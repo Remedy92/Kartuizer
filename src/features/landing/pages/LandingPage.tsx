@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores'
 import { Wordmark } from '@/components/shared'
 
 export function LandingPage() {
+  console.log('LandingPage rendering...')
   const navigate = useNavigate()
   const session = useAuthStore((s) => s.session)
   const isLoading = useAuthStore((s) => s.isLoading)
