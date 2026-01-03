@@ -15,8 +15,13 @@ export function AdminPendingUsersPage() {
   const handleApprove = async (userId: string, email: string) => {
     setProcessingId(userId)
     try {
-      await approveUser.mutateAsync(userId)
-      success('Goedgekeurd', `${email} heeft nu toegang tot het platform.`)
+      const result = await approveUser.mutateAsync(userId)
+      if (result.emailSent) {
+        success('Goedgekeurd', `${email} heeft nu toegang tot het platform. We hebben een email verstuurd.`)
+      } else {
+        const reason = result.emailError ? ` (${result.emailError})` : ''
+        success('Goedgekeurd', `${email} heeft nu toegang tot het platform. Email niet verstuurd${reason}.`)
+      }
     } catch (err) {
       showError('Fout', err instanceof Error ? err.message : 'Goedkeuren mislukt')
     } finally {

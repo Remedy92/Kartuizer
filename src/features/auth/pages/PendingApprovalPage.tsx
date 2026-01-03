@@ -49,7 +49,7 @@ export function PendingApprovalPage() {
             </p>
 
             <p className="text-sm text-stone-400 mb-8">
-              U ontvangt bericht zodra uw toegang is geactiveerd.
+              U ontvangt een e-mail zodra uw toegang is geactiveerd.
             </p>
 
             {user?.email && (

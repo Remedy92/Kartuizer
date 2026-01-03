@@ -12,7 +12,6 @@ export function MyGroupsPage() {
   const { data: memberships, isLoading, error } = useUserGroups(session?.user?.id ?? '')
   const { error: showError } = useToast()
   const lastErrorRef = useRef<string | null>(null)
-  const [showSlowLoading, setShowSlowLoading] = useState(false)
 
   useEffect(() => {
     if (!error) {
@@ -25,19 +24,6 @@ export function MyGroupsPage() {
     lastErrorRef.current = message
     showError('Groepen laden mislukt', message)
   }, [error, showError])
-
-  useEffect(() => {
-    if (!isLoading) {
-      setShowSlowLoading(false)
-      return
-    }
-
-    const timeoutId = window.setTimeout(() => {
-      setShowSlowLoading(true)
-    }, 6000)
-
-    return () => window.clearTimeout(timeoutId)
-  }, [isLoading])
 
   if (error) {
     return (
@@ -74,22 +60,7 @@ export function MyGroupsPage() {
       </header>
 
       {isLoading ? (
-        <div className="py-24 flex flex-col items-center gap-4">
-          <Loader2 className="w-6 h-6 animate-spin text-stone-400" />
-          {showSlowLoading && (
-            <div className="text-center text-sm text-stone-500 max-w-md">
-              <p>Dit duurt langer dan verwacht.</p>
-              <p className="mt-2">
-                Controleer of Supabase bereikbaar is en of je `.env` klopt.
-              </p>
-              {supabaseUrl && (
-                <p className="mt-2 text-xs text-stone-400">
-                  Supabase URL: {supabaseUrl}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
+        <GroupsLoadingState />
       ) : !memberships || memberships.length === 0 ? (
         <div className="py-20 text-center">
           <div className="w-px h-12 bg-gradient-to-b from-transparent via-stone-300 to-transparent mx-auto mb-6" />
@@ -158,5 +129,36 @@ function GroupCard({ membership, index }: GroupCardProps) {
         </div>
       </div>
     </motion.article>
+  )
+}
+
+function GroupsLoadingState() {
+  const [showSlowLoading, setShowSlowLoading] = useState(false)
+
+  useEffect(() => {
+    const timeoutId = window.setTimeout(() => {
+      setShowSlowLoading(true)
+    }, 6000)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [])
+
+  return (
+    <div className="py-24 flex flex-col items-center gap-4">
+      <Loader2 className="w-6 h-6 animate-spin text-stone-400" />
+      {showSlowLoading && (
+        <div className="text-center text-sm text-stone-500 max-w-md">
+          <p>Dit duurt langer dan verwacht.</p>
+          <p className="mt-2">
+            Controleer of Supabase bereikbaar is en of je `.env` klopt.
+          </p>
+          {supabaseUrl && (
+            <p className="mt-2 text-xs text-stone-400">
+              Supabase URL: {supabaseUrl}
+            </p>
+          )}
+        </div>
+      )}
+    </div>
   )
 }

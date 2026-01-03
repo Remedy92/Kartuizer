@@ -35,6 +35,7 @@ The entire UI lives in `src/App.tsx` as a single component with view-based routi
 
 ### Edge Functions
 `supabase/functions/send-vote-results/` - Triggered when question status changes to "completed", sends email summary to all group members via Resend.
+`supabase/functions/approve-user/` - Called by admins when approving a pending user, marks the user as approved and sends a welcome email via Resend.
 
 ## Environment Variables
 
@@ -43,7 +44,8 @@ Frontend (`.env`):
 - `VITE_SUPABASE_ANON_KEY`
 
 Edge Function:
-- `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`
+- `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`
+- Optional: `APP_URL` (included as a link in the welcome email), `RESEND_FROM` (defaults to `Karthuizer <onboarding@resend.dev>`)
 
 ## Styling
 

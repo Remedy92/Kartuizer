@@ -96,7 +96,25 @@ interface DonutChartProps {
 }
 
 function DonutChart({ summary, total }: DonutChartProps) {
-  let cumulative = 0
+  const circles = donutSegments.reduce(
+    (acc, segment) => {
+      const value = summary[segment.key]
+      const percentage = total > 0 ? (value / total) * 100 : 0
+      if (percentage === 0) return acc
+
+      const dashArray = `${percentage} ${100 - percentage}`
+      const dashOffset = -acc.cumulative
+
+      return {
+        cumulative: acc.cumulative + percentage,
+        circles: [
+          ...acc.circles,
+          { key: segment.key, color: segment.color, dashArray, dashOffset },
+        ],
+      }
+    },
+    { cumulative: 0, circles: [] as Array<{ key: string; color: string; dashArray: string; dashOffset: number }> }
+  ).circles
 
   return (
     <svg viewBox="0 0 36 36" className="h-full w-full -rotate-90">
@@ -109,33 +127,23 @@ function DonutChart({ summary, total }: DonutChartProps) {
         strokeWidth="3.5"
         className="text-stone-100"
       />
-      {donutSegments.map((segment) => {
-        const value = summary[segment.key]
-        const percentage = total > 0 ? (value / total) * 100 : 0
-        if (percentage === 0) return null
-
-        const dashArray = `${percentage} ${100 - percentage}`
-        const dashOffset = -cumulative
-        cumulative += percentage
-
-        return (
-          <motion.circle
-            key={segment.key}
-            cx="18"
-            cy="18"
-            r="15.9155"
-            fill="none"
-            strokeWidth="3.5"
-            strokeLinecap="round"
-            strokeDasharray={dashArray}
-            strokeDashoffset={dashOffset}
-            className={segment.color}
-            initial={{ strokeDasharray: '0 100' }}
-            animate={{ strokeDasharray: dashArray }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          />
-        )
-      })}
+      {circles.map((circle) => (
+        <motion.circle
+          key={circle.key}
+          cx="18"
+          cy="18"
+          r="15.9155"
+          fill="none"
+          strokeWidth="3.5"
+          strokeLinecap="round"
+          strokeDasharray={circle.dashArray}
+          strokeDashoffset={circle.dashOffset}
+          className={circle.color}
+          initial={{ strokeDasharray: '0 100' }}
+          animate={{ strokeDasharray: circle.dashArray }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        />
+      ))}
     </svg>
   )
 }
