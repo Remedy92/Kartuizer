@@ -6,7 +6,6 @@ import { Navbar } from './Navbar'
 import { MobileOverlay } from './MobileOverlay'
 
 export function RootLayout() {
-  console.log('RootLayout rendering...')
   const session = useAuthStore((s) => s.session)
 
   // If not authenticated, just render outlet (landing/login pages handle their own layout)

@@ -116,8 +116,6 @@ function DonutChart({ summary, total }: DonutChartProps) {
 
         const dashArray = `${percentage} ${100 - percentage}`
         const dashOffset = -cumulative
-        
-        // Update cumulative for the next segment
         cumulative += percentage
 
         return (
