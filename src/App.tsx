@@ -3,18 +3,10 @@ import { QueryProvider, AuthProvider, RealtimeProvider, ToastProvider } from '@/
 import { router } from '@/routes'
 
 export default function App() {
-  console.log('App rendering...')
   return (
-    <div className="min-h-screen bg-stone-50">
-      <QueryProvider>
-        <AuthProvider>
-          <RealtimeProvider>
-            <ToastProvider>
-              <RouterProvider router={router} />
-            </ToastProvider>
-          </RealtimeProvider>
-        </AuthProvider>
-      </QueryProvider>
+    <div style={{ padding: '40px', background: 'white', color: 'black', minHeight: '100vh' }}>
+      <h1>App component is rendering</h1>
+      <p>If you see this, the React App component is working.</p>
     </div>
   )
 }
