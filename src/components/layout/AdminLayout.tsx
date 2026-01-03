@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, FileQuestion, Users, Settings, BarChart3, Cog } from 'lucide-react'
+import { LayoutDashboard, FileQuestion, Users, Settings, BarChart3, Cog, Clock } from 'lucide-react'
 import { useUIStore } from '@/stores'
 import { usePendingUsersCount } from '@/hooks'
 import { cn } from '@/lib/utils'
@@ -32,8 +32,11 @@ export function AdminLayout() {
             <AdminMobileNavLink to="/admin/groups" icon={Settings}>
               Groepen
             </AdminMobileNavLink>
-            <AdminMobileNavLink to="/admin/users" icon={Users} badge={pendingCount}>
+            <AdminMobileNavLink to="/admin/users" icon={Users}>
               Gebruikers
+            </AdminMobileNavLink>
+            <AdminMobileNavLink to="/admin/users/pending" icon={Clock} badge={pendingCount}>
+              Wachtenden
             </AdminMobileNavLink>
             <AdminMobileNavLink to="/admin/analytics" icon={BarChart3}>
               Statistieken
@@ -59,8 +62,11 @@ export function AdminLayout() {
             <AdminNavLink to="/admin/groups" icon={Settings}>
               Groepen
             </AdminNavLink>
-            <AdminNavLink to="/admin/users" icon={Users} badge={pendingCount}>
+            <AdminNavLink to="/admin/users" icon={Users}>
               Gebruikers
+            </AdminNavLink>
+            <AdminNavLink to="/admin/users/pending" icon={Clock} badge={pendingCount}>
+              Wachtenden
             </AdminNavLink>
             <AdminNavLink to="/admin/analytics" icon={BarChart3}>
               Statistieken
