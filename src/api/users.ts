@@ -10,6 +10,12 @@ export interface ApproveUserInput {
   id: string
 }
 
+export interface ApproveUserResult {
+  profile: UserProfile
+  emailSent: boolean
+  emailError?: string
+}
+
 export const usersApi = {
   async getAll(): Promise<UserProfile[]> {
     const { data, error } = await supabase
@@ -90,19 +96,29 @@ export const usersApi = {
     return count ?? 0
   },
 
-  async approve(id: string): Promise<UserProfile> {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .update({
-        approval_status: 'approved',
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .select()
-      .single()
+  async approve(id: string): Promise<ApproveUserResult> {
+    const { data: { session } } = await supabase.auth.getSession()
 
-    if (error) throw error
-    return data
+    if (!session?.access_token) {
+      throw new Error('Niet ingelogd')
+    }
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/approve-user`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ userId: id }),
+    })
+
+    const payload = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error(payload.error || 'Goedkeuren mislukt')
+    }
+
+    return payload as ApproveUserResult
   },
 
   async reject(id: string): Promise<void> {
