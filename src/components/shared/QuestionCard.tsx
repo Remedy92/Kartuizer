@@ -9,6 +9,7 @@ import { VotingPanel } from './VotingPanel'
 import { ResultsPanel } from './ResultsPanel'
 import { PollVotingPanel } from './PollVotingPanel'
 import { PollResultsPanel } from './PollResultsPanel'
+import { VoteCommentSection } from './VoteCommentSection'
 
 interface QuestionCardProps {
   question: Question
@@ -33,6 +34,7 @@ export function QuestionCard({
 }: QuestionCardProps) {
   const isPoll = question.question_type === 'poll'
   const summary: VoteSummary = calculateVoteSummary(question.votes ?? [])
+  const hasUserVoted = Boolean(userVote?.id) || userPollVotes.length > 0
 
   // Render the appropriate voting/results panel
   const renderVotingSection = () => {
@@ -113,6 +115,12 @@ export function QuestionCard({
       {/* Voting section - full width, unified */}
       <div className="p-6">
         {renderVotingSection()}
+        <VoteCommentSection
+          questionId={question.id}
+          status={question.status}
+          comments={question.vote_comments}
+          hasUserVoted={hasUserVoted}
+        />
       </div>
     </motion.article>
   )

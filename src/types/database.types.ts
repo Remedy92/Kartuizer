@@ -49,12 +49,24 @@ export interface Question {
   votes?: Vote[]
   poll_options?: PollOption[]
   winning_option?: PollOption
+  vote_comments?: VoteComment[]
 }
 
 export interface VoteUserProfile {
   id: string
   display_name?: string
   email: string
+}
+
+export interface VoteComment {
+  id: string
+  question_id: string
+  user_id: string
+  comment: string
+  created_at: string
+  updated_at?: string
+  // Joined data
+  user_profiles?: VoteUserProfile
 }
 
 export interface Vote {
