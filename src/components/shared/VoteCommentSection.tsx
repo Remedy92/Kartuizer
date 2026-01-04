@@ -190,7 +190,8 @@ export function VoteCommentSection({
                 <ul className="space-y-3">
                   {thread.map((comment) => {
                     const isMine = Boolean(userId) && comment.user_id === userId
-                    const author = isMine ? 'Jij' : getAuthorLabel(comment)
+                    const authorLabel = getAuthorLabel(comment)
+                    const author = isMine && authorLabel === 'Onbekend' ? 'Jij' : authorLabel
                     const timestamp = formatDateTime(comment.updated_at ?? comment.created_at)
                     const initials = getInitials(author)
 
