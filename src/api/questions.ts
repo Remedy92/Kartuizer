@@ -40,7 +40,8 @@ const QUESTION_SELECT = `
   *,
   groups(id, name, required_votes),
   votes(id, question_id, user_id, vote, poll_option_id, created_at, user_profiles(id, display_name, email)),
-  poll_options!question_id(id, question_id, label, description, sort_order, created_at)
+  poll_options!question_id(id, question_id, label, description, sort_order, created_at),
+  vote_comments!question_id(id, question_id, user_id, comment, created_at, updated_at, user_profiles(id, display_name, email))
 `
 
 export const questionsApi = {

@@ -1,5 +1,6 @@
 export { questionsApi } from './questions'
 export { votesApi } from './votes'
+export { voteCommentsApi } from './voteComments'
 export { groupsApi } from './groups'
 export { usersApi } from './users'
 export { analyticsApi } from './analytics'

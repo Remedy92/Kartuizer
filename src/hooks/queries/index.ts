@@ -1,5 +1,6 @@
 export * from './useQuestions'
 export * from './useVotes'
+export * from './useVoteComments'
 export * from './useGroups'
 export * from './useUsers'
 export * from './useAnalytics'
