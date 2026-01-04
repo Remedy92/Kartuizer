@@ -34,7 +34,6 @@ export function QuestionCard({
 }: QuestionCardProps) {
   const isPoll = question.question_type === 'poll'
   const summary: VoteSummary = calculateVoteSummary(question.votes ?? [])
-  const hasUserVoted = Boolean(userVote?.id) || userPollVotes.length > 0
 
   // Render the appropriate voting/results panel
   const renderVotingSection = () => {
@@ -119,7 +118,6 @@ export function QuestionCard({
           questionId={question.id}
           status={question.status}
           comments={question.vote_comments}
-          hasUserVoted={hasUserVoted}
         />
       </div>
     </motion.article>
