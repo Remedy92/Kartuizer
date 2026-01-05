@@ -1,22 +1,26 @@
 import { motion } from 'framer-motion'
-import type { VoteSummary, VoteResult } from '@/types'
+import type { CompletionMethod, VoteSummary, VoteResult } from '@/types'
 import { getVoteResult } from '@/types'
 import { cn } from '@/lib/utils'
 
 interface ResultsPanelProps {
   summary: VoteSummary
+  requiredVotes?: number
+  completionMethod?: CompletionMethod
 }
 
 const resultLabels: Record<VoteResult, string> = {
   approved: 'Goedgekeurd',
   rejected: 'Afgewezen',
   no_majority: 'Geen meerderheid',
+  insufficient_votes: 'Onbeslist (te weinig stemmen)',
 }
 
 const resultColors: Record<VoteResult, string> = {
   approved: 'text-emerald-600',
   rejected: 'text-rose-600',
   no_majority: 'text-stone-500',
+  insufficient_votes: 'text-amber-700',
 }
 
 const donutSegments = [
@@ -43,9 +47,10 @@ const donutSegments = [
   },
 ] as const
 
-export function ResultsPanel({ summary }: ResultsPanelProps) {
+export function ResultsPanel({ summary, requiredVotes, completionMethod }: ResultsPanelProps) {
   const total = summary.yes + summary.no + summary.abstain
-  const result = getVoteResult(summary)
+  const result = getVoteResult(summary, requiredVotes, completionMethod)
+  const hasRequiredVotes = typeof requiredVotes === 'number' && requiredVotes > 0
 
   return (
     <div className="space-y-5">
@@ -55,7 +60,7 @@ export function ResultsPanel({ summary }: ResultsPanelProps) {
           {resultLabels[result]}
         </p>
         <p className="text-xs text-stone-400 mt-1">
-          {total} {total === 1 ? 'stem' : 'stemmen'} uitgebracht
+          {hasRequiredVotes ? `${total}/${requiredVotes}` : total} {total === 1 ? 'stem' : 'stemmen'} uitgebracht
         </p>
       </div>
 

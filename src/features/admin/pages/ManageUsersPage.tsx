@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { Clock, Loader2, Mail, Shield, User } from 'lucide-react'
 import { usePendingUsersCount, useUsers, useUpdateUser } from '@/hooks'
 import { Badge, Button, Card, CardContent } from '@/components/ui'
+import { useToast } from '@/hooks'
 import { cn, formatDate } from '@/lib/utils'
 import type { UserRole } from '@/types'
 
@@ -12,6 +13,7 @@ export function ManageUsersPage() {
   const updateUser = useUpdateUser()
   const navigate = useNavigate()
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null)
+  const { error: showError } = useToast()
 
   const roleLabels = {
     member: 'Lid',
@@ -28,10 +30,20 @@ export function ManageUsersPage() {
     { value: 'admin', label: roleLabels.admin },
   ]
 
+  const adminCount = users?.filter((user) => user.role === 'admin').length ?? 0
+
   const handleRoleChange = async (userId: string, role: UserRole) => {
+    const currentUser = users?.find((user) => user.id === userId)
+    if (currentUser?.role === 'admin' && role === 'member' && adminCount === 1) {
+      showError('Niet toegestaan', 'U kan de laatste beheerder niet omzetten naar lid.')
+      return
+    }
+
     setUpdatingUserId(userId)
     try {
       await updateUser.mutateAsync({ id: userId, role })
+    } catch (err) {
+      showError('Rol aanpassen mislukt', err instanceof Error ? err.message : 'Er is een fout opgetreden')
     } finally {
       setUpdatingUserId(null)
     }
@@ -139,7 +151,15 @@ export function ManageUsersPage() {
                       disabled={updatingUserId === user.id}
                     >
                       {roleOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
+                        <option
+                          key={option.value}
+                          value={option.value}
+                          disabled={
+                            user.role === 'admin' &&
+                            adminCount === 1 &&
+                            option.value === 'member'
+                          }
+                        >
                           {option.label}
                         </option>
                       ))}
