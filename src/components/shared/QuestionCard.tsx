@@ -64,7 +64,13 @@ export function QuestionCard({
     if (isPoll) {
       return <PollResultsPanel question={question} />
     }
-    return <ResultsPanel summary={summary} />
+    return (
+      <ResultsPanel
+        summary={summary}
+        requiredVotes={question.groups?.required_votes}
+        completionMethod={question.completion_method}
+      />
+    )
   }
 
   return (

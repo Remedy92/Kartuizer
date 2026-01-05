@@ -1,13 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
-import { Circle, Loader2 } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { Circle, Loader2, Plus } from 'lucide-react'
 import { useOpenQuestions, useVote, usePollVote, useMultiPollVote } from '@/hooks'
 import { useAuthStore } from '@/stores'
 import { useToast } from '@/hooks'
 import { supabaseUrl } from '@/lib/supabase'
 import { QuestionCard } from '@/components/shared'
+import { Button } from '@/components/ui'
 import type { VoteType, Vote } from '@/types'
 
 export function DashboardPage() {
+  const navigate = useNavigate()
   const { data: questions, isLoading, error } = useOpenQuestions()
   const voteMutation = useVote()
   const pollVoteMutation = usePollVote()
@@ -119,12 +122,19 @@ export function DashboardPage() {
             </p>
           </div>
 
-          {questions && questions.length > 0 && (
-            <div className="flex items-center gap-2 text-sm text-stone-500">
-              <Circle size={8} className="fill-emerald-500 text-emerald-500" />
-              <span>{questions.length} actief</span>
-            </div>
-          )}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+            <Button variant="primary" onClick={() => navigate('/questions/new')}>
+              <Plus className="w-4 h-4 mr-2" />
+              Nieuw agendapunt
+            </Button>
+
+            {questions && questions.length > 0 && (
+              <div className="flex items-center gap-2 text-sm text-stone-500">
+                <Circle size={8} className="fill-emerald-500 text-emerald-500" />
+                <span>{questions.length} actief</span>
+              </div>
+            )}
+          </div>
         </div>
         <div className="h-px bg-gradient-to-r from-stone-200 via-stone-200 to-transparent mt-8" />
       </header>

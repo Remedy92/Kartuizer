@@ -20,6 +20,7 @@ import { AnalyticsPage } from '@/features/admin/pages/AnalyticsPage'
 import { AdminPendingUsersPage } from '@/features/admin/pages/AdminPendingUsersPage'
 import { AdminSettingsPage } from '@/features/admin/pages/AdminSettingsPage'
 import { MyGroupsPage } from '@/features/groups/pages/MyGroupsPage'
+import { CreateAgendaItemPage } from '@/features/questions/pages/CreateAgendaItemPage'
 
 export const router = createBrowserRouter([
   {
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
             element: <ApprovedRoute />,
             children: [
               { path: 'dashboard', element: <DashboardPage /> },
+              { path: 'questions/new', element: <CreateAgendaItemPage /> },
               { path: 'groepen', element: <MyGroupsPage /> },
               { path: 'archive', element: <ArchivePage /> },
               {

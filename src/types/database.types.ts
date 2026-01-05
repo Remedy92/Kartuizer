@@ -140,9 +140,24 @@ export interface VoteSummary {
   abstain: number
 }
 
-export type VoteResult = 'approved' | 'rejected' | 'no_majority'
+export type VoteResult = 'approved' | 'rejected' | 'no_majority' | 'insufficient_votes'
 
-export function getVoteResult(summary: VoteSummary): VoteResult {
+export function getVoteResult(
+  summary: VoteSummary,
+  requiredVotes?: number,
+  completionMethod?: CompletionMethod
+): VoteResult {
+  const totalVotes = summary.yes + summary.no + summary.abstain
+
+  if (
+    typeof requiredVotes === 'number' &&
+    requiredVotes > 0 &&
+    totalVotes < requiredVotes &&
+    completionMethod !== 'threshold'
+  ) {
+    return 'insufficient_votes'
+  }
+
   if (summary.yes > summary.no) return 'approved'
   if (summary.no > summary.yes) return 'rejected'
   return 'no_majority'

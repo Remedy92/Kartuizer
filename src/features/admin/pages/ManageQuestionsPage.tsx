@@ -462,8 +462,11 @@ interface QuestionRowProps {
 }
 
 function QuestionRow({ question, onClose, onEditQuestion, onEditPoll, onDelete }: QuestionRowProps) {
+  const isPoll = question.question_type === 'poll'
   const summary = calculateVoteSummary(question.votes ?? [])
-  const result = getVoteResult(summary)
+  const result = isPoll
+    ? null
+    : getVoteResult(summary, question.groups?.required_votes, question.completion_method)
   const totalVotes = calculateTotalVotes(question)
   const hasVotes = (question.votes?.length ?? 0) > 0
   const canEditQuestion =
@@ -478,12 +481,14 @@ function QuestionRow({ question, onClose, onEditQuestion, onEditPoll, onDelete }
     approved: 'Goedgekeurd',
     rejected: 'Afgewezen',
     no_majority: 'Geen meerderheid',
+    insufficient_votes: 'Onbeslist (te weinig stemmen)',
   }
 
   const resultVariants = {
     approved: 'success' as const,
     rejected: 'danger' as const,
     no_majority: 'default' as const,
+    insufficient_votes: 'warning' as const,
   }
 
   return (
@@ -498,7 +503,11 @@ function QuestionRow({ question, onClose, onEditQuestion, onEditPoll, onDelete }
         <p className="text-sm text-stone-500">
           {totalVotes} stemmen
           {question.status === 'completed' && (
-            <> &bull; <Badge variant={resultVariants[result]}>{resultLabels[result]}</Badge></>
+            isPoll ? (
+              <> &bull; <Badge variant="default">Poll afgerond</Badge></>
+            ) : (
+              result && <> &bull; <Badge variant={resultVariants[result]}>{resultLabels[result]}</Badge></>
+            )
           )}
         </p>
       </div>

@@ -32,7 +32,8 @@ interface Question {
     question_type: 'standard' | 'poll';
     winning_option_id: string | null;
     group_id: string;
-    groups: { name: string };
+    completion_method: 'all_votes' | 'threshold' | 'manual' | null;
+    groups: { name: string; required_votes?: number };
     votes: Vote[];
     poll_options: PollOption[];
     vote_comments?: VoteComment[];
@@ -70,6 +71,17 @@ function formatResultText(question: Question): string {
         }
         return acc;
     }, { yes: 0, no: 0, abstain: 0 });
+
+    const totalVotes = summary.yes + summary.no + summary.abstain;
+    const requiredVotes = question.groups?.required_votes;
+    if (
+        typeof requiredVotes === 'number' &&
+        requiredVotes > 0 &&
+        totalVotes < requiredVotes &&
+        question.completion_method !== 'threshold'
+    ) {
+        return '⚖️ Onbeslist (te weinig stemmen)';
+    }
 
     if (summary.yes > summary.no) return '✅ Goedgekeurd';
     if (summary.no > summary.yes) return '❌ Afgewezen';
@@ -246,7 +258,7 @@ Deno.serve(async (req) => {
         const canReadComments = Boolean(SUPABASE_SERVICE_ROLE_KEY);
         const supabase = createClient(SUPABASE_URL, supabaseKey);
 
-        const baseSelect = '*, groups(name), votes(vote, user_id, poll_option_id), poll_options!question_id(id, label, sort_order)';
+        const baseSelect = 'id, title, description, question_type, winning_option_id, group_id, completion_method, groups(name, required_votes), votes(vote, user_id, poll_option_id), poll_options!question_id(id, label, sort_order)';
         const select = canReadComments
             ? `${baseSelect}, vote_comments!question_id(comment, user_id, created_at, user_profiles(display_name, email))`
             : baseSelect;
@@ -314,4 +326,3 @@ Deno.serve(async (req) => {
         });
     }
 });
-
