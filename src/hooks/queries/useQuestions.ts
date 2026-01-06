@@ -6,8 +6,31 @@ import {
   type UpdateQuestionInput,
   type UpdatePollDraftInput,
 } from '@/api'
-import { isSupabaseConfigured } from '@/lib/supabase'
+import { isSupabaseConfigured, supabase, supabaseUrl } from '@/lib/supabase'
+import { useToast } from '@/hooks/useToast'
 import type { QuestionStatus, CompletionMethod } from '@/types'
+
+async function sendNewQuestionEmail(questionId: string): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession()
+
+  if (!session?.access_token) {
+    throw new Error('Niet ingelogd')
+  }
+
+  const response = await fetch(`${supabaseUrl}/functions/v1/send-new-question`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify({ questionId }),
+  })
+
+  if (response.ok) return
+
+  const payload = await response.json().catch(() => ({} as { error?: string }))
+  throw new Error(payload.error || 'Mail versturen mislukt')
+}
 
 export const questionKeys = {
   all: ['questions'] as const,
@@ -54,22 +77,32 @@ export function useQuestion(id: string) {
 
 export function useCreateQuestion() {
   const queryClient = useQueryClient()
+  const { warning } = useToast()
 
   return useMutation({
     mutationFn: (input: CreateQuestionInput) => questionsApi.create(input),
-    onSuccess: () => {
+    onSuccess: (question) => {
       queryClient.invalidateQueries({ queryKey: questionKeys.all })
+      void sendNewQuestionEmail(question.id).catch((err) => {
+        const message = err instanceof Error ? err.message : 'Mail versturen mislukt'
+        warning('Mail niet verstuurd', message)
+      })
     },
   })
 }
 
 export function useCreatePoll() {
   const queryClient = useQueryClient()
+  const { warning } = useToast()
 
   return useMutation({
     mutationFn: (input: CreatePollInput) => questionsApi.createPoll(input),
-    onSuccess: () => {
+    onSuccess: (question) => {
       queryClient.invalidateQueries({ queryKey: questionKeys.all })
+      void sendNewQuestionEmail(question.id).catch((err) => {
+        const message = err instanceof Error ? err.message : 'Mail versturen mislukt'
+        warning('Mail niet verstuurd', message)
+      })
     },
   })
 }

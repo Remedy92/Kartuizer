@@ -11,6 +11,7 @@ export interface Group {
   id: string
   name: string
   description?: string
+  email_subject_tag?: string | null
   required_votes: number
   created_at: string
   created_by?: string

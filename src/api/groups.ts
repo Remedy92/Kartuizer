@@ -10,11 +10,27 @@ function ensureSupabaseConfigured() {
 export interface CreateGroupInput {
   name: string
   description?: string
+  email_subject_tag?: string
 }
 
 export interface UpdateGroupInput {
   name?: string
   description?: string
+  email_subject_tag?: string
+}
+
+function normalizeEmailSubjectTag(value?: string): string | null | undefined {
+  if (value === undefined) return undefined
+
+  const trimmed = value.trim()
+  if (!trimmed) return null
+
+  if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
+    const withoutBrackets = trimmed.slice(1, -1).trim()
+    return withoutBrackets ? withoutBrackets : null
+  }
+
+  return trimmed
 }
 
 export const groupsApi = {
@@ -60,7 +76,9 @@ export const groupsApi = {
     const { data, error } = await supabase
       .from('groups')
       .insert({
-        ...input,
+        name: input.name,
+        description: input.description,
+        email_subject_tag: normalizeEmailSubjectTag(input.email_subject_tag),
         required_votes: 0 // Trigger will update this when members are added
       })
       .select()
@@ -77,6 +95,7 @@ export const groupsApi = {
       .update({
         name: input.name,
         description: input.description,
+        email_subject_tag: normalizeEmailSubjectTag(input.email_subject_tag),
       })
       .eq('id', id)
       .select()
