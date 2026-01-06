@@ -266,16 +266,19 @@ export function ManageGroupsPage() {
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  const [emailSubjectTag, setEmailSubjectTag] = useState('')
 
   const resetForm = () => {
     setName('')
     setDescription('')
+    setEmailSubjectTag('')
   }
 
   const openEditModal = (group: Group) => {
     setEditingGroup(group)
     setName(group.name)
     setDescription(group.description ?? '')
+    setEmailSubjectTag(group.email_subject_tag ?? '')
   }
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -284,6 +287,7 @@ export function ManageGroupsPage() {
       await createGroup.mutateAsync({
         name,
         description: description || undefined,
+        email_subject_tag: emailSubjectTag || undefined,
       })
       success('Groep aangemaakt', 'De groep is succesvol aangemaakt')
       setShowCreateModal(false)
@@ -302,6 +306,7 @@ export function ManageGroupsPage() {
         id: editingGroup.id,
         name: name,
         description: description || undefined,
+        email_subject_tag: emailSubjectTag || undefined,
       })
       success('Groep bijgewerkt', 'De groep is succesvol bijgewerkt')
       setEditingGroup(null)
@@ -416,6 +421,22 @@ export function ManageGroupsPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
+          <div>
+            <Input
+              id="email-subject-tag"
+              label="Email onderwerp tag (voor Gmail)"
+              placeholder="Bijv. Raad Blok B"
+              value={emailSubjectTag}
+              onChange={(e) => setEmailSubjectTag(e.target.value)}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+            />
+            <p className="mt-2 text-xs text-stone-500">
+              Komt in de mail-onderwerpregel als: <span className="font-mono">[{emailSubjectTag || 'tag'}]</span>.
+              Wijzig dit liever niet (Gmail forwarding filters).
+            </p>
+          </div>
           <div className="flex justify-end gap-3 pt-4">
             <Button
               variant="outline"
@@ -457,6 +478,22 @@ export function ManageGroupsPage() {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
+          <div>
+            <Input
+              id="edit-email-subject-tag"
+              label="Email onderwerp tag (voor Gmail)"
+              placeholder="Bijv. Raad Blok B"
+              value={emailSubjectTag}
+              onChange={(e) => setEmailSubjectTag(e.target.value)}
+              autoCapitalize="none"
+              autoCorrect="off"
+              spellCheck={false}
+            />
+            <p className="mt-2 text-xs text-stone-500">
+              Komt in de mail-onderwerpregel als: <span className="font-mono">[{emailSubjectTag || 'tag'}]</span>.
+              Wijzig dit liever niet (Gmail forwarding filters).
+            </p>
+          </div>
           <div className="flex justify-end gap-3 pt-4">
             <Button
               variant="outline"
