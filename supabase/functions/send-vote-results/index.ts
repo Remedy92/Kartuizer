@@ -2,8 +2,6 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
-const RESEND_FROM = Deno.env.get('RESEND_FROM') ?? 'Karthuizer Voting <onboarding@resend.dev>';
-const NOTIFICATION_TO_EMAIL = Deno.env.get('NOTIFICATION_TO_EMAIL') ?? 'raadkarthuizer@gmail.com';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -297,9 +295,9 @@ Deno.serve(async (req) => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                from: RESEND_FROM,
+                from: 'Karthuizer Voting <onboarding@resend.dev>',
                 // TODO: change to `emails` after verifying domain in Resend
-                to: [NOTIFICATION_TO_EMAIL],
+                to: ['RaadKarthuizer@gmail.com'],
                 subject: `${resultText} - ${q.title}`,
                 html,
             }),

@@ -7,8 +7,6 @@ const corsHeaders = {
 }
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
-const RESEND_FROM = Deno.env.get('RESEND_FROM') ?? 'Karthuizer <onboarding@resend.dev>'
-const NOTIFICATION_TO_EMAIL = Deno.env.get('NOTIFICATION_TO_EMAIL') ?? 'raadkarthuizer@gmail.com'
 
 const APP_URL = Deno.env.get('APP_URL')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
@@ -192,8 +190,8 @@ Deno.serve(async (req) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: RESEND_FROM,
-      to: [NOTIFICATION_TO_EMAIL],
+      from: 'Karthuizer <onboarding@resend.dev>',
+      to: ['raadkarthuizer@gmail.com'],
       subject,
       html,
     }),
@@ -207,10 +205,9 @@ Deno.serve(async (req) => {
   const resData = await res.json().catch(() => null)
   return json(200, {
     sent: true,
-    to: NOTIFICATION_TO_EMAIL,
+    to: 'raadkarthuizer@gmail.com',
     subject,
     questionId: question.id,
     response: resData,
   })
 })
-
