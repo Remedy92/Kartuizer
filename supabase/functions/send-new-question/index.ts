@@ -7,10 +7,13 @@ const corsHeaders = {
 }
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+const RESEND_FROM = Deno.env.get('RESEND_FROM') ?? 'Karthuizer <onboarding@resend.dev>'
+const NOTIFICATION_TO_EMAIL = Deno.env.get('NOTIFICATION_TO_EMAIL') ?? 'raadkarthuizer@gmail.com'
 
 const APP_URL = Deno.env.get('APP_URL')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
 function json(status: number, body: Record<string, unknown>): Response {
   return new Response(JSON.stringify(body), {
@@ -112,14 +115,17 @@ Deno.serve(async (req) => {
 
   if (!RESEND_API_KEY) return json(500, { error: 'RESEND_API_KEY ontbreekt' })
   if (!SUPABASE_URL) return json(500, { error: 'SUPABASE_URL ontbreekt' })
-  if (!SUPABASE_ANON_KEY) return json(500, { error: 'SUPABASE_ANON_KEY ontbreekt' })
+  const supabaseKey = SUPABASE_SERVICE_ROLE_KEY || SUPABASE_ANON_KEY
+  if (!supabaseKey) {
+    return json(500, { error: 'SUPABASE_SERVICE_ROLE_KEY (aanbevolen) of SUPABASE_ANON_KEY ontbreekt' })
+  }
 
   const authHeader = req.headers.get('Authorization')
   if (!authHeader) {
     return json(401, { error: 'Geen autorisatie header' })
   }
 
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  const supabase = createClient(SUPABASE_URL, supabaseKey, {
     global: { headers: { Authorization: authHeader } },
   })
 
@@ -190,8 +196,8 @@ Deno.serve(async (req) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'Karthuizer <onboarding@resend.dev>',
-      to: ['raadkarthuizer@gmail.com'],
+      from: RESEND_FROM,
+      to: [NOTIFICATION_TO_EMAIL],
       subject,
       html,
     }),
@@ -205,10 +211,9 @@ Deno.serve(async (req) => {
   const resData = await res.json().catch(() => null)
   return json(200, {
     sent: true,
-    to: 'raadkarthuizer@gmail.com',
+    to: NOTIFICATION_TO_EMAIL,
     subject,
     questionId: question.id,
     response: resData,
   })
 })
-
