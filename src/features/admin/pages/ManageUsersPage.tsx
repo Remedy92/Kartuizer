@@ -117,7 +117,7 @@ export function ManageUsersPage() {
         <div className="space-y-3">
           {users.map((user) => (
             <Card key={user.id}>
-              <CardContent className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <CardContent className="grid grid-cols-1 md:grid-cols-[1fr,auto,auto] gap-4 items-center">
                 {/* User info section */}
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-stone-100 flex items-center justify-center flex-shrink-0">
@@ -141,40 +141,40 @@ export function ManageUsersPage() {
                   </div>
                 </div>
 
-                {/* Controls section - stacks on mobile */}
-                <div className="flex flex-col sm:flex-row sm:items-center gap-3 ml-14 md:ml-0">
-                  <div className="flex items-center gap-2">
-                    <select
-                      className="text-sm bg-white border border-stone-200 rounded-md px-3 py-2 text-stone-700 focus:border-primary-600 focus:ring-0 min-h-[44px]"
-                      value={user.role}
-                      onChange={(e) => handleRoleChange(user.id, e.target.value as UserRole)}
-                      disabled={updatingUserId === user.id}
-                    >
-                      {roleOptions.map((option) => (
-                        <option
-                          key={option.value}
-                          value={option.value}
-                          disabled={
-                            user.role === 'admin' &&
-                            adminCount === 1 &&
-                            option.value === 'member'
-                          }
-                        >
-                          {option.label}
-                        </option>
-                      ))}
-                    </select>
-                    {updatingUserId === user.id && (
-                      <Button size="sm" variant="ghost" loading>
-                        Opslaan
-                      </Button>
-                    )}
-                  </div>
-                  <div className="text-sm text-stone-400">
-                    <span className="md:hidden">Aangemaakt: </span>
-                    <span className="hidden md:inline">Aangemaakt</span>
-                    <span className="md:block">{formatDate(user.created_at)}</span>
-                  </div>
+                {/* Role dropdown column */}
+                <div className="flex items-center gap-2 ml-14 md:ml-0">
+                  <select
+                    className="text-sm bg-white border border-stone-200 rounded-md px-3 py-2 text-stone-700 focus:border-primary-600 focus:ring-0 min-h-[44px]"
+                    value={user.role}
+                    onChange={(e) => handleRoleChange(user.id, e.target.value as UserRole)}
+                    disabled={updatingUserId === user.id}
+                  >
+                    {roleOptions.map((option) => (
+                      <option
+                        key={option.value}
+                        value={option.value}
+                        disabled={
+                          user.role === 'admin' &&
+                          adminCount === 1 &&
+                          option.value === 'member'
+                        }
+                      >
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  {updatingUserId === user.id && (
+                    <Button size="sm" variant="ghost" loading>
+                      Opslaan
+                    </Button>
+                  )}
+                </div>
+
+                {/* Date column */}
+                <div className="text-sm text-stone-400 ml-14 md:ml-0 md:text-right">
+                  <span className="md:hidden">Aangemaakt: </span>
+                  <span className="hidden md:inline">Aangemaakt</span>
+                  <span className="md:block">{formatDate(user.created_at)}</span>
                 </div>
               </CardContent>
             </Card>
