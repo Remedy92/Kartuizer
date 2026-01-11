@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Clock, Loader2, Mail, Shield, User } from 'lucide-react'
+import { Clock, Info, Loader2, Mail, Shield, User } from 'lucide-react'
 import { usePendingUsersCount, useUsers, useUpdateUser } from '@/hooks'
 import { Badge, Button, Card, CardContent } from '@/components/ui'
 import { useToast } from '@/hooks'
@@ -55,6 +55,23 @@ export function ManageUsersPage() {
         <h1 className="text-3xl font-serif text-stone-800 mb-2">Gebruikers</h1>
         <p className="text-stone-500">Overzicht van alle gebruikers</p>
       </header>
+
+      <Card className="mb-6 border-sky-200 bg-sky-50/70">
+        <CardContent className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-full bg-sky-100 text-sky-700 flex items-center justify-center flex-shrink-0">
+            <Info className="w-5 h-5" />
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-sky-700">
+              Opgelet
+            </p>
+            <p className="text-sm text-sky-900 font-medium">
+              Als iemand zijn e-mailadres wijzigt, pas dit ook manueel aan bij de doorstuuradressen van{' '}
+              <span className="font-semibold">raadkarthuizer@gmail.com</span>.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       <Card
         className={cn(
