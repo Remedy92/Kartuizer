@@ -1,7 +1,8 @@
 import { useCallback, useEffect, type ReactNode } from 'react'
-import { supabase, isSupabaseConfigured } from '@/lib/supabase'
+import { supabase, supabaseUrl, isSupabaseConfigured } from '@/lib/supabase'
 import { useAuthStore } from '@/stores'
 import { queryClient } from '@/lib/queryClient'
+import type { UserProfile } from '@/types'
 
 interface AuthProviderProps {
   children: ReactNode
@@ -11,6 +12,34 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const { setSession, setUser, setLoading } = useAuthStore()
 
   const fetchUserProfile = useCallback(async (userId: string) => {
+    const syncEmailWithAuth = async (profile: UserProfile, accessToken: string, authEmail: string) => {
+      if (profile.email?.toLowerCase() === authEmail.toLowerCase()) return
+
+      try {
+        const response = await fetch(`${supabaseUrl}/functions/v1/notify-email-change`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+          },
+          body: JSON.stringify({}),
+        })
+
+        const payload = await response.json().catch(() => ({} as unknown))
+        if (!response.ok) {
+          console.warn('notify-email-change failed:', payload)
+          return
+        }
+
+        const updatedProfile = (payload as { profile?: UserProfile }).profile
+        if (updatedProfile) {
+          setUser(updatedProfile)
+        }
+      } catch (err) {
+        console.warn('notify-email-change error:', err)
+      }
+    }
+
     const { data, error } = await supabase
       .from('user_profiles')
       .select('*')
@@ -39,6 +68,13 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     } else {
       setUser(data)
+
+      const session = useAuthStore.getState().session
+      const accessToken = session?.access_token
+      const authEmail = session?.user.email?.trim()
+      if (accessToken && authEmail) {
+        syncEmailWithAuth(data, accessToken, authEmail)
+      }
     }
     setLoading(false)
   }, [setUser, setLoading])
