@@ -40,6 +40,7 @@ function renderEmail(params: {
   description?: string | null
   questionType: 'standard' | 'poll'
   subjectTag: string
+  questionId: string
 }): { subject: string; html: string } {
   const safeGroup = escapeHtml(params.groupName)
   const safeTitle = escapeHtml(params.title)
@@ -51,7 +52,7 @@ function renderEmail(params: {
   const linkHtml = APP_URL
     ? `
       <p style="margin: 18px 0 0 0;">
-        <a href="${APP_URL}" style="color: #8a5a2b; text-decoration: underline;">Open Karthuizer</a>
+        <a href="${APP_URL}/dashboard?questionId=${params.questionId}" style="color: #8a5a2b; text-decoration: underline;">Bekijk vraag</a>
       </p>
     `
     : ''
@@ -187,6 +188,7 @@ Deno.serve(async (req) => {
     description: question.description,
     questionType: question.question_type,
     subjectTag,
+    questionId: question.id,
   })
 
   const res = await fetch('https://api.resend.com/emails', {

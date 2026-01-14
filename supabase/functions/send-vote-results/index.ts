@@ -4,6 +4,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2';
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const RESEND_FROM = Deno.env.get('RESEND_FROM') ?? 'Karthuizer Voting <onboarding@resend.dev>';
 const NOTIFICATION_TO_EMAIL = Deno.env.get('NOTIFICATION_TO_EMAIL') ?? 'raadkarthuizer@gmail.com';
+const APP_URL = Deno.env.get('APP_URL');
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY');
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -192,7 +193,7 @@ function renderPollResults(question: Question): string {
     `;
 }
 
-function renderEmail(question: Question, resultText: string): string {
+function renderEmail(question: Question, resultText: string, questionId: string): string {
     const title = escapeHtml(question.title ?? '');
     const groupName = escapeHtml(question.groups?.name ?? '');
     const description = escapeHtml(question.description ?? 'Geen beschrijving opgegeven.');
@@ -203,6 +204,14 @@ function renderEmail(question: Question, resultText: string): string {
             : renderStandardResults(question);
 
     const comments = renderComments(question.vote_comments);
+
+    const linkHtml = APP_URL
+        ? `
+          <p style="margin: 18px 0 0 0;">
+            <a href="${APP_URL}/archive?questionId=${questionId}" style="color: #8a5a2b; text-decoration: underline;">Bekijk resultaten</a>
+          </p>
+        `
+        : '';
 
     return `
 <!DOCTYPE html>
@@ -227,6 +236,7 @@ function renderEmail(question: Question, resultText: string): string {
           <div style="color:#44403c; line-height: 1.7; white-space: pre-wrap;">${description}</div>
           <div style="margin-top: 18px;">${results}</div>
           ${comments}
+          ${linkHtml}
         </div>
 
         <div style="padding: 18px 20px; background:#fafaf9; border-top:1px solid #e7e5e4; color:#78716c; font-size: 12px; text-align:center;">
@@ -288,7 +298,7 @@ Deno.serve(async (req) => {
         const emails = profiles?.map(p => p.email).filter(Boolean) || [];
 
         const resultText = formatResultText(q);
-        const html = renderEmail(q, resultText);
+        const html = renderEmail(q, resultText, q.id);
 
         const res = await fetch('https://api.resend.com/emails', {
             method: 'POST',

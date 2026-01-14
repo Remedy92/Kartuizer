@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks'
 import { useCompletedQuestions } from '@/hooks'
@@ -6,6 +7,7 @@ import { QuestionCard } from '@/components/shared'
 import { supabaseUrl } from '@/lib/supabase'
 
 export function ArchivePage() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const { data: questions, isLoading, error } = useCompletedQuestions()
   const { error: showError } = useToast()
   const lastErrorRef = useRef<string | null>(null)
@@ -35,6 +37,40 @@ export function ArchivePage() {
       setShowSlowLoading(false)
     }
   }, [isLoading])
+
+  // Scroll to question from URL parameter
+  useEffect(() => {
+    const questionId = searchParams.get('questionId')
+    if (!questionId || isLoading) return
+
+    let scrollTimeout: ReturnType<typeof setTimeout>
+    let highlightTimeout: ReturnType<typeof setTimeout>
+
+    // Wait for questions to render, then scroll
+    scrollTimeout = window.setTimeout(() => {
+      const element = document.getElementById(`question-${questionId}`)
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        // Add highlight effect (card already has transition-all)
+        element.style.boxShadow = '0 0 0 3px rgba(120, 53, 15, 0.3)'
+
+        // Remove highlight after 2 seconds
+        highlightTimeout = window.setTimeout(() => {
+          element.style.boxShadow = ''
+        }, 2000)
+
+        // Clean up query parameter (only remove questionId)
+        const nextParams = new URLSearchParams(searchParams)
+        nextParams.delete('questionId')
+        setSearchParams(nextParams, { replace: true })
+      }
+    }, 100)
+
+    return () => {
+      window.clearTimeout(scrollTimeout)
+      window.clearTimeout(highlightTimeout)
+    }
+  }, [isLoading, searchParams, setSearchParams])
 
   if (error) {
     return (
