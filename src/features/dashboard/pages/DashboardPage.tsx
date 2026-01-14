@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Circle, Loader2, Plus } from 'lucide-react'
 import { useOpenQuestions, useVote, usePollVote, useMultiPollVote } from '@/hooks'
 import { useAuthStore } from '@/stores'
@@ -11,6 +11,7 @@ import type { VoteType, Vote } from '@/types'
 
 export function DashboardPage() {
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { data: questions, isLoading, error } = useOpenQuestions()
   const voteMutation = useVote()
   const pollVoteMutation = usePollVote()
@@ -46,6 +47,40 @@ export function DashboardPage() {
 
     return () => window.clearTimeout(timeoutId)
   }, [isLoading])
+
+  // Scroll to question from URL parameter
+  useEffect(() => {
+    const questionId = searchParams.get('questionId')
+    if (!questionId || isLoading) return
+
+    let scrollTimeout: ReturnType<typeof setTimeout>
+    let highlightTimeout: ReturnType<typeof setTimeout>
+
+    // Wait for questions to render, then scroll
+    scrollTimeout = window.setTimeout(() => {
+      const element = document.getElementById(`question-${questionId}`)
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        // Add highlight effect (card already has transition-all)
+        element.style.boxShadow = '0 0 0 3px rgba(120, 53, 15, 0.3)'
+
+        // Remove highlight after 2 seconds
+        highlightTimeout = window.setTimeout(() => {
+          element.style.boxShadow = ''
+        }, 2000)
+
+        // Clean up query parameter (only remove questionId)
+        const nextParams = new URLSearchParams(searchParams)
+        nextParams.delete('questionId')
+        setSearchParams(nextParams, { replace: true })
+      }
+    }, 100)
+
+    return () => {
+      window.clearTimeout(scrollTimeout)
+      window.clearTimeout(highlightTimeout)
+    }
+  }, [isLoading, searchParams, setSearchParams])
 
   const handleVote = async (questionId: string, vote: VoteType) => {
     if (votingQuestionId) return
