@@ -135,8 +135,8 @@ function renderStandardResults(question: Question): string {
             <div style="font-size: 14px; font-weight: 700; color: #292524;">Stemverdeling</div>
           </td>
         </tr>
-        <tr><td style="padding: 14px 16px;"><b>Akkoord:</b> ${summary.yes}</td></tr>
-        <tr><td style="padding: 0 16px 14px;"><b>Niet akkoord:</b> ${summary.no}</td></tr>
+        <tr><td style="padding: 14px 16px;"><b>Ja / Akkoord:</b> ${summary.yes}</td></tr>
+        <tr><td style="padding: 0 16px 14px;"><b>Nee / Niet akkoord:</b> ${summary.no}</td></tr>
         <tr><td style="padding: 0 16px 14px;"><b>Onthouding:</b> ${summary.abstain}</td></tr>
       </table>
     `;

@@ -14,8 +14,8 @@ interface VotingPanelProps {
 }
 
 const voteLabels = {
-  yes: 'Akkoord',
-  no: 'Niet akkoord',
+  yes: 'Ja / Akkoord',
+  no: 'Nee / Niet akkoord',
   abstain: 'Onthouding',
 }
 
@@ -27,14 +27,14 @@ const decidedLabels = {
 const segments = [
   {
     key: 'yes',
-    label: 'Akkoord',
+    label: 'Ja / Akkoord',
     bar: 'bg-emerald-500',
     dot: 'bg-emerald-500',
     text: 'text-emerald-600',
   },
   {
     key: 'no',
-    label: 'Niet akkoord',
+    label: 'Nee / Niet akkoord',
     bar: 'bg-rose-500',
     dot: 'bg-rose-500',
     text: 'text-rose-600',

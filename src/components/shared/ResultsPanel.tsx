@@ -25,14 +25,14 @@ const resultColors: Record<VoteResult, string> = {
 
 const donutSegments = [
   {
-    label: 'Akkoord',
+    label: 'Ja / Akkoord',
     key: 'yes',
     color: 'stroke-emerald-500',
     dot: 'bg-emerald-500',
     text: 'text-emerald-600',
   },
   {
-    label: 'Niet akkoord',
+    label: 'Nee / Niet akkoord',
     key: 'no',
     color: 'stroke-rose-500',
     dot: 'bg-rose-500',

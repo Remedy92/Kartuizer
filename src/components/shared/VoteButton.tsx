@@ -14,7 +14,7 @@ interface VoteButtonProps {
 
 const config = {
   yes: {
-    label: 'Akkoord',
+    label: 'Ja / Akkoord',
     icon: Check,
     base: 'border-emerald-200 hover:border-emerald-300',
     selected: 'border-emerald-500 bg-emerald-50',
@@ -23,7 +23,7 @@ const config = {
     text: 'text-emerald-700',
   },
   no: {
-    label: 'Niet akkoord',
+    label: 'Nee / Niet akkoord',
     icon: X,
     base: 'border-rose-200 hover:border-rose-300',
     selected: 'border-rose-500 bg-rose-50',
