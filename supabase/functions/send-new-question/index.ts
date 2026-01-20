@@ -34,6 +34,39 @@ function normalizeTag(value: string | null | undefined): string | null {
   return trimmed
 }
 
+function normalizeBaseUrl(value: string | null | undefined): string | null {
+  const trimmed = (value ?? '').trim()
+  if (!trimmed) return null
+
+  try {
+    const url = new URL(trimmed)
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return null
+    return url.origin
+  } catch {
+    return null
+  }
+}
+
+function resolveAppUrl(req: Request): string | null {
+  const fromOrigin = normalizeBaseUrl(req.headers.get('origin'))
+  if (fromOrigin) return fromOrigin
+
+  const referer = req.headers.get('referer')
+  if (referer) {
+    try {
+      const url = new URL(referer)
+      if (url.protocol === 'https:' || url.protocol === 'http:') return url.origin
+    } catch {
+      // ignore
+    }
+  }
+
+  const fromEnv = normalizeBaseUrl(APP_URL)
+  if (fromEnv) return fromEnv
+
+  return null
+}
+
 function renderEmail(params: {
   groupName: string
   title: string
@@ -41,6 +74,7 @@ function renderEmail(params: {
   questionType: 'standard' | 'poll'
   subjectTag: string
   questionId: string
+  appUrl: string | null
 }): { subject: string; html: string } {
   const safeGroup = escapeHtml(params.groupName)
   const safeTitle = escapeHtml(params.title)
@@ -49,13 +83,24 @@ function renderEmail(params: {
 
   const subject = `[${params.subjectTag}] ${params.title}`
 
-  const linkHtml = APP_URL
+  const questionUrl = params.appUrl
+    ? `${params.appUrl}/dashboard?questionId=${encodeURIComponent(params.questionId)}`
+    : null
+
+  const linkHtml = questionUrl
     ? `
-      <p style="margin: 18px 0 0 0;">
-        <a href="${APP_URL}/dashboard?questionId=${params.questionId}" style="color: #8a5a2b; text-decoration: underline;">Bekijk vraag</a>
-      </p>
-    `
-    : ''
+        <p style="margin: 18px 0 0 0;">
+          <a href="${questionUrl}" style="color: #8a5a2b; text-decoration: underline;">Bekijk vraag</a>
+        </p>
+        <p style="margin: 10px 0 0 0; font-size: 12px; color:#78716c;">
+          Of kopieer deze link: <span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">${escapeHtml(questionUrl)}</span>
+        </p>
+      `
+    : `
+        <p style="margin: 18px 0 0 0; font-size: 13px; color:#78716c;">
+          Link niet beschikbaar (APP_URL ontbreekt). Open Karthuizer en ga naar het Dashboard.
+        </p>
+      `
 
   const html = `
 <!DOCTYPE html>
@@ -182,6 +227,8 @@ Deno.serve(async (req) => {
   const rawTag = (question.groups as { email_subject_tag?: string | null } | null)?.email_subject_tag
   const subjectTag = normalizeTag(rawTag) ?? normalizeTag(groupName) ?? 'Karthuizer'
 
+  const appUrl = resolveAppUrl(req)
+
   const { subject, html } = renderEmail({
     groupName,
     title: question.title,
@@ -189,6 +236,7 @@ Deno.serve(async (req) => {
     questionType: question.question_type,
     subjectTag,
     questionId: question.id,
+    appUrl,
   })
 
   const res = await fetch('https://api.resend.com/emails', {
@@ -216,6 +264,7 @@ Deno.serve(async (req) => {
     to: NOTIFICATION_TO_EMAIL,
     subject,
     questionId: question.id,
+    appUrlUsed: appUrl,
     response: resData,
   })
 })
