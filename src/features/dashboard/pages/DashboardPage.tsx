@@ -48,21 +48,20 @@ export function DashboardPage() {
     return () => window.clearTimeout(timeoutId)
   }, [isLoading])
 
-  // Scroll to question from URL parameter
-  useEffect(() => {
-    const questionId = searchParams.get('questionId')
-    if (!questionId || isLoading) return
+	  // Scroll to question from URL parameter
+	  useEffect(() => {
+	    const questionId = searchParams.get('questionId')
+	    if (!questionId || isLoading) return
 
-    let scrollTimeout: ReturnType<typeof setTimeout>
-    let highlightTimeout: ReturnType<typeof setTimeout>
+	    let highlightTimeout: ReturnType<typeof setTimeout> | undefined
 
-    // Wait for questions to render, then scroll
-    scrollTimeout = window.setTimeout(() => {
-      const element = document.getElementById(`question-${questionId}`)
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        // Add highlight effect (card already has transition-all)
-        element.style.boxShadow = '0 0 0 3px rgba(120, 53, 15, 0.3)'
+	    // Wait for questions to render, then scroll
+	    const scrollTimeout = window.setTimeout(() => {
+	      const element = document.getElementById(`question-${questionId}`)
+	      if (element) {
+	        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+	        // Add highlight effect (card already has transition-all)
+	        element.style.boxShadow = '0 0 0 3px rgba(120, 53, 15, 0.3)'
 
         // Remove highlight after 2 seconds
         highlightTimeout = window.setTimeout(() => {
@@ -74,13 +73,13 @@ export function DashboardPage() {
         nextParams.delete('questionId')
         setSearchParams(nextParams, { replace: true })
       }
-    }, 100)
+	    }, 100)
 
-    return () => {
-      window.clearTimeout(scrollTimeout)
-      window.clearTimeout(highlightTimeout)
-    }
-  }, [isLoading, searchParams, setSearchParams])
+	    return () => {
+	      window.clearTimeout(scrollTimeout)
+	      if (highlightTimeout) window.clearTimeout(highlightTimeout)
+	    }
+	  }, [isLoading, searchParams, setSearchParams])
 
   const handleVote = async (questionId: string, vote: VoteType) => {
     if (votingQuestionId) return

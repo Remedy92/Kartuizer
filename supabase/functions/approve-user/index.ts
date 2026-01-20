@@ -16,15 +16,58 @@ function json(status: number, body: Record<string, unknown>): Response {
   })
 }
 
-async function sendWelcomeEmail(to: string): Promise<{ sent: true } | { sent: false; error: string }> {
+function normalizeBaseUrl(value: string | null | undefined): string | null {
+  const trimmed = (value ?? '').trim()
+  if (!trimmed) return null
+
+  try {
+    const url = new URL(trimmed)
+    if (url.protocol !== 'https:' && url.protocol !== 'http:') return null
+    return url.origin
+  } catch {
+    return null
+  }
+}
+
+function resolveAppUrl(req: Request): string | null {
+  const fromOrigin = normalizeBaseUrl(req.headers.get('origin'))
+  if (fromOrigin) return fromOrigin
+
+  const referer = req.headers.get('referer')
+  if (referer) {
+    try {
+      const url = new URL(referer)
+      if (url.protocol === 'https:' || url.protocol === 'http:') return url.origin
+    } catch {
+      // ignore
+    }
+  }
+
+  const fromEnv = normalizeBaseUrl(APP_URL)
+  if (fromEnv) return fromEnv
+
+  return null
+}
+
+async function sendWelcomeEmail(
+  to: string,
+  appUrl: string | null
+): Promise<{ sent: true } | { sent: false; error: string }> {
   if (!RESEND_API_KEY) {
     return { sent: false, error: 'RESEND_API_KEY ontbreekt' }
   }
 
   const subject = 'Je toegang tot Karthuizer is geactiveerd'
 
-  const linkHtml = APP_URL
-    ? `<p style="margin: 0 0 16px 0;"><a href="${APP_URL}" style="color: #8a5a2b; text-decoration: underline;">Open Karthuizer</a></p>`
+  const linkHtml = appUrl
+    ? `
+        <p style="margin: 0 0 16px 0;">
+          <a href="${appUrl}" style="color: #8a5a2b; text-decoration: underline;">Open Karthuizer</a>
+        </p>
+        <p style="margin: 0 0 16px 0; font-size: 12px; line-height: 1.6; color: #a8a29e;">
+          Of kopieer deze link: <span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">${appUrl}</span>
+        </p>
+      `
     : ''
 
   const html = `
@@ -96,6 +139,8 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') {
     return json(405, { error: 'Method not allowed' })
   }
+
+  const appUrl = resolveAppUrl(req)
 
   const authHeader = req.headers.get('Authorization')
   if (!authHeader) {
@@ -174,10 +219,10 @@ Deno.serve(async (req) => {
     return json(200, { profile: updatedProfile, emailSent: false, emailError: 'Geen emailadres gevonden' })
   }
 
-  const emailResult = await sendWelcomeEmail(email)
+  const emailResult = await sendWelcomeEmail(email, appUrl)
   if (!emailResult.sent) {
-    return json(200, { profile: updatedProfile, emailSent: false, emailError: emailResult.error })
+    return json(200, { profile: updatedProfile, emailSent: false, emailError: emailResult.error, appUrlUsed: appUrl })
   }
 
-  return json(200, { profile: updatedProfile, emailSent: true })
+  return json(200, { profile: updatedProfile, emailSent: true, appUrlUsed: appUrl })
 })
