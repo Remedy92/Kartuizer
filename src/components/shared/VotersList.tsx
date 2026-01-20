@@ -12,7 +12,7 @@ interface VotersListProps {
 
 const voteConfig = {
   yes: {
-    label: 'Akkoord',
+    label: 'Ja / Akkoord',
     bg: 'bg-emerald-50',
     border: 'border-emerald-200',
     dot: 'bg-emerald-500',
@@ -20,7 +20,7 @@ const voteConfig = {
     badge: 'bg-emerald-100 text-emerald-700',
   },
   no: {
-    label: 'Niet akkoord',
+    label: 'Nee / Niet akkoord',
     bg: 'bg-rose-50',
     border: 'border-rose-200',
     dot: 'bg-rose-500',
