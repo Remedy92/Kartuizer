@@ -85,7 +85,14 @@ async function sendWelcomeEmail(
           <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="max-width: 560px; margin: 0 auto; background: #fffdf9; border: 1px solid #e7e2db;">
             <tr>
               <td style="background: #3d2c24; padding: 24px 24px; text-align: center;">
-                <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 22px; color: #ffffff; letter-spacing: 1px;">Karthuizer</div>
+                <div style="display: inline-block; vertical-align: middle; margin-right: 12px;">
+                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M8 4v24M8 16l10-12M8 16l10 12" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </div>
+                <div style="display: inline-block; vertical-align: middle;">
+                  <div style="font-family: 'Playfair Display', Georgia, serif; font-size: 22px; color: #ffffff; letter-spacing: 1px;">Karthuizer</div>
+                </div>
                 <div style="width: 48px; height: 2px; background-color: #c4a98a; margin: 14px auto 0;"></div>
               </td>
             </tr>

@@ -114,6 +114,11 @@ function renderEmail(params: {
     <div style="max-width: 640px; margin: 0 auto; padding: 24px 16px;">
       <div style="background:#ffffff; border:1px solid #e7e5e4; border-radius: 16px; overflow:hidden;">
         <div style="padding: 22px 20px; background:#292524; color:#ffffff;">
+          <div style="margin-bottom: 12px;">
+            <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 4v24M8 16l10-12M8 16l10 12" stroke="#ffffff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
           <div style="font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color:#d6d3d1;">
             ${safeGroup} · ${safeType}
           </div>

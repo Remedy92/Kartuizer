@@ -3,7 +3,7 @@ import { LogOut, Menu, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useAuthStore, useUIStore } from '@/stores'
 import { useToast } from '@/hooks'
-import { Wordmark } from '@/components/shared'
+import { Logo, Wordmark } from '@/components/shared'
 import { cn } from '@/lib/utils'
 
 export function Navbar() {
@@ -29,7 +29,10 @@ export function Navbar() {
       <div className="max-w-6xl mx-auto px-6">
         <div className="flex justify-between h-20 items-center">
           <div className="flex items-center gap-12">
-            <Wordmark onClick={() => navigate('/')} />
+            <div className="flex items-center gap-3 cursor-pointer group" onClick={() => navigate('/')}>
+              <Logo size="md" className="transition-transform group-hover:scale-105" />
+              <Wordmark />
+            </div>
 
             <div className="hidden md:flex items-center gap-1">
               <NavTab to="/dashboard">Overzicht</NavTab>
