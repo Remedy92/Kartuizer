@@ -92,13 +92,10 @@ function renderEmail(params: {
         <p style="margin: 18px 0 0 0;">
           <a href="${questionUrl}" style="color: #8a5a2b; text-decoration: underline;">Bekijk vraag</a>
         </p>
-        <p style="margin: 10px 0 0 0; font-size: 12px; color:#78716c;">
-          Of kopieer deze link: <span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">${escapeHtml(questionUrl)}</span>
-        </p>
       `
     : `
-        <p style="margin: 18px 0 0 0; font-size: 13px; color:#78716c;">
-          Link niet beschikbaar (APP_URL ontbreekt). Open Karthuizer en ga naar het Dashboard.
+        <p style="margin: 18px 0 0 0; color: #78716c; font-size: 14px;">
+          Log in op de Kartuizer app om de vraag te bekijken.
         </p>
       `
 

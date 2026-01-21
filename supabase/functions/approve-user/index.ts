@@ -64,9 +64,6 @@ async function sendWelcomeEmail(
         <p style="margin: 0 0 16px 0;">
           <a href="${appUrl}" style="color: #8a5a2b; text-decoration: underline;">Open Karthuizer</a>
         </p>
-        <p style="margin: 0 0 16px 0; font-size: 12px; line-height: 1.6; color: #a8a29e;">
-          Of kopieer deze link: <span style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;">${appUrl}</span>
-        </p>
       `
     : ''
 
