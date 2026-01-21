@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Loader2 } from 'lucide-react'
 import { useAuthStore } from '@/stores'
-import { Wordmark } from '@/components/shared'
+import { Logo, Wordmark } from '@/components/shared'
 
 export function LandingPage() {
   const navigate = useNavigate()
@@ -54,7 +54,10 @@ export function LandingPage() {
       />
 
       <header className="relative shrink-0 py-4 md:py-6 px-6 md:px-8 flex justify-between items-center max-w-6xl mx-auto w-full">
-        <Wordmark size="large" />
+        <div className="flex items-center gap-4">
+          <Logo size="lg" />
+          <Wordmark size="large" />
+        </div>
         <div className="h-px w-24 bg-gradient-to-r from-transparent via-stone-300 to-transparent hidden md:block" />
       </header>
 

@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Mail, KeyRound, Loader2 } from 'lucide-react'
 import { useAuth, useToast } from '@/hooks'
-import { Wordmark } from '@/components/shared'
+import { Logo, Wordmark } from '@/components/shared'
 import { cn } from '@/lib/utils'
 
 type AuthMethod = 'magic' | 'password'
@@ -92,7 +92,10 @@ export function LoginPage() {
         className="w-full max-w-md"
       >
         <div className="text-center mb-12">
-          <Wordmark size="large" />
+          <div className="flex flex-col items-center gap-4">
+            <Logo size="lg" />
+            <Wordmark size="large" />
+          </div>
         </div>
 
         <div className="bg-white/80 backdrop-blur-sm border border-stone-200/60 shadow-xl shadow-stone-200/50 p-10">
