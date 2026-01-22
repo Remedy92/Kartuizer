@@ -16,6 +16,7 @@ interface QuestionCardProps {
   userVote?: Vote
   userPollVotes?: Vote[]
   isVoting?: boolean
+  isHighlighted?: boolean
   onVote?: (vote: VoteType) => void
   onPollVote?: (optionId: string) => void
   onMultiPollVote?: (optionIds: string[]) => void
@@ -27,6 +28,7 @@ export function QuestionCard({
   userVote,
   userPollVotes = [],
   isVoting = false,
+  isHighlighted = false,
   onVote,
   onPollVote,
   onMultiPollVote,
@@ -79,7 +81,10 @@ export function QuestionCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05 }}
-      className="group bg-white border border-stone-200/80 shadow-sm shadow-stone-200/50 hover:border-stone-300 transition-all duration-300 hover:shadow-md hover:shadow-stone-200/60"
+      className={cn(
+        'group bg-white border border-stone-200/80 shadow-sm shadow-stone-200/50 hover:border-stone-300 transition-all duration-300 hover:shadow-md hover:shadow-stone-200/60',
+        isHighlighted && 'ring-2 ring-primary-300 ring-offset-2 ring-offset-stone-50'
+      )}
     >
       {/* Header with metadata */}
       <div className="px-6 pt-6 pb-4 border-b border-stone-100">

@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { buildAppUrl } from '../_shared/appUrl.ts';
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
 const RESEND_FROM = Deno.env.get('RESEND_FROM') ?? 'Karthuizer Voting <onboarding@resend.dev>';
@@ -193,7 +194,7 @@ function renderPollResults(question: Question): string {
     `;
 }
 
-function renderEmail(question: Question, resultText: string, questionId: string): string {
+function renderEmail(question: Question, resultText: string, questionUrl?: string | null): string {
     const title = escapeHtml(question.title ?? '');
     const groupName = escapeHtml(question.groups?.name ?? '');
     const description = escapeHtml(question.description ?? 'Geen beschrijving opgegeven.');
@@ -204,12 +205,13 @@ function renderEmail(question: Question, resultText: string, questionId: string)
             : renderStandardResults(question);
 
     const comments = renderComments(question.vote_comments);
-
-    const linkHtml = APP_URL
+    const linkHtml = questionUrl
         ? `
-          <p style="margin: 18px 0 0 0;">
-            <a href="${APP_URL}/archive?questionId=${questionId}" style="color: #8a5a2b; text-decoration: underline;">Bekijk resultaten</a>
-          </p>
+          <div style="margin-top: 22px; text-align: center;">
+            <a href="${questionUrl}" style="display: inline-block; padding: 12px 16px; border-radius: 999px; background: #292524; color: #ffffff; text-decoration: none; font-weight: 600;">
+              Bekijk in Karthuizer
+            </a>
+          </div>
         `
         : '';
 
@@ -303,7 +305,11 @@ Deno.serve(async (req) => {
         const emails = profiles?.map(p => p.email).filter(Boolean) || [];
 
         const resultText = formatResultText(q);
-        const html = renderEmail(q, resultText, q.id);
+        const questionUrl = buildAppUrl(APP_URL, {
+            path: 'archive',
+            search: { question: q.id },
+        });
+        const html = renderEmail(q, resultText, questionUrl);
 
         const res = await fetch('https://api.resend.com/emails', {
             method: 'POST',

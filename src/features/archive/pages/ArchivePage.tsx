@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useLocation } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { useToast } from '@/hooks'
 import { useCompletedQuestions } from '@/hooks'
@@ -7,11 +7,13 @@ import { QuestionCard } from '@/components/shared'
 import { supabaseUrl } from '@/lib/supabase'
 
 export function ArchivePage() {
-  const [searchParams, setSearchParams] = useSearchParams()
+  const location = useLocation()
   const { data: questions, isLoading, error } = useCompletedQuestions()
   const { error: showError } = useToast()
   const lastErrorRef = useRef<string | null>(null)
+  const lastDeepLinkRef = useRef<string | null>(null)
   const [showSlowLoading, setShowSlowLoading] = useState(false)
+  const [highlightedQuestionId, setHighlightedQuestionId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!error) {
@@ -38,38 +40,28 @@ export function ArchivePage() {
     }
   }, [isLoading])
 
-	  // Scroll to question from URL parameter
-	  useEffect(() => {
-	    const questionId = searchParams.get('questionId')
-	    if (!questionId || isLoading) return
+  useEffect(() => {
+    if (isLoading || !questions || questions.length === 0) return
 
-	    let highlightTimeout: ReturnType<typeof setTimeout> | undefined
+    const deepLinkId = new URLSearchParams(location.search).get('question')
+    if (!deepLinkId) return
+    if (lastDeepLinkRef.current === deepLinkId) return
+    if (!questions.some((q) => q.id === deepLinkId)) return
 
-	    // Wait for questions to render, then scroll
-	    const scrollTimeout = window.setTimeout(() => {
-	      const element = document.getElementById(`question-${questionId}`)
-	      if (element) {
-	        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-	        // Add highlight effect (card already has transition-all)
-	        element.style.boxShadow = '0 0 0 3px rgba(120, 53, 15, 0.3)'
+    lastDeepLinkRef.current = deepLinkId
 
-        // Remove highlight after 2 seconds
-        highlightTimeout = window.setTimeout(() => {
-          element.style.boxShadow = ''
-        }, 2000)
+    window.requestAnimationFrame(() => {
+      setHighlightedQuestionId(deepLinkId)
+      const el = document.getElementById(`question-${deepLinkId}`)
+      el?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    })
 
-        // Clean up query parameter (only remove questionId)
-        const nextParams = new URLSearchParams(searchParams)
-        nextParams.delete('questionId')
-        setSearchParams(nextParams, { replace: true })
-      }
-	    }, 100)
+    const timeoutId = window.setTimeout(() => {
+      setHighlightedQuestionId(null)
+    }, 5000)
 
-	    return () => {
-	      window.clearTimeout(scrollTimeout)
-	      if (highlightTimeout) window.clearTimeout(highlightTimeout)
-	    }
-	  }, [isLoading, searchParams, setSearchParams])
+    return () => window.clearTimeout(timeoutId)
+  }, [isLoading, location.search, questions])
 
   if (error) {
     return (
@@ -119,7 +111,12 @@ export function ArchivePage() {
       ) : (
         <div className="space-y-6">
           {questions.map((question, index) => (
-            <QuestionCard key={question.id} question={question} index={index} />
+            <QuestionCard
+              key={question.id}
+              question={question}
+              isHighlighted={highlightedQuestionId === question.id}
+              index={index}
+            />
           ))}
         </div>
       )}

@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { buildAppUrl } from '../_shared/appUrl.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -83,21 +84,18 @@ function renderEmail(params: {
 
   const subject = `[${params.subjectTag}] ${params.title}`
 
-  const questionUrl = params.appUrl
-    ? `${params.appUrl}/dashboard?questionId=${encodeURIComponent(params.questionId)}`
-    : null
+  const questionUrl = buildAppUrl(params.appUrl ?? APP_URL, {
+    path: 'dashboard',
+    search: { question: params.questionId },
+  })
 
   const linkHtml = questionUrl
     ? `
-        <p style="margin: 18px 0 0 0;">
-          <a href="${questionUrl}" style="color: #8a5a2b; text-decoration: underline;">Bekijk vraag</a>
-        </p>
-      `
-    : `
-        <p style="margin: 18px 0 0 0; color: #78716c; font-size: 14px;">
-          Log in op de Kartuizer app om de vraag te bekijken.
-        </p>
-      `
+      <p style="margin: 18px 0 0 0;">
+        <a href="${questionUrl}" style="color: #8a5a2b; text-decoration: underline;">Open ${safeType}</a>
+      </p>
+    `
+    : ''
 
   const html = `
 <!DOCTYPE html>

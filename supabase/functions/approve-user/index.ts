@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { buildAppUrl } from '../_shared/appUrl.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -59,12 +60,9 @@ async function sendWelcomeEmail(
 
   const subject = 'Je toegang tot Karthuizer is geactiveerd'
 
-  const linkHtml = appUrl
-    ? `
-        <p style="margin: 0 0 16px 0;">
-          <a href="${appUrl}" style="color: #8a5a2b; text-decoration: underline;">Open Karthuizer</a>
-        </p>
-      `
+  const loginUrl = buildAppUrl(appUrl ?? APP_URL, { path: 'login' })
+  const linkHtml = loginUrl
+    ? `<p style="margin: 0 0 16px 0;"><a href="${loginUrl}" style="color: #8a5a2b; text-decoration: underline;">Open Karthuizer</a></p>`
     : ''
 
   const html = `
