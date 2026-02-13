@@ -8,6 +8,7 @@ const corsHeaders = {
 }
 
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+const RESEND_FROM = Deno.env.get('RESEND_FROM') ?? 'Karthuizer <onboarding@resend.dev>'
 const APP_URL = Deno.env.get('APP_URL')
 
 function json(status: number, body: Record<string, unknown>): Response {
@@ -118,7 +119,7 @@ async function sendWelcomeEmail(
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      from: 'Karthuizer <onboarding@resend.dev>',
+      from: RESEND_FROM,
       to: [to],
       subject,
       html,
