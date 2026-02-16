@@ -90,6 +90,7 @@ export function VoteCommentSection({
   const latest = thread.at(-1)
   const latestPreview = latest?.comment?.trim()
   const previewText = latestPreview ? truncate(latestPreview, 60) : null
+  const noCommentsLabel = status === 'open' ? 'Nog geen reacties' : 'Geen reacties'
 
   const isBusy = upsertMutation.isPending || deleteMutation.isPending
   const canInteract = status === 'open' && Boolean(userId)
@@ -155,7 +156,7 @@ export function VoteCommentSection({
             </div>
             {!isOpen && (
               <p className="text-sm text-stone-600 truncate">
-                {previewText ? `${getAuthorLabel(latest!)}: ${previewText}` : 'Nog geen reacties'}
+                {previewText ? `${getAuthorLabel(latest!)}: ${previewText}` : noCommentsLabel}
               </p>
             )}
           </div>
@@ -184,7 +185,7 @@ export function VoteCommentSection({
 
               {thread.length === 0 ? (
                 <div className="text-sm text-stone-500 bg-stone-50 border border-stone-200/70 rounded-md px-3 py-2">
-                  Nog geen reacties. Start de discussie.
+                  {status === 'open' ? 'Nog geen reacties. Start de discussie.' : 'Geen reacties.'}
                 </div>
               ) : (
                 <ul className="space-y-3">
@@ -264,7 +265,7 @@ export function VoteCommentSection({
 
               {status !== 'open' && (
                 <div className="text-xs text-stone-500 bg-stone-50 border border-stone-200/70 rounded-md px-3 py-2">
-                  Deze vraag is afgerond; reacties kunnen niet meer aangepast worden.
+                  Reacties zijn gesloten in het archief.
                 </div>
               )}
 
