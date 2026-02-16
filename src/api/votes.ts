@@ -7,20 +7,33 @@ function ensureSupabaseConfigured() {
   }
 }
 
+function isUniqueConstraintError(error: unknown, constraintName: string) {
+  if (!error || typeof error !== 'object') return false
+
+  const dbError = error as { code?: string; message?: string; details?: string | null }
+  if (dbError.code !== '23505') return false
+
+  const combinedMessage = `${dbError.message ?? ''} ${dbError.details ?? ''}`.toLowerCase()
+  return combinedMessage.includes(constraintName.toLowerCase())
+}
+
 export const votesApi = {
   // Cast a standard yes/no/abstain vote
   async cast(questionId: string, vote: VoteType, userId: string): Promise<Vote> {
     ensureSupabaseConfigured()
-    // Delete any existing standard vote for this question (allows vote changes)
-    const { error: deleteError } = await supabase
+    // Update-first avoids delete+insert race conditions on fast double clicks/retries.
+    const { data: updatedVote, error: updateError } = await supabase
       .from('votes')
-      .delete()
+      .update({ vote })
       .eq('question_id', questionId)
       .eq('user_id', userId)
       .is('poll_option_id', null)
-    if (deleteError) throw deleteError
+      .select()
+      .maybeSingle()
+    if (updateError) throw updateError
+    if (updatedVote) return updatedVote
 
-    // Insert the new vote
+    // No existing row yet: insert first vote.
     const { data, error } = await supabase
       .from('votes')
       .insert({
@@ -31,6 +44,21 @@ export const votesApi = {
       })
       .select()
       .single()
+
+    // Handle concurrent insert from another in-flight request gracefully.
+    if (error && isUniqueConstraintError(error, 'votes_unique_standard')) {
+      const { data: retriedVote, error: retryError } = await supabase
+        .from('votes')
+        .update({ vote })
+        .eq('question_id', questionId)
+        .eq('user_id', userId)
+        .is('poll_option_id', null)
+        .select()
+        .maybeSingle()
+
+      if (retryError) throw retryError
+      if (retriedVote) return retriedVote
+    }
 
     if (error) throw error
     return data

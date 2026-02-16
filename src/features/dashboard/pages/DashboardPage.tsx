@@ -22,6 +22,7 @@ export function DashboardPage() {
   const [showSlowLoading, setShowSlowLoading] = useState(false)
   const [highlightedQuestionId, setHighlightedQuestionId] = useState<string | null>(null)
 
+  const votingQuestionIdRef = useRef<string | null>(null)
   const lastErrorRef = useRef<string | null>(null)
   const lastDeepLinkRef = useRef<string | null>(null)
 
@@ -74,40 +75,46 @@ export function DashboardPage() {
   }, [isLoading, location.search, questions])
 
   const handleVote = async (questionId: string, vote: VoteType) => {
-    if (votingQuestionId) return
+    if (votingQuestionIdRef.current) return
 
+    votingQuestionIdRef.current = questionId
     setVotingQuestionId(questionId)
     try {
       await voteMutation.mutateAsync({ questionId, vote })
     } catch (err) {
       showError('Stem mislukt', err instanceof Error ? err.message : 'Er is een fout opgetreden')
     } finally {
+      votingQuestionIdRef.current = null
       setVotingQuestionId(null)
     }
   }
 
   const handlePollVote = async (questionId: string, optionId: string) => {
-    if (votingQuestionId) return
+    if (votingQuestionIdRef.current) return
 
+    votingQuestionIdRef.current = questionId
     setVotingQuestionId(questionId)
     try {
       await pollVoteMutation.mutateAsync({ questionId, optionId })
     } catch (err) {
       showError('Stem mislukt', err instanceof Error ? err.message : 'Er is een fout opgetreden')
     } finally {
+      votingQuestionIdRef.current = null
       setVotingQuestionId(null)
     }
   }
 
   const handleMultiPollVote = async (questionId: string, optionIds: string[]) => {
-    if (votingQuestionId) return
+    if (votingQuestionIdRef.current) return
 
+    votingQuestionIdRef.current = questionId
     setVotingQuestionId(questionId)
     try {
       await multiPollVoteMutation.mutateAsync({ questionId, optionIds })
     } catch (err) {
       showError('Stem mislukt', err instanceof Error ? err.message : 'Er is een fout opgetreden')
     } finally {
+      votingQuestionIdRef.current = null
       setVotingQuestionId(null)
     }
   }
