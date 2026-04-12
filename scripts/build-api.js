@@ -1,6 +1,6 @@
 import { build } from 'vite'
 import path from 'path'
-import { rename, rm } from 'fs/promises'
+import { rename, rm, mkdir } from 'fs/promises'
 
 const tmpDir = '.api-build-tmp'
 
@@ -11,7 +11,7 @@ await build({
     outDir: tmpDir,
     rollupOptions: {
       output: {
-        entryFileNames: 'index.mjs',
+        entryFileNames: '_compiled.mjs',
         inlineDynamicImports: true,
       },
     },
@@ -27,10 +27,8 @@ await build({
   },
 })
 
-// Move the compiled file directly as api/index.mjs (the Vercel function entry)
-import { mkdir } from 'fs/promises'
 await mkdir('api', { recursive: true })
-await rename(path.join(tmpDir, 'index.mjs'), 'api/index.mjs')
+await rename(path.join(tmpDir, '_compiled.mjs'), 'api/_compiled.mjs')
 await rm(tmpDir, { recursive: true, force: true })
 
-console.log('API serverless function bundled to api/index.mjs')
+console.log('API serverless function bundled to api/_compiled.mjs')

@@ -34,4 +34,4 @@ dist-ssr
 supabase/.temp/
 
 # Pre-compiled API bundle (built during deploy)
-api/index.mjs
+api/_compiled.mjs
