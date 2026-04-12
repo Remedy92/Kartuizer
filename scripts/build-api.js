@@ -28,6 +28,8 @@ await build({
 })
 
 // Move the compiled file directly as api/index.mjs (the Vercel function entry)
+import { mkdir } from 'fs/promises'
+await mkdir('api', { recursive: true })
 await rename(path.join(tmpDir, 'index.mjs'), 'api/index.mjs')
 await rm(tmpDir, { recursive: true, force: true })
 
