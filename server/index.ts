@@ -736,6 +736,11 @@ app.post('/api/analytics/activity', async (req, res) => {
   res.status(201).json(inserted.rows[0])
 })
 
-app.listen(port, () => {
-  console.log(`Kartuizer backend listening on http://localhost:${port}`)
-})
+// In local dev, start listening. On Vercel, the app is imported as a handler.
+if (process.env.VERCEL !== '1') {
+  app.listen(port, () => {
+    console.log(`Kartuizer backend listening on http://localhost:${port}`)
+  })
+}
+
+export default app
