@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-04-12T16:08:42.933Z",
+  "originalTo": [
+    "lucasvanhoutven@gmail.com"
+  ],
+  "actualTo": [
+    "lucasvanhoutven@gmail.com"
+  ],
+  "subject": "[TEST to lucasvanhoutven@gmail.com] Kartuizer - je loginlink",
+  "html": "<p>Klik op deze link om in te loggen:</p><p><a href=\"http://localhost:5173/api/auth/magic-link/verify?token=exJQxIrTRARUbrHfnwtpuqFDQZhnxQXY&callbackURL=%2Fdashboard\">http://localhost:5173/api/auth/magic-link/verify?token=exJQxIrTRARUbrHfnwtpuqFDQZhnxQXY&callbackURL=%2Fdashboard</a></p>",
+  "text": "Log in via http://localhost:5173/api/auth/magic-link/verify?token=exJQxIrTRARUbrHfnwtpuqFDQZhnxQXY&callbackURL=%2Fdashboard",
+  "overridden": true,
+  "id": null,
+  "error": {
+    "statusCode": 403,
+    "name": "validation_error",
+    "message": "You can only send testing emails to your own email address (johanvh@gmail.com). To send emails to other recipients, please verify a domain at resend.com/domains, and change the `from` address to an email using this domain."
+  }
+}

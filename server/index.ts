@@ -1,6 +1,6 @@
 import './loadEnv'
 import express from 'express'
-import { auth, authHandler, getServerSession } from './auth'
+import { auth, authHandler, getServerSession, consumeMagicLinkUrl } from './auth'
 import { query } from './db'
 import { getQuestionById, listQuestions } from './questions'
 import { sendApprovalEmail, sendNewQuestionEmail, sendVoteResultsEmailIfNeeded } from './notifications'
@@ -69,6 +69,7 @@ app.post('/api/internalauth/request-password-reset', async (req, res) => {
 })
 
 app.post('/api/internalauth/sign-in-magic-link', async (req, res) => {
+  const email = String(req.body.email || '')
   const result = await (auth.api as {
     signInMagicLink: (input: {
       body: { email: string; callbackURL?: string; name?: string }
@@ -76,13 +77,18 @@ app.post('/api/internalauth/sign-in-magic-link', async (req, res) => {
     }) => Promise<unknown>
   }).signInMagicLink({
     body: {
-      email: String(req.body.email || ''),
+      email,
       callbackURL: req.body.callbackURL ? String(req.body.callbackURL) : undefined,
       name: req.body.name ? String(req.body.name) : undefined,
     },
     headers: toRequestHeaders(req),
   })
-  res.json(result)
+
+  // In development, return the magic link URL directly so the user can click it
+  // (Resend's test sender can only deliver to the account owner's email)
+  const devMagicLinkUrl = process.env.NODE_ENV !== 'production' ? consumeMagicLinkUrl(email) : null
+
+  res.json({ ...(result as object), ...(devMagicLinkUrl ? { devMagicLinkUrl } : {}) })
 })
 
 app.post('/api/internalauth/sign-up-email', async (req, res) => {
