@@ -122,10 +122,10 @@ function resultText(question: QuestionNotificationData) {
 function renderApprovalEmail(email: string) {
   const loginUrl = buildAppUrl(appOrigin, { path: 'login' })
   const safeEmail = escapeHtml(email)
-  const safeLink = loginUrl ? `<p style="margin: 18px 0 0;"><a href="${loginUrl}" style="color:#8a5a2b;text-decoration:underline;">Open Kartuizer</a></p>` : ''
+  const safeLink = loginUrl ? `<p style="margin: 18px 0 0;"><a href="${loginUrl}" style="color:#8a5a2b;text-decoration:underline;">Open Karthuizer</a></p>` : ''
 
   return {
-    subject: 'Je toegang tot Kartuizer is geactiveerd',
+    subject: 'Je toegang tot Karthuizer is geactiveerd',
     html: `
 <!DOCTYPE html>
 <html>
@@ -136,7 +136,7 @@ function renderApprovalEmail(email: string) {
           <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:560px;margin:0 auto;background:#fffdf9;border:1px solid #e7e2db;">
             <tr>
               <td style="background:#3d2c24;padding:24px;text-align:center;color:#fff;">
-                <div style="font-size:22px;letter-spacing:1px;">Kartuizer</div>
+                <div style="font-size:22px;letter-spacing:1px;">Karthuizer</div>
               </td>
             </tr>
             <tr>
@@ -159,7 +159,7 @@ function renderApprovalEmail(email: string) {
 </html>`,
     text: loginUrl
       ? `Je account is goedgekeurd. Log in via ${loginUrl}`
-      : 'Je account is goedgekeurd. Je kunt nu inloggen op Kartuizer.',
+      : 'Je account is goedgekeurd. Je kunt nu inloggen op Karthuizer.',
   }
 }
 
@@ -169,7 +169,7 @@ function renderNewQuestionEmail(question: QuestionNotificationData) {
     path: 'dashboard',
     search: { question: question.id },
   })
-  const subjectTag = normalizeTag(group.email_subject_tag) ?? normalizeTag(group.name) ?? 'Kartuizer'
+  const subjectTag = normalizeTag(group.email_subject_tag) ?? normalizeTag(group.name) ?? 'Karthuizer'
   const subject = `[${subjectTag}] ${question.title}`
 
   return {
@@ -182,7 +182,7 @@ function renderNewQuestionEmail(question: QuestionNotificationData) {
       <div style="background:#fff;border:1px solid #e7e5e4;border-radius:16px;overflow:hidden;">
         <div style="padding:22px 20px;background:#292524;color:#fff;">
           <div style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#d6d3d1;">
-            ${escapeHtml(group.name ?? 'Kartuizer')} · ${question.question_type === 'poll' ? 'Poll' : 'Stemming'}
+            ${escapeHtml(group.name ?? 'Karthuizer')} · ${question.question_type === 'poll' ? 'Poll' : 'Stemming'}
           </div>
           <div style="margin-top:8px;font-size:22px;font-weight:700;line-height:1.25;">
             ${escapeHtml(question.title ?? '')}
@@ -190,7 +190,7 @@ function renderNewQuestionEmail(question: QuestionNotificationData) {
         </div>
         <div style="padding:22px 20px;color:#44403c;line-height:1.7;white-space:pre-wrap;">
           ${escapeHtml(question.description?.trim() || 'Geen toelichting opgegeven.')}
-          ${questionUrl ? `<p style="margin:18px 0 0;"><a href="${questionUrl}" style="color:#8a5a2b;text-decoration:underline;">Open in Kartuizer</a></p>` : ''}
+          ${questionUrl ? `<p style="margin:18px 0 0;"><a href="${questionUrl}" style="color:#8a5a2b;text-decoration:underline;">Open in Karthuizer</a></p>` : ''}
         </div>
       </div>
     </div>
@@ -315,7 +315,7 @@ function renderVoteResultsEmail(question: QuestionNotificationData) {
     <div style="max-width:640px;margin:0 auto;padding:24px 16px;">
       <div style="background:#fff;border:1px solid #e7e5e4;border-radius:16px;overflow:hidden;">
         <div style="padding:22px 20px;background:#292524;color:#fff;">
-          <div style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#d6d3d1;">${escapeHtml(group.name ?? 'Kartuizer')}</div>
+          <div style="font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#d6d3d1;">${escapeHtml(group.name ?? 'Karthuizer')}</div>
           <div style="margin-top:8px;font-size:22px;font-weight:700;line-height:1.25;">${escapeHtml(question.title ?? '')}</div>
           <div style="margin-top:10px;display:inline-block;padding:8px 12px;border-radius:999px;background:#44403c;font-size:14px;">${escapeHtml(resultText(question))}</div>
         </div>
@@ -325,7 +325,7 @@ function renderVoteResultsEmail(question: QuestionNotificationData) {
             ${question.question_type === 'poll' ? renderPollResults(question) : renderStandardResults(question)}
           </div>
           ${renderComments(question.vote_comments ?? [])}
-          ${questionUrl ? `<div style="margin-top:22px;text-align:center;"><a href="${questionUrl}" style="display:inline-block;padding:12px 16px;border-radius:999px;background:#292524;color:#fff;text-decoration:none;font-weight:600;">Bekijk in Kartuizer</a></div>` : ''}
+          ${questionUrl ? `<div style="margin-top:22px;text-align:center;"><a href="${questionUrl}" style="display:inline-block;padding:12px 16px;border-radius:999px;background:#292524;color:#fff;text-decoration:none;font-weight:600;">Bekijk in Karthuizer</a></div>` : ''}
         </div>
       </div>
     </div>

@@ -35,7 +35,7 @@ export const auth = betterAuth({
       console.log('[auth-email] reset-password', JSON.stringify({ email: user.email, url }))
       await sendEmail({
         to: user.email,
-        subject: 'Kartuizer - wachtwoord resetten',
+        subject: 'Karthuizer - wachtwoord resetten',
         html: `<p>Klik op deze link om je wachtwoord te resetten:</p><p><a href="${url}">${url}</a></p>`,
         text: `Reset je wachtwoord via ${url}`,
       })
@@ -47,7 +47,7 @@ export const auth = betterAuth({
       console.log('[auth-email] verification', JSON.stringify({ email: user.email, url }))
       await sendEmail({
         to: user.email,
-        subject: 'Kartuizer - bevestig je e-mailadres',
+        subject: 'Karthuizer - bevestig je e-mailadres',
         html: `<p>Bevestig je e-mailadres via deze link:</p><p><a href="${url}">${url}</a></p>`,
         text: `Bevestig je e-mailadres via ${url}`,
       })
@@ -63,7 +63,7 @@ export const auth = betterAuth({
 
         await sendEmail({
           to: email,
-          subject: 'Kartuizer - je loginlink',
+          subject: 'Karthuizer - je loginlink',
           html: `<p>Klik op deze link om in te loggen:</p><p><a href="${url}">${url}</a></p>`,
           text: `Log in via ${url}`,
         })

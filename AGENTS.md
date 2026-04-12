@@ -32,5 +32,5 @@
 - Never commit secrets; use `.env` and Supabase dashboard configuration.
 
 ## Supabase Projects (Important)
-- **Kartuizer (should be used by this repo):** project ref `yzrvfpitavjtvhbdshjh` (`https://yzrvfpitavjtvhbdshjh.supabase.co`)
-- **Guardrail:** Before running any Supabase MCP migrations, verify the MCP project URL matches the Kartuizer URL above.
+- **Karthuizer (should be used by this repo):** project ref `yzrvfpitavjtvhbdshjh` (`https://yzrvfpitavjtvhbdshjh.supabase.co`)
+- **Guardrail:** Before running any Supabase MCP migrations, verify the MCP project URL matches the Karthuizer URL above.

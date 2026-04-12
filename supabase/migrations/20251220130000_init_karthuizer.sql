@@ -1,5 +1,5 @@
--- Kartuizer voting platform schema (public)
--- Apply this in the Kartuizer Supabase project (project ref: yzrvfpitavjtvhbdshjh)
+-- Karthuizer voting platform schema (public)
+-- Apply this in the Karthuizer Supabase project (project ref: yzrvfpitavjtvhbdshjh)
 
 create extension if not exists pgcrypto;
 

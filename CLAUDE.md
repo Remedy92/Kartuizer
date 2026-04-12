@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Kartuizer is a digital voting platform for the Board of Directors and Block Chairs of Domein Karthuizer. It's a Dutch-language React SPA with a local Node/Express backend, Better Auth, and Neon Postgres that allows authenticated users to vote on questions (yes/no/abstain) organized by groups, with automatic email notifications when voting completes.
+Karthuizer is a digital voting platform for the Board of Directors and Block Chairs of Domein Karthuizer. It's a Dutch-language React SPA with a local Node/Express backend, Better Auth, and Neon Postgres that allows authenticated users to vote on questions (yes/no/abstain) organized by groups, with automatic email notifications when voting completes.
 
 ## Commands
 

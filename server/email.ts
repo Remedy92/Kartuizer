@@ -9,7 +9,7 @@ const smtpHost = process.env.SMTP_HOST
 const smtpPort = Number(process.env.SMTP_PORT || '587')
 const smtpUser = process.env.SMTP_USER
 const smtpPass = process.env.SMTP_PASS
-const fromEmail = process.env.AUTH_FROM_EMAIL || 'Kartuizer <onboarding@resend.dev>'
+const fromEmail = process.env.AUTH_FROM_EMAIL || 'Karthuizer <onboarding@resend.dev>'
 const emailTestRecipient = process.env.EMAIL_TEST_RECIPIENT?.trim() || null
 const emailAuditDir = process.env.EMAIL_AUDIT_DIR?.trim() || null
 
