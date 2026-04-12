@@ -1,4 +1,4 @@
-import { apiFetch } from '@/lib/api'
+import { apiFetch, apiUrl } from '@/lib/api'
 import type { ActivityLog } from '@/types'
 
 export interface AnalyticsStats {
@@ -26,7 +26,7 @@ export const analyticsApi = {
     entityId?: string,
     metadata: Record<string, unknown> = {}
   ): Promise<void> {
-    void fetch('/api/analytics/activity', {
+    void fetch(apiUrl('/api/analytics/activity'), {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },

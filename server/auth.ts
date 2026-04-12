@@ -6,6 +6,8 @@ import { pool, query } from './db'
 import { sendEmail } from './email'
 
 const appOrigin = process.env.APP_ORIGIN || 'http://localhost:5173'
+/** Public URL of this Express app (required when the SPA is on another origin). */
+const apiPublicUrl = process.env.API_PUBLIC_URL || appOrigin
 // Capture magic link URLs so the server can verify them directly
 // (avoids dependency on email delivery for login)
 const pendingMagicLinks = new Map<string, string>()
@@ -18,8 +20,14 @@ export function consumeMagicLinkUrl(email: string): string | null {
 
 export const auth = betterAuth({
   database: pool,
-  baseURL: appOrigin,
-  trustedOrigins: [appOrigin, 'http://localhost:5173', 'http://localhost:5174', 'http://localhost:8787'],
+  baseURL: apiPublicUrl,
+  trustedOrigins: [
+    appOrigin,
+    apiPublicUrl,
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:8787',
+  ],
   advanced: {
     backgroundTasks: {
       handler: async (promise) => {

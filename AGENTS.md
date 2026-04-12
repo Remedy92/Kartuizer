@@ -7,8 +7,9 @@
 - Build output is in `dist/` (generated).
 
 ## Build, Test, and Development Commands
-- `npm run dev` — start the Vite dev server with HMR.
-- `npm run build` — TypeScript project build (`tsc -b`) and production bundle.
+- `npm run dev` — Vite + Express API (API on `PORT` / default 8787, web proxies `/api`).
+- `npm run build` — TypeScript check (`tsc -b`) and Vite production bundle for the SPA only.
+- `npm run start` — run the Express API (use on Railway/Render/Fly or any long-lived host).
 - `npm run lint` — run ESLint across the repo.
 - `npm run preview` — serve the production build locally.
 
@@ -27,6 +28,10 @@
 - PRs should include a concise description, screenshots for UI changes, and any relevant Supabase or environment updates.
 
 ## Security & Configuration Tips
+- **Split deploy (recommended):** Vercel serves only the SPA. Run the API on a long-lived host.
+  - **API on Render:** In the Render dashboard: *New* → *Blueprint* → connect this repo; `render.yaml` provisions `karthuizer-api` (Dockerfile). In the service **Environment**, set `DATABASE_URL`, `APP_ORIGIN` (e.g. `https://karthuizer.vercel.app`), `API_PUBLIC_URL` (the service’s own public `https://…onrender.com` URL), `AUTH_FROM_EMAIL`, `RESEND_API_KEY`, and optionally `FRONTEND_ORIGINS` for preview domains.
+  - **Vercel client:** Add **Production** env `VITE_API_BASE_URL` = that same API public URL (no trailing slash), then redeploy the SPA. From a machine with `vercel` logged in: `./scripts/set-vercel-vite-api-base.sh 'https://YOUR-API.onrender.com'`.
+  - **GitHub → Vercel (optional):** `.github/workflows/deploy-vercel.yml` (`workflow_dispatch`) with secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` from `.vercel/project.json` + a Vercel token.
 - Local app env vars: `DATABASE_URL`, `APP_ORIGIN`, `AUTH_FROM_EMAIL`, `RESEND_API_KEY`.
 - Legacy Supabase Edge Function env vars: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`.
 - Never commit secrets; use `.env` and Supabase dashboard configuration.

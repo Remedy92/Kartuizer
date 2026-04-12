@@ -11,6 +11,7 @@ const allowedOrigins = [
   process.env.APP_ORIGIN || 'http://localhost:5173',
   'http://localhost:5173',
   'http://localhost:5174',
+  ...(process.env.FRONTEND_ORIGINS?.split(',').map((s) => s.trim()).filter(Boolean) ?? []),
 ]
 
 app.use(
@@ -736,17 +737,14 @@ app.post('/api/analytics/activity', async (req, res) => {
   res.status(201).json(inserted.rows[0])
 })
 
-// Global error handler so Vercel runtime logs show the actual error
+// Global error handler so host logs show the actual error
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
   console.error('[express] unhandled error:', err.stack || err.message)
   res.status(500).json({ error: err.message })
 })
 
-// In local dev, start listening. On Vercel, the app is imported as a handler.
-if (process.env.VERCEL !== '1') {
-  app.listen(port, () => {
-    console.log(`Karthuizer backend listening on http://localhost:${port}`)
-  })
-}
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Karthuizer backend listening on port ${port}`)
+})
 
 export default app

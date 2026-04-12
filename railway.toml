@@ -1,0 +1,6 @@
+# Optional Railway config — Nixpacks auto-detects Node; `npm run start` runs the API.
+[build]
+builder = "NIXPACKS"
+
+[deploy]
+startCommand = "npm run start"
