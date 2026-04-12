@@ -22,3 +22,5 @@ services:
         sync: false
       - key: FRONTEND_ORIGINS
         sync: false
+      - key: BETTER_AUTH_SECRET
+        sync: false
