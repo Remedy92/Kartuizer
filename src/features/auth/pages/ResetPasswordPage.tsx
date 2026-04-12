@@ -3,17 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { KeyRound, Loader2, CheckCircle, AlertCircle } from 'lucide-react'
 import { useAuth, useToast } from '@/hooks'
-import { useAuthStore } from '@/stores'
 import { Wordmark } from '@/components/shared'
 
 export function ResetPasswordPage() {
   const navigate = useNavigate()
   const { updatePassword, isLoading } = useAuth()
   const { error: showError } = useToast()
-
-  // Session is auto-created by Supabase from URL tokens via detectSessionInUrl
-  const session = useAuthStore((s) => s.session)
-  const authLoading = useAuthStore((s) => s.isLoading)
+  const token = new URLSearchParams(window.location.search).get('token')
 
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -38,7 +34,7 @@ export function ResetPasswordPage() {
     if (result.success) {
       setSuccess(true)
       setTimeout(() => {
-        navigate('/dashboard', { replace: true })
+        navigate('/login', { replace: true })
       }, 2000)
     } else {
       const message = result.error ?? 'Er is een fout opgetreden'
@@ -47,9 +43,8 @@ export function ResetPasswordPage() {
     }
   }
 
-  // Determine what to show based on auth state
-  const showLoading = authLoading
-  const showInvalidLink = !authLoading && !session
+  const showLoading = false
+  const showInvalidLink = !token
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-100 via-stone-50 to-primary-50/30 flex flex-col justify-center items-center p-6">
@@ -108,7 +103,7 @@ export function ResetPasswordPage() {
               </div>
               <h3 className="text-lg font-medium text-stone-800 mb-2">Wachtwoord gewijzigd</h3>
               <p className="text-stone-500 text-sm">
-                Je wordt doorgestuurd naar het dashboard...
+                Je wordt doorgestuurd naar inloggen...
               </p>
             </motion.div>
           ) : (

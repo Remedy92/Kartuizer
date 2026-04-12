@@ -4,7 +4,6 @@ import { Loader2, Users, Calendar } from 'lucide-react'
 import { useUserGroups } from '@/hooks'
 import { useAuthStore } from '@/stores'
 import { useToast } from '@/hooks'
-import { supabaseUrl } from '@/lib/supabase'
 import type { GroupMember } from '@/types'
 
 export function MyGroupsPage() {
@@ -30,7 +29,7 @@ export function MyGroupsPage() {
       <div className="py-20 text-center">
         <p className="text-rose-600">Er is een fout opgetreden bij het laden van uw groepen.</p>
         <p className="text-sm text-rose-500 mt-2">
-          {error instanceof Error ? error.message : 'Controleer je rechten en de Supabase-verbinding.'}
+          {error instanceof Error ? error.message : 'Controleer je rechten en of de backend draait.'}
         </p>
       </div>
     )
@@ -150,13 +149,8 @@ function GroupsLoadingState() {
         <div className="text-center text-sm text-stone-500 max-w-md">
           <p>Dit duurt langer dan verwacht.</p>
           <p className="mt-2">
-            Controleer of Supabase bereikbaar is en of je `.env` klopt.
+            Controleer of de backend bereikbaar is en of je lokale `.env.local` klopt.
           </p>
-          {supabaseUrl && (
-            <p className="mt-2 text-xs text-stone-400">
-              Supabase URL: {supabaseUrl}
-            </p>
-          )}
         </div>
       )}
     </div>

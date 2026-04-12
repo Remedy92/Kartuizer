@@ -13,7 +13,7 @@ export function useVote() {
       if (!session?.user?.id) {
         throw new Error('Je moet ingelogd zijn om te stemmen.')
       }
-      return votesApi.cast(questionId, vote, session.user.id)
+      return votesApi.cast(questionId, vote)
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: questionKeys.all })
@@ -31,7 +31,7 @@ export function usePollVote() {
       if (!session?.user?.id) {
         throw new Error('Je moet ingelogd zijn om te stemmen.')
       }
-      return votesApi.castPollVote(questionId, optionId, session.user.id)
+      return votesApi.castPollVote(questionId, optionId)
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: questionKeys.all })
@@ -49,7 +49,7 @@ export function useMultiPollVote() {
       if (!session?.user?.id) {
         throw new Error('Je moet ingelogd zijn om te stemmen.')
       }
-      return votesApi.castMultiplePollVotes(questionId, optionIds, session.user.id)
+      return votesApi.castMultiplePollVotes(questionId, optionIds)
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: questionKeys.all })

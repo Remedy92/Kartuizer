@@ -6,31 +6,7 @@ import {
   type UpdateQuestionInput,
   type UpdatePollDraftInput,
 } from '@/api'
-import { isSupabaseConfigured, supabase, supabaseUrl } from '@/lib/supabase'
-import { useToast } from '@/hooks/useToast'
 import type { QuestionStatus, CompletionMethod } from '@/types'
-
-async function sendNewQuestionEmail(questionId: string): Promise<void> {
-  const { data: { session } } = await supabase.auth.getSession()
-
-  if (!session?.access_token) {
-    throw new Error('Niet ingelogd')
-  }
-
-  const response = await fetch(`${supabaseUrl}/functions/v1/send-new-question`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${session.access_token}`,
-    },
-    body: JSON.stringify({ questionId }),
-  })
-
-  if (response.ok) return
-
-  const payload = await response.json().catch(() => ({} as { error?: string }))
-  throw new Error(payload.error || 'Mail versturen mislukt')
-}
 
 export const questionKeys = {
   all: ['questions'] as const,
@@ -45,7 +21,7 @@ export function useQuestions(status: QuestionStatus) {
     queryKey: questionKeys.list(status),
     queryFn: () => questionsApi.getByStatus(status),
     retry: false,
-    enabled: isSupabaseConfigured,
+    refetchInterval: status === 'open' ? 15000 : false,
   })
 }
 
@@ -62,7 +38,7 @@ export function useAllQuestions() {
     queryKey: questionKeys.lists(),
     queryFn: () => questionsApi.getAll(),
     retry: false,
-    enabled: isSupabaseConfigured,
+    refetchInterval: 15000,
   })
 }
 
@@ -71,38 +47,29 @@ export function useQuestion(id: string) {
     queryKey: questionKeys.detail(id),
     queryFn: () => questionsApi.getById(id),
     retry: false,
-    enabled: isSupabaseConfigured && !!id,
+    enabled: !!id,
+    refetchInterval: 10000,
   })
 }
 
 export function useCreateQuestion() {
   const queryClient = useQueryClient()
-  const { warning } = useToast()
 
   return useMutation({
     mutationFn: (input: CreateQuestionInput) => questionsApi.create(input),
-    onSuccess: (question) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: questionKeys.all })
-      void sendNewQuestionEmail(question.id).catch((err) => {
-        const message = err instanceof Error ? err.message : 'Mail versturen mislukt'
-        warning('Mail niet verstuurd', message)
-      })
     },
   })
 }
 
 export function useCreatePoll() {
   const queryClient = useQueryClient()
-  const { warning } = useToast()
 
   return useMutation({
     mutationFn: (input: CreatePollInput) => questionsApi.createPoll(input),
-    onSuccess: (question) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: questionKeys.all })
-      void sendNewQuestionEmail(question.id).catch((err) => {
-        const message = err instanceof Error ? err.message : 'Mail versturen mislukt'
-        warning('Mail niet verstuurd', message)
-      })
     },
   })
 }

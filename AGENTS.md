@@ -1,7 +1,7 @@
 # Repository Guidelines
 
 ## Project Structure & Module Organization
-- `src/` contains the React SPA. Key areas: `components/` (UI building blocks), `features/` (feature-level UI logic), `routes/` (view routing), `api/` (Supabase client calls), `stores/` (Zustand state), `hooks/`, `providers/`, and `types/`.
+- `src/` contains the React SPA. Key areas: `components/` (UI building blocks), `features/` (feature-level UI logic), `routes/` (view routing), `api/` (backend API wrappers), `stores/` (Zustand state), `hooks/`, `providers/`, and `types/`.
 - `src/assets/` holds static assets used by the app. Global styling lives in `src/index.css`.
 - `supabase/functions/send-vote-results/` contains the Edge Function that emails vote results.
 - Build output is in `dist/` (generated).
@@ -27,8 +27,8 @@
 - PRs should include a concise description, screenshots for UI changes, and any relevant Supabase or environment updates.
 
 ## Security & Configuration Tips
-- Frontend env vars (local `.env`): `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
-- Edge Function env vars: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`.
+- Local app env vars: `DATABASE_URL`, `APP_ORIGIN`, `AUTH_FROM_EMAIL`, `RESEND_API_KEY`.
+- Legacy Supabase Edge Function env vars: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`.
 - Never commit secrets; use `.env` and Supabase dashboard configuration.
 
 ## Supabase Projects (Important)

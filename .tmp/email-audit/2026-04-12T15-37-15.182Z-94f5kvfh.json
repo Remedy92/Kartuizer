@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-04-12T15:37:15.183Z",
+  "originalTo": [
+    "johanvh@gmail.com"
+  ],
+  "actualTo": [
+    "johanvh@gmail.com"
+  ],
+  "subject": "[TEST to johanvh@gmail.com] Kartuizer testmail",
+  "html": "<p>Dit is een echte testmail van de nieuwe Kartuizer mailstack.</p>",
+  "text": "Dit is een echte testmail van de nieuwe Kartuizer mailstack.",
+  "overridden": true,
+  "id": "1506a6f8-f4b5-410d-9c94-cadbd9fcc42f"
+}

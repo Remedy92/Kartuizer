@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Mail, KeyRound, Loader2 } from 'lucide-react'
@@ -24,11 +24,11 @@ export function LoginPage() {
 
   const from = (location.state as { from?: Location })?.from?.pathname || '/dashboard'
 
-  // Redirect if already authenticated
-  if (isAuthenticated) {
-    navigate(from, { replace: true })
-    return null
-  }
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(from, { replace: true })
+    }
+  }, [from, isAuthenticated, navigate])
 
   const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -53,6 +53,8 @@ export function LoginPage() {
       if (result.needsVerification || result.needsPasswordReset) {
         setNotice(result.notice ?? 'Controleer je e-mail om verder te gaan.')
         setResetEmailSent(result.needsPasswordReset ?? false)
+      } else if (result.needsApproval) {
+        navigate('/pending-approval', { replace: true })
       } else {
         navigate(from, { replace: true })
       }
@@ -186,6 +188,7 @@ export function LoginPage() {
                   <input
                     type="email"
                     required
+                    autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full bg-stone-50 border-0 border-b-2 border-stone-200 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:border-primary-600 focus:ring-0 focus:bg-white transition-all"
@@ -201,6 +204,7 @@ export function LoginPage() {
                     <input
                       type="password"
                       required
+                      autoComplete="current-password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       className="w-full bg-stone-50 border-0 border-b-2 border-stone-200 px-4 py-3 text-stone-800 placeholder:text-stone-400 focus:border-primary-600 focus:ring-0 focus:bg-white transition-all"

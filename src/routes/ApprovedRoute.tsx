@@ -1,4 +1,5 @@
-import { Navigate, Outlet } from 'react-router-dom'
+import { useEffect } from 'react'
+import { Outlet, useLocation, useNavigate } from 'react-router-dom'
 import { Loader2 } from 'lucide-react'
 import { useAuthStore } from '@/stores'
 
@@ -9,6 +10,14 @@ import { useAuthStore } from '@/stores'
 export function ApprovedRoute() {
   const isPending = useAuthStore((s) => s.isPending)
   const isLoading = useAuthStore((s) => s.isLoading)
+  const navigate = useNavigate()
+  const location = useLocation()
+
+  useEffect(() => {
+    if (!isLoading && isPending && location.pathname !== '/pending-approval') {
+      navigate('/pending-approval', { replace: true })
+    }
+  }, [isLoading, isPending, location.pathname, navigate])
 
   if (isLoading) {
     return (
@@ -18,8 +27,8 @@ export function ApprovedRoute() {
     )
   }
 
-  if (isPending) {
-    return <Navigate to="/pending-approval" replace />
+  if (isPending && location.pathname !== '/pending-approval') {
+    return null
   }
 
   return <Outlet />

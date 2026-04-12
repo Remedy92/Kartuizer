@@ -1,0 +1,15 @@
+{
+  "timestamp": "2026-04-12T15:33:17.468Z",
+  "originalTo": [
+    "thorough-admin-1776005401@example.com",
+    "thorough-member-1776005401@example.com"
+  ],
+  "actualTo": [
+    "lucasvanhoutven@gmail.com"
+  ],
+  "subject": "[TEST to lucasvanhoutven@gmail.com] [POLLTEST] Codex Poll Mail Test 1776007996542",
+  "html": "\n<!DOCTYPE html>\n<html>\n  <body style=\"margin:0;padding:0;background:#f5f5f4;font-family:ui-serif,Georgia,'Times New Roman',serif;\">\n    <div style=\"max-width:640px;margin:0 auto;padding:24px 16px;\">\n      <div style=\"background:#fff;border:1px solid #e7e5e4;border-radius:16px;overflow:hidden;\">\n        <div style=\"padding:22px 20px;background:#292524;color:#fff;\">\n          <div style=\"font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:#d6d3d1;\">\n            Codex Poll Group 1776007996542 · Poll\n          </div>\n          <div style=\"margin-top:8px;font-size:22px;font-weight:700;line-height:1.25;\">\n            Codex Poll Mail Test 1776007996542\n          </div>\n        </div>\n        <div style=\"padding:22px 20px;color:#44403c;line-height:1.7;white-space:pre-wrap;\">\n          Testing new poll email path.\n          <p style=\"margin:18px 0 0;\"><a href=\"http://localhost:5173/dashboard?question=94d3d269-58e5-42f0-b142-7496b5fb9710\" style=\"color:#8a5a2b;text-decoration:underline;\">Open in Kartuizer</a></p>\n        </div>\n      </div>\n    </div>\n  </body>\n</html>",
+  "text": "Codex Poll Mail Test 1776007996542\n\nTesting new poll email path.\n\nOpen: http://localhost:5173/dashboard?question=94d3d269-58e5-42f0-b142-7496b5fb9710",
+  "overridden": true,
+  "id": null
+}

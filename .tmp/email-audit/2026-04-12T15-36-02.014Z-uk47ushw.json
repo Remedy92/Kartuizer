@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-04-12T15:36:02.015Z",
+  "originalTo": [
+    "lucasvanhoutven@gmail.com"
+  ],
+  "actualTo": [
+    "lucasvanhoutven@gmail.com"
+  ],
+  "subject": "[TEST to lucasvanhoutven@gmail.com] Visible failure probe",
+  "html": "<p>probe</p>",
+  "overridden": true,
+  "id": null,
+  "error": {
+    "statusCode": 403,
+    "name": "validation_error",
+    "message": "You can only send testing emails to your own email address (johanvh@gmail.com). To send emails to other recipients, please verify a domain at resend.com/domains, and change the `from` address to an email using this domain."
+  }
+}

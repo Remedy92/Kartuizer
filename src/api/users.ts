@@ -1,4 +1,4 @@
-import { supabase, supabaseUrl } from '@/lib/supabase'
+import { apiFetch } from '@/lib/api'
 import type { UserProfile, UserRole, GroupMember } from '@/types'
 
 export interface UpdateUserProfileInput {
@@ -18,130 +18,41 @@ export interface ApproveUserResult {
 
 export const usersApi = {
   async getAll(): Promise<UserProfile[]> {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .order('email', { ascending: true })
-
-    if (error) throw error
-    return data ?? []
+    return apiFetch<UserProfile[]>('/api/users')
   },
 
   async getById(id: string): Promise<UserProfile | null> {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', id)
-      .single()
-
-    if (error) {
-      if (error.code === 'PGRST116') return null
-      throw error
-    }
-    return data
+    return apiFetch<UserProfile | null>(`/api/users/${id}`)
   },
 
   async update(id: string, input: UpdateUserProfileInput): Promise<UserProfile> {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .update({
-        ...input,
-        updated_at: new Date().toISOString(),
-      })
-      .eq('id', id)
-      .select()
-      .single()
-
-    if (error) throw error
-    return data
+    return apiFetch<UserProfile>(`/api/users/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    })
   },
 
   async getGroups(userId: string): Promise<GroupMember[]> {
-    const { data, error } = await supabase
-      .from('group_members')
-      .select('*, groups(*)')
-      .eq('user_id', userId)
-
-    if (error) throw error
-    return data ?? []
+    return apiFetch<GroupMember[]>(`/api/users/${userId}/groups`)
   },
 
   async updateLastActive(userId: string): Promise<void> {
-    const { error } = await supabase
-      .from('user_profiles')
-      .update({ last_active_at: new Date().toISOString() })
-      .eq('id', userId)
-
-    if (error) console.error('Failed to update last active:', error)
+    await apiFetch<void>(`/api/users/${userId}/last-active`, { method: 'PATCH' }).catch(() => undefined)
   },
 
   async getPending(): Promise<UserProfile[]> {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('approval_status', 'pending')
-      .order('created_at', { ascending: false })
-
-    if (error) throw error
-    return data ?? []
+    return apiFetch<UserProfile[]>('/api/users/pending/list')
   },
 
   async getPendingCount(): Promise<number> {
-    const { count, error } = await supabase
-      .from('user_profiles')
-      .select('*', { count: 'exact', head: true })
-      .eq('approval_status', 'pending')
-
-    if (error) throw error
-    return count ?? 0
+    return apiFetch<number>('/api/users/pending/count')
   },
 
   async approve(id: string): Promise<ApproveUserResult> {
-    const { data: { session } } = await supabase.auth.getSession()
-
-    if (!session?.access_token) {
-      throw new Error('Niet ingelogd')
-    }
-
-    const response = await fetch(`${supabaseUrl}/functions/v1/approve-user`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({ userId: id }),
-    })
-
-    const payload = await response.json().catch(() => ({}))
-
-    if (!response.ok) {
-      throw new Error(payload.error || 'Goedkeuren mislukt')
-    }
-
-    return payload as ApproveUserResult
+    return apiFetch<ApproveUserResult>(`/api/users/${id}/approve`, { method: 'POST' })
   },
 
   async reject(id: string): Promise<void> {
-    // Call the delete-user Edge Function to delete from auth.users
-    // This requires service role, so we use an Edge Function
-    const { data: { session } } = await supabase.auth.getSession()
-
-    if (!session?.access_token) {
-      throw new Error('Niet ingelogd')
-    }
-
-    const response = await fetch(`${supabaseUrl}/functions/v1/delete-user`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify({ userId: id }),
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || 'Gebruiker verwijderen mislukt')
-    }
+    return apiFetch<void>(`/api/users/${id}`, { method: 'DELETE' })
   },
 }

@@ -44,7 +44,7 @@ export function CreateAgendaItemPage() {
       <div className="py-20 text-center">
         <p className="text-rose-600">Er is een fout opgetreden bij het laden van uw groepen.</p>
         <p className="text-sm text-rose-500 mt-2">
-          {error instanceof Error ? error.message : 'Controleer je rechten en de Supabase-verbinding.'}
+          {error instanceof Error ? error.message : 'Controleer je rechten en of de backend draait.'}
         </p>
       </div>
     )
@@ -68,4 +68,3 @@ export function CreateAgendaItemPage() {
     </div>
   )
 }
-

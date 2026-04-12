@@ -1,8 +1,10 @@
-import { useCallback, useEffect, type ReactNode } from 'react'
-import { supabase, supabaseUrl, isSupabaseConfigured } from '@/lib/supabase'
+import { useEffect, type ReactNode } from 'react'
+import { authClient } from '@/lib/auth-client'
+import { apiFetch } from '@/lib/api'
 import { useAuthStore } from '@/stores'
 import { queryClient } from '@/lib/queryClient'
 import type { UserProfile } from '@/types'
+import type { AppSession } from '@/types/auth'
 
 interface AuthProviderProps {
   children: ReactNode
@@ -11,151 +13,44 @@ interface AuthProviderProps {
 export function AuthProvider({ children }: AuthProviderProps) {
   const { setSession, setUser, setLoading } = useAuthStore()
 
-  const fetchUserProfile = useCallback(async (userId: string) => {
-    const syncEmailWithAuth = async (profile: UserProfile, accessToken: string, authEmail: string) => {
-      if (profile.email?.toLowerCase() === authEmail.toLowerCase()) return
-
-      try {
-        const response = await fetch(`${supabaseUrl}/functions/v1/notify-email-change`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
-          },
-          body: JSON.stringify({}),
-        })
-
-        const payload = await response.json().catch(() => ({} as unknown))
-        if (!response.ok) {
-          console.warn('notify-email-change failed:', payload)
-          return
-        }
-
-        const updatedProfile = (payload as { profile?: UserProfile }).profile
-        if (updatedProfile) {
-          setUser(updatedProfile)
-        }
-      } catch (err) {
-        console.warn('notify-email-change error:', err)
-      }
-    }
-
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('*')
-      .eq('id', userId)
-      .single()
-
-    if (error) {
-      // If no profile exists yet, create a default one
-      if (error.code === 'PGRST116') {
-        const session = useAuthStore.getState().session
-        if (session?.user.email) {
-          const { data: newProfile } = await supabase
-            .from('user_profiles')
-            .insert({
-              id: userId,
-              email: session.user.email,
-              role: 'member',
-            })
-            .select()
-            .single()
-
-          if (newProfile) {
-            setUser(newProfile)
-          }
-        }
-      }
-    } else {
-      setUser(data)
-
-      const session = useAuthStore.getState().session
-      const accessToken = session?.access_token
-      const authEmail = session?.user.email?.trim()
-      if (accessToken && authEmail) {
-        syncEmailWithAuth(data, accessToken, authEmail)
-      }
-    }
-    setLoading(false)
-  }, [setUser, setLoading])
-
   useEffect(() => {
-    if (!isSupabaseConfigured) {
-      setLoading(false)
-      return
-    }
+    let isMounted = true
 
-    // Get initial session
-    supabase.auth
-      .getSession()
-      .then(async ({ data: { session } }) => {
-        setSession(session)
+    const sync = async () => {
+      const sessionState = await authClient.getSession().catch(() => null)
+      const session = (sessionState?.data ?? null) as AppSession | null
 
-        if (!session?.user) {
-          setLoading(false)
-          return
-        }
+      if (!isMounted) return
 
-        // Guard against "stuck" sessions (invalid/expired refresh token) that keep the UI
-        // authenticated but break every request until users clear site data.
-        const { error: userError } = await supabase.auth.getUser()
-        if (userError) {
-          await supabase.auth.signOut({ scope: 'local' }).catch(() => {})
-          setSession(null)
-          setUser(null)
-          queryClient.clear()
-          setLoading(false)
-          return
-        }
-
-        fetchUserProfile(session.user.id)
-      })
-      .catch(() => {
-        setLoading(false)
-      })
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
       setSession(session)
 
-      // Avoid deadlocks: do not run async Supabase calls inside onAuthStateChange.
-      // Dispatch follow-up work after the callback returns. (Supabase docs + troubleshooting)
-      const defer = (fn: () => void) => {
-        if (typeof queueMicrotask === 'function') {
-          queueMicrotask(fn)
-        } else {
-          setTimeout(fn, 0)
-        }
-      }
-
-      if (event === 'PASSWORD_RECOVERY') {
+      if (!session) {
+        setUser(null)
         setLoading(false)
         return
       }
 
-      if (event === 'SIGNED_IN' && session?.user) {
-        defer(() => {
-          fetchUserProfile(session.user.id).catch(() => {
-            setLoading(false)
-          })
-        })
-        return
-      }
-
-      if (event === 'SIGNED_OUT') {
+      try {
+        const payload = await apiFetch<{ session: AppSession; profile: UserProfile | null }>('/api/me')
+        if (!isMounted) return
+        setSession(payload.session)
+        setUser(payload.profile)
+      } catch {
+        if (!isMounted) return
+        setSession(null)
         setUser(null)
         queryClient.clear()
-        setLoading(false)
-        return
+      } finally {
+        if (isMounted) setLoading(false)
       }
+    }
 
-      setLoading(false)
-    })
+    void sync()
 
-    return () => subscription.unsubscribe()
-  }, [setSession, setUser, setLoading, fetchUserProfile])
+    return () => {
+      isMounted = false
+    }
+  }, [setSession, setUser, setLoading])
 
   return <>{children}</>
 }

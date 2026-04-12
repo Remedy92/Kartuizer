@@ -10,6 +10,7 @@ export function Navbar() {
   const navigate = useNavigate()
   const session = useAuthStore((s) => s.session)
   const isAdmin = useAuthStore((s) => s.isAdmin)
+  const isPending = useAuthStore((s) => s.isPending)
   const mobileMenuOpen = useUIStore((s) => s.mobileMenuOpen)
   const toggleMobileMenu = useUIStore((s) => s.toggleMobileMenu)
   const { error: showError } = useToast()
@@ -83,7 +84,7 @@ export function Navbar() {
                 {session?.user?.email}
               </p>
               <p className="text-xs text-stone-400">
-                {isAdmin ? 'Beheerder' : 'Bestuurslid'}
+                {isPending ? 'Wacht op goedkeuring' : isAdmin ? 'Beheerder' : 'Bestuurslid'}
               </p>
             </div>
 

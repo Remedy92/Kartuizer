@@ -12,7 +12,7 @@ export function useUpsertVoteComment() {
       if (!session?.user?.id) {
         throw new Error('Je moet ingelogd zijn om commentaar toe te voegen.')
       }
-      return voteCommentsApi.upsert(questionId, session.user.id, comment)
+      return voteCommentsApi.upsert(questionId, comment)
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: questionKeys.all })
@@ -30,7 +30,7 @@ export function useDeleteVoteComment() {
       if (!session?.user?.id) {
         throw new Error('Je moet ingelogd zijn om commentaar te verwijderen.')
       }
-      return voteCommentsApi.remove(questionId, session.user.id)
+      return voteCommentsApi.remove(questionId)
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: questionKeys.all })
@@ -38,4 +38,3 @@ export function useDeleteVoteComment() {
     },
   })
 }
-
