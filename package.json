@@ -9,7 +9,7 @@
     "dev:server": "tsx watch server/index.ts",
     "check:server": "tsc -p tsconfig.node.json",
     "migrate:neon": "tsx scripts/migrate-neon.ts",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && vite build && node scripts/build-api.js",
     "lint": "eslint .",
     "preview": "vite preview"
   },

@@ -32,3 +32,6 @@ dist-ssr
 
 # Supabase CLI cache
 supabase/.temp/
+
+# Pre-compiled API bundle (built during deploy)
+api/_compiled.mjs
