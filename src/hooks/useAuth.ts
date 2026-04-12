@@ -12,7 +12,6 @@ interface AuthResult {
   needsPasswordReset?: boolean
   needsApproval?: boolean
   notice?: string
-  devMagicLinkUrl?: string
 }
 
 export function useAuth() {
@@ -50,7 +49,7 @@ export function useAuth() {
   async function signInWithMagicLink(email: string): Promise<AuthResult> {
     setIsLoading(true)
     try {
-      const result = await apiFetch<{ status: boolean; devMagicLinkUrl?: string }>('/api/internalauth/sign-in-magic-link', {
+      const result = await apiFetch<{ status: boolean; authenticated?: boolean }>('/api/internalauth/sign-in-magic-link', {
         method: 'POST',
         body: JSON.stringify({
           email,
@@ -59,10 +58,13 @@ export function useAuth() {
         }),
       })
 
-      if (result.devMagicLinkUrl) {
-        return { success: true, devMagicLinkUrl: result.devMagicLinkUrl, notice: 'Dev mode: klik de link hieronder om in te loggen.' }
+      if (result.authenticated) {
+        // Session was created instantly (server auto-verified the magic link)
+        const profile = await syncAuthenticatedUser()
+        return { success: true, needsApproval: profile?.approval_status === 'pending' }
       }
 
+      // Fallback: email was sent, user needs to click the link
       return { success: true, notice: 'We hebben je een loginlink gemaild. Controleer je inbox.' }
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Er is een fout opgetreden' }

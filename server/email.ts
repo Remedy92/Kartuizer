@@ -1,14 +1,40 @@
 import './loadEnv'
 import { Resend } from 'resend'
+import nodemailer from 'nodemailer'
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
 const resendApiKey = process.env.RESEND_API_KEY
+const smtpHost = process.env.SMTP_HOST
+const smtpPort = Number(process.env.SMTP_PORT || '587')
+const smtpUser = process.env.SMTP_USER
+const smtpPass = process.env.SMTP_PASS
 const fromEmail = process.env.AUTH_FROM_EMAIL || 'Kartuizer <onboarding@resend.dev>'
 const emailTestRecipient = process.env.EMAIL_TEST_RECIPIENT?.trim() || null
 const emailAuditDir = process.env.EMAIL_AUDIT_DIR?.trim() || null
 
+// Use SMTP (Brevo, Gmail, etc.) when configured, otherwise fall back to Resend
+const transport = smtpHost
+  ? 'smtp' as const
+  : resendApiKey
+    ? 'resend' as const
+    : null
+
 const resend = resendApiKey ? new Resend(resendApiKey) : null
+const smtpTransport = smtpHost
+  ? nodemailer.createTransport({
+      host: smtpHost,
+      port: smtpPort,
+      secure: smtpPort === 465,
+      auth: smtpUser ? { user: smtpUser, pass: smtpPass } : undefined,
+    })
+  : null
+
+if (transport) {
+  console.log(`[email] using ${transport} transport${transport === 'smtp' ? ` (${smtpHost}:${smtpPort})` : ''}`)
+} else {
+  console.warn('[email] no email transport configured (set SMTP_HOST or RESEND_API_KEY)')
+}
 
 type SendEmailInput = {
   to: string | string[]
@@ -73,8 +99,8 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
   const actualTo = emailTestRecipient ? [emailTestRecipient] : originalTo
   const overridden = Boolean(emailTestRecipient)
 
-  if (!resend) {
-    console.warn('RESEND_API_KEY missing, skipped email:', input.subject)
+  if (!transport) {
+    console.warn('[email] no transport configured, skipped:', input.subject)
     await writeEmailAuditFile({
       originalTo,
       actualTo,
@@ -83,14 +109,57 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
       text: input.text,
       overridden,
     })
-    return { sent: false, originalTo, actualTo, subject: input.subject, overridden, reason: 'missing-resend-key' }
+    return { sent: false, originalTo, actualTo, subject: input.subject, overridden, reason: 'no-transport' }
   }
 
   const subject = overridden
     ? `[TEST to ${emailTestRecipient}] ${input.subject}`
     : input.subject
 
-  const response = await resend.emails.send({
+  // --- SMTP transport (Brevo, Gmail, etc.) ---
+  if (transport === 'smtp' && smtpTransport) {
+    try {
+      const info = await smtpTransport.sendMail({
+        from: fromEmail,
+        to: actualTo.join(', '),
+        subject,
+        html: input.html,
+        text: input.text,
+      })
+
+      await writeEmailAuditFile({
+        originalTo,
+        actualTo,
+        subject,
+        html: input.html,
+        text: input.text,
+        overridden,
+        id: info.messageId,
+      })
+
+      console.log('[email] sent via smtp', JSON.stringify({ subject, originalTo, actualTo, overridden, id: info.messageId }))
+      return { sent: true, id: info.messageId, originalTo, actualTo, subject, overridden }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : String(err)
+
+      await writeEmailAuditFile({
+        originalTo,
+        actualTo,
+        subject,
+        html: input.html,
+        text: input.text,
+        overridden,
+        id: null,
+        error: errorMessage,
+      })
+
+      console.error('[email] smtp failed', JSON.stringify({ subject, originalTo, actualTo, overridden, error: errorMessage }))
+      return { sent: false, originalTo, actualTo, subject, overridden, reason: 'smtp-error', error: errorMessage }
+    }
+  }
+
+  // --- Resend transport ---
+  const response = await resend!.emails.send({
     from: fromEmail,
     to: actualTo,
     subject,

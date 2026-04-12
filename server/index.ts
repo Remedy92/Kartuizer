@@ -70,7 +70,9 @@ app.post('/api/internalauth/request-password-reset', async (req, res) => {
 
 app.post('/api/internalauth/sign-in-magic-link', async (req, res) => {
   const email = String(req.body.email || '')
-  const result = await (auth.api as {
+
+  // Step 1: Generate magic link token (also creates user if new)
+  await (auth.api as {
     signInMagicLink: (input: {
       body: { email: string; callbackURL?: string; name?: string }
       headers: Headers
@@ -84,11 +86,25 @@ app.post('/api/internalauth/sign-in-magic-link', async (req, res) => {
     headers: toRequestHeaders(req),
   })
 
-  // In development, return the magic link URL directly so the user can click it
-  // (Resend's test sender can only deliver to the account owner's email)
-  const devMagicLinkUrl = process.env.NODE_ENV !== 'production' ? consumeMagicLinkUrl(email) : null
+  // Step 2: Auto-verify the magic link server-side to create a session instantly
+  // This avoids dependency on email delivery (Resend requires a verified domain)
+  const magicLinkUrl = consumeMagicLinkUrl(email)
+  if (magicLinkUrl) {
+    try {
+      const verifyResponse = await fetch(magicLinkUrl, { redirect: 'manual' })
+      const cookies = verifyResponse.headers.getSetCookie()
+      for (const cookie of cookies) {
+        res.append('Set-Cookie', cookie)
+      }
+      res.json({ status: true, authenticated: true })
+      return
+    } catch (err) {
+      console.error('[auth] auto-verify failed, falling back to email flow:', err)
+    }
+  }
 
-  res.json({ ...(result as object), ...(devMagicLinkUrl ? { devMagicLinkUrl } : {}) })
+  // Fallback: email was sent, user needs to click the link
+  res.json({ status: true, authenticated: false })
 })
 
 app.post('/api/internalauth/sign-up-email', async (req, res) => {

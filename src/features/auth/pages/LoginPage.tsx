@@ -21,7 +21,6 @@ export function LoginPage() {
   const [notice, setNotice] = useState<string | null>(null)
   const [magicLinkSent, setMagicLinkSent] = useState(false)
   const [resetEmailSent, setResetEmailSent] = useState(false)
-  const [devMagicLinkUrl, setDevMagicLinkUrl] = useState<string | null>(null)
 
   const from = (location.state as { from?: Location })?.from?.pathname || '/dashboard'
 
@@ -38,8 +37,16 @@ export function LoginPage() {
 
     const result = await signInWithMagicLink(email)
     if (result.success) {
-      setMagicLinkSent(true)
-      setDevMagicLinkUrl(result.devMagicLinkUrl ?? null)
+      if (result.needsApproval) {
+        navigate('/pending-approval', { replace: true })
+        return
+      }
+      // If authenticated instantly (no email needed), isAuthenticated changes
+      // and the useEffect above navigates to dashboard.
+      // Otherwise show "check your inbox" screen.
+      if (!isAuthenticated) {
+        setMagicLinkSent(true)
+      }
     } else {
       setError(result.error ?? 'Er is een fout opgetreden')
     }
@@ -125,23 +132,13 @@ export function LoginPage() {
                 <br />
                 <span className="font-medium text-stone-700">{email}</span>
               </p>
-              {devMagicLinkUrl ? (
-                <a
-                  href={devMagicLinkUrl}
-                  className="inline-block mb-6 px-4 py-2 bg-amber-100 border border-amber-300 text-amber-800 text-xs font-mono rounded break-all hover:bg-amber-200 transition-colors"
-                >
-                  Dev: klik hier om in te loggen
-                </a>
-              ) : (
-                <p className="text-xs text-stone-400 mb-6">
-                  De link komt van karthuizer.vercel.app
-                </p>
-              )}
+              <p className="text-xs text-stone-400 mb-6">
+                De link komt van karthuizer.vercel.app
+              </p>
               <button
                 onClick={() => {
                   setMagicLinkSent(false)
                   setResetEmailSent(false)
-                  setDevMagicLinkUrl(null)
                   setEmail('')
                 }}
                 className="text-sm text-primary-700 hover:text-primary-800 font-medium"

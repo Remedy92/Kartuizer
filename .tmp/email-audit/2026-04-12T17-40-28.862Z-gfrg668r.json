@@ -1,0 +1,14 @@
+{
+  "timestamp": "2026-04-12T17:40:28.862Z",
+  "originalTo": [
+    "lucasvanhoutven@gmail.com"
+  ],
+  "actualTo": [
+    "johanvh@gmail.com"
+  ],
+  "subject": "[TEST to johanvh@gmail.com] Kartuizer - je loginlink",
+  "html": "<p>Klik op deze link om in te loggen:</p><p><a href=\"http://localhost:5173/api/auth/magic-link/verify?token=BqbAecHRdXPzPuXakzgHHlGvowfYaDqm&callbackURL=%2Fdashboard\">http://localhost:5173/api/auth/magic-link/verify?token=BqbAecHRdXPzPuXakzgHHlGvowfYaDqm&callbackURL=%2Fdashboard</a></p>",
+  "text": "Log in via http://localhost:5173/api/auth/magic-link/verify?token=BqbAecHRdXPzPuXakzgHHlGvowfYaDqm&callbackURL=%2Fdashboard",
+  "overridden": true,
+  "id": "0929831d-843e-4eb5-a886-93c1e3cd3777"
+}

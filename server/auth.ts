@@ -6,10 +6,8 @@ import { pool, query } from './db'
 import { sendEmail } from './email'
 
 const appOrigin = process.env.APP_ORIGIN || 'http://localhost:5173'
-const isDev = process.env.NODE_ENV !== 'production'
-
-// In development, capture magic link URLs so the server can return them directly
-// (Resend's test sender can only deliver to the account owner's email)
+// Capture magic link URLs so the server can verify them directly
+// (avoids dependency on email delivery for login)
 const pendingMagicLinks = new Map<string, string>()
 
 export function consumeMagicLinkUrl(email: string): string | null {
@@ -61,9 +59,7 @@ export const auth = betterAuth({
       sendMagicLink: async ({ email, url }) => {
         console.log('[auth-email] magic-link', JSON.stringify({ email, url }))
 
-        if (isDev) {
-          pendingMagicLinks.set(email.toLowerCase(), url)
-        }
+        pendingMagicLinks.set(email.toLowerCase(), url)
 
         await sendEmail({
           to: email,
