@@ -736,6 +736,12 @@ app.post('/api/analytics/activity', async (req, res) => {
   res.status(201).json(inserted.rows[0])
 })
 
+// Global error handler so Vercel runtime logs show the actual error
+app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  console.error('[express] unhandled error:', err.stack || err.message)
+  res.status(500).json({ error: err.message })
+})
+
 // In local dev, start listening. On Vercel, the app is imported as a handler.
 if (process.env.VERCEL !== '1') {
   app.listen(port, () => {
