@@ -1,7 +1,18 @@
-/** Base URL for API calls (production: external Express host). */
+function isKarthuizerVercelHost(hostname: string): boolean {
+  return (
+    hostname === 'karthuizer.vercel.app' ||
+    (hostname.includes('karthuizer') && hostname.endsWith('.vercel.app'))
+  )
+}
+
+/** Base URL for API calls (production: external Express host, or same-origin when proxied on Vercel). */
 export function apiUrl(path: string): string {
+  const normalized = path.startsWith('/') ? path : `/${path}`
+  if (typeof window !== 'undefined' && import.meta.env.PROD && isKarthuizerVercelHost(window.location.hostname)) {
+    return normalized
+  }
   const base = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
-  return path.startsWith('/') ? `${base}${path}` : `${base}/${path}`
+  return base ? `${base}${normalized}` : normalized
 }
 
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {

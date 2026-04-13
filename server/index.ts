@@ -7,7 +7,9 @@ import { sendApprovalEmail, sendNewQuestionEmail, sendVoteResultsEmailIfNeeded }
 
 const app = express()
 const port = Number(process.env.PORT || 8787)
+const defaultSpaOrigins = ['https://karthuizer.vercel.app']
 const allowedOrigins = [
+  ...defaultSpaOrigins,
   process.env.APP_ORIGIN || 'http://localhost:5173',
   'http://localhost:5173',
   'http://localhost:5174',

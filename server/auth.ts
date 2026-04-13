@@ -8,6 +8,12 @@ import { sendEmail } from './email'
 const appOrigin = process.env.APP_ORIGIN || 'http://localhost:5173'
 /** Public URL of this Express app (required when the SPA is on another origin). */
 const apiPublicUrl = process.env.API_PUBLIC_URL || appOrigin
+
+if (process.env.NODE_ENV === 'production' && !process.env.API_PUBLIC_URL) {
+  console.warn(
+    '[auth] API_PUBLIC_URL is unset; magic links and OAuth callbacks may point at the wrong host. Set it to your Render service URL (e.g. https://kartuizer.onrender.com).'
+  )
+}
 // Capture magic link URLs so the server can verify them directly
 // (avoids dependency on email delivery for login)
 const pendingMagicLinks = new Map<string, string>()
@@ -24,6 +30,7 @@ export const auth = betterAuth({
   trustedOrigins: [
     appOrigin,
     apiPublicUrl,
+    'https://karthuizer.vercel.app',
     'http://localhost:5173',
     'http://localhost:5174',
     'http://localhost:8787',
