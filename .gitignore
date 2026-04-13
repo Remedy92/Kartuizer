@@ -32,3 +32,6 @@ dist-ssr
 
 # Supabase CLI cache
 supabase/.temp/
+
+# Local scratch outputs
+.tmp/
