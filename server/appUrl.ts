@@ -4,6 +4,8 @@ type BuildAppUrlOptions = {
   search?: Record<string, string | null | undefined>
 }
 
+const DEFAULT_PUBLIC_APP_ORIGIN = 'https://karthuizer.vercel.app'
+
 const APP_ROUTE_PREFIXES = [
   '/dashboard',
   '/login',
@@ -17,6 +19,32 @@ const APP_ROUTE_PREFIXES = [
 
 function hasProtocol(value: string): boolean {
   return /^https?:\/\//i.test(value)
+}
+
+function normalizeOrigin(value: string | null | undefined): string | null {
+  const raw = (value ?? '').trim()
+  if (!raw) return null
+
+  const withProtocol = hasProtocol(raw) ? raw : `https://${raw}`
+
+  try {
+    const url = new URL(withProtocol)
+    return url.origin
+  } catch {
+    return null
+  }
+}
+
+function isLocalOrigin(value: string | null | undefined): boolean {
+  const origin = normalizeOrigin(value)
+  if (!origin) return false
+
+  try {
+    const { hostname } = new URL(origin)
+    return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1'
+  } catch {
+    return false
+  }
 }
 
 function stripAccidentalRoutePath(pathname: string): string | null {
@@ -90,4 +118,29 @@ export function buildAppUrl(
   }
 
   return url.toString()
+}
+
+export function resolvePublicAppOrigin(): string {
+  const allowLocalAppUrls =
+    process.env.ALLOW_LOCAL_APP_URLS_IN_EMAIL === '1' ||
+    process.env.ALLOW_LOCAL_APP_URLS_IN_EMAIL === 'true'
+
+  const explicitPublicOrigin = normalizeOrigin(
+    process.env.PUBLIC_APP_ORIGIN ?? process.env.PUBLIC_WEB_ORIGIN
+  )
+  if (explicitPublicOrigin) return explicitPublicOrigin
+
+  const appOrigin = normalizeOrigin(process.env.APP_ORIGIN)
+  if (appOrigin && (!isLocalOrigin(appOrigin) || allowLocalAppUrls)) return appOrigin
+
+  const vercelProductionOrigin = normalizeOrigin(process.env.VERCEL_PROJECT_PRODUCTION_URL)
+  if (vercelProductionOrigin) return vercelProductionOrigin
+
+  const vercelBranchOrigin = normalizeOrigin(process.env.VERCEL_BRANCH_URL)
+  if (vercelBranchOrigin) return vercelBranchOrigin
+
+  const vercelPreviewOrigin = normalizeOrigin(process.env.VERCEL_URL)
+  if (vercelPreviewOrigin) return vercelPreviewOrigin
+
+  return DEFAULT_PUBLIC_APP_ORIGIN
 }

@@ -1,10 +1,10 @@
 import './loadEnv.js'
-import { buildAppUrl } from './appUrl.js'
+import { buildAppUrl, resolvePublicAppOrigin } from './appUrl.js'
 import { query } from './db.js'
 import { sendEmail } from './email.js'
 import { getQuestionById } from './questions.js'
 
-const appOrigin = process.env.APP_ORIGIN || 'http://localhost:5173'
+const appOrigin = resolvePublicAppOrigin()
 
 type UserProfile = {
   id: string
