@@ -1,4 +1,4 @@
-import './loadEnv'
+import './loadEnv.js'
 import { Resend } from 'resend'
 import nodemailer from 'nodemailer'
 import fs from 'node:fs/promises'

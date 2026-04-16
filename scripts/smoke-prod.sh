@@ -12,6 +12,8 @@ SMOKE_EMAIL="${SMOKE_EMAIL:-smoke+$(date +%s)@example.com}"
 tmp_dir="$(mktemp -d)"
 cookie_jar="$tmp_dir/cookies.txt"
 cleanup() {
+  # Delete the smoke test user from the DB via the authenticated session (best-effort)
+  curl -fsS -b "$cookie_jar" -X DELETE "${API_BASE_URL}/api/me" >/dev/null 2>&1 || true
   rm -rf "$tmp_dir"
 }
 trap cleanup EXIT

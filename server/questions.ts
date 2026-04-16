@@ -1,5 +1,5 @@
-import './loadEnv'
-import { query } from './db'
+import './loadEnv.js'
+import { query } from './db.js'
 
 export async function getQuestionById(id: string) {
   const base = await query<Record<string, unknown>>(

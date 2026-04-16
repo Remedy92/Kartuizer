@@ -1,9 +1,9 @@
-import './loadEnv'
+import './loadEnv.js'
 import { betterAuth } from 'better-auth'
 import { toNodeHandler, fromNodeHeaders } from 'better-auth/node'
 import { magicLink } from 'better-auth/plugins'
-import { pool, query } from './db'
-import { sendEmail } from './email'
+import { pool, query } from './db.js'
+import { sendEmail } from './email.js'
 
 const appOrigin = process.env.APP_ORIGIN || 'http://localhost:5173'
 /** Public URL of this Express app (required when the SPA is on another origin). */

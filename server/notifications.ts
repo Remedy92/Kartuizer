@@ -1,8 +1,8 @@
-import './loadEnv'
-import { buildAppUrl } from './appUrl'
-import { query } from './db'
-import { sendEmail } from './email'
-import { getQuestionById } from './questions'
+import './loadEnv.js'
+import { buildAppUrl } from './appUrl.js'
+import { query } from './db.js'
+import { sendEmail } from './email.js'
+import { getQuestionById } from './questions.js'
 
 const appOrigin = process.env.APP_ORIGIN || 'http://localhost:5173'
 

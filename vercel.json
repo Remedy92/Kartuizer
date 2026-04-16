@@ -2,10 +2,7 @@
   "installCommand": "npm install",
   "buildCommand": "npm run build",
   "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "https://kartuizer.onrender.com/api/:path*"
-    },
+    { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
