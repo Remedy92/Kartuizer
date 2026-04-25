@@ -194,7 +194,7 @@ function renderPollResults(question: Question): string {
     `;
 }
 
-function renderEmail(question: Question, resultText: string, questionUrl?: string | null): string {
+function renderEmail(question: Question, resultText: string, questionUrl?: string | null): { html: string; text: string } {
     const title = escapeHtml(question.title ?? '');
     const groupName = escapeHtml(question.groups?.name ?? '');
     const description = escapeHtml(question.description ?? 'Geen beschrijving opgegeven.');
@@ -212,10 +212,14 @@ function renderEmail(question: Question, resultText: string, questionUrl?: strin
               Bekijk in Karthuizer
             </a>
           </div>
+          <p style="margin: 12px 0 0; font-size: 13px; line-height: 1.6; color: #78716c;">
+            Werkt de knop niet? Open deze link handmatig:<br />
+            <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all;">${escapeHtml(questionUrl)}</span>
+          </p>
         `
         : '';
 
-    return `
+    const html = `
 <!DOCTYPE html>
 <html>
   <head>
@@ -254,6 +258,12 @@ function renderEmail(question: Question, resultText: string, questionUrl?: strin
   </body>
 </html>
     `;
+
+    const text = questionUrl
+        ? `${resultText} - ${question.title}\n\n${question.description ?? 'Geen beschrijving opgegeven.'}\n\nBekijk: ${questionUrl}`
+        : `${resultText} - ${question.title}\n\n${question.description ?? 'Geen beschrijving opgegeven.'}`;
+
+    return { html, text };
 }
 
 Deno.serve(async (req) => {
@@ -309,7 +319,7 @@ Deno.serve(async (req) => {
             path: 'archive',
             search: { question: q.id },
         });
-        const html = renderEmail(q, resultText, questionUrl);
+        const { html, text } = renderEmail(q, resultText, questionUrl);
 
         const res = await fetch('https://api.resend.com/emails', {
             method: 'POST',
@@ -323,6 +333,7 @@ Deno.serve(async (req) => {
                 to: [NOTIFICATION_TO_EMAIL],
                 subject: `${resultText} - ${q.title}`,
                 html,
+                text,
             }),
         });
 

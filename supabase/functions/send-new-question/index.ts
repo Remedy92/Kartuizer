@@ -76,7 +76,7 @@ function renderEmail(params: {
   subjectTag: string
   questionId: string
   appUrl: string | null
-}): { subject: string; html: string } {
+}): { subject: string; html: string; text: string } {
   const safeGroup = escapeHtml(params.groupName)
   const safeTitle = escapeHtml(params.title)
   const safeDescription = escapeHtml(params.description?.trim() || 'Geen toelichting opgegeven.')
@@ -93,6 +93,10 @@ function renderEmail(params: {
     ? `
       <p style="margin: 18px 0 0 0;">
         <a href="${questionUrl}" style="color: #8a5a2b; text-decoration: underline;">Open ${safeType}</a>
+      </p>
+      <p style="margin: 12px 0 0 0; font-size: 13px; line-height: 1.6; color: #78716c;">
+        Werkt de knop niet? Open deze link handmatig:<br />
+        <span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all;">${escapeHtml(questionUrl)}</span>
       </p>
     `
     : ''
@@ -138,7 +142,11 @@ function renderEmail(params: {
 </html>
   `
 
-  return { subject, html }
+  const text = questionUrl
+    ? `${params.title}\n\n${params.description?.trim() || 'Geen toelichting opgegeven.'}\n\nOpen: ${questionUrl}`
+    : `${params.title}\n\n${params.description?.trim() || 'Geen toelichting opgegeven.'}`
+
+  return { subject, html, text }
 }
 
 function escapeHtml(value: string): string {
@@ -229,7 +237,7 @@ Deno.serve(async (req) => {
 
   const appUrl = resolveAppUrl(req)
 
-  const { subject, html } = renderEmail({
+  const { subject, html, text } = renderEmail({
     groupName,
     title: question.title,
     description: question.description,
@@ -250,6 +258,7 @@ Deno.serve(async (req) => {
       to: [NOTIFICATION_TO_EMAIL],
       subject,
       html,
+      text,
     }),
   })
 

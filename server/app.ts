@@ -4,6 +4,7 @@ import { auth, authHandler, getServerSession, consumeMagicLinkUrl } from './auth
 import { query } from './db.js'
 import { getQuestionById, listQuestions } from './questions.js'
 import { sendApprovalEmail, sendNewQuestionEmail, sendVoteResultsEmailIfNeeded } from './notifications.js'
+import { buildAppUrl, resolvePublicAppOrigin } from './appUrl.js'
 
 const app = express()
 const defaultSpaOrigins = ['https://karthuizer.vercel.app']
@@ -48,11 +49,17 @@ function toRequestHeaders(req: express.Request) {
   return headers
 }
 
+function appCallbackUrl(value: unknown, fallbackPath: string) {
+  const raw = typeof value === 'string' ? value.trim() : ''
+  if (/^https?:\/\//i.test(raw)) return raw
+  return buildAppUrl(resolvePublicAppOrigin(), { path: raw || fallbackPath }) ?? fallbackPath
+}
+
 app.post('/api/internalauth/send-verification-email', async (req, res) => {
   const result = await auth.api.sendVerificationEmail({
     body: {
       email: String(req.body.email || ''),
-      callbackURL: req.body.callbackURL ? String(req.body.callbackURL) : undefined,
+      callbackURL: appCallbackUrl(req.body.callbackURL, 'dashboard'),
     },
     headers: toRequestHeaders(req),
   })
@@ -82,7 +89,7 @@ app.post('/api/internalauth/sign-in-magic-link', async (req, res) => {
   }).signInMagicLink({
     body: {
       email,
-      callbackURL: req.body.callbackURL ? String(req.body.callbackURL) : undefined,
+      callbackURL: appCallbackUrl(req.body.callbackURL, 'dashboard'),
       name: req.body.name ? String(req.body.name) : undefined,
     },
     headers: toRequestHeaders(req),
@@ -120,7 +127,7 @@ app.post('/api/internalauth/sign-up-email', async (req, res) => {
       email: String(req.body.email || ''),
       password: String(req.body.password || ''),
       name: String(req.body.name || ''),
-      callbackURL: req.body.callbackURL ? String(req.body.callbackURL) : undefined,
+      callbackURL: appCallbackUrl(req.body.callbackURL, 'dashboard'),
     },
     headers: toRequestHeaders(req),
   })

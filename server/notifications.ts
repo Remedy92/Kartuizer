@@ -123,6 +123,9 @@ function renderApprovalEmail(email: string) {
   const loginUrl = buildAppUrl(appOrigin, { path: 'login' })
   const safeEmail = escapeHtml(email)
   const safeLink = loginUrl ? `<p style="margin: 18px 0 0;"><a href="${loginUrl}" style="color:#8a5a2b;text-decoration:underline;">Open Karthuizer</a></p>` : ''
+  const safeFallback = loginUrl
+    ? `<p style="margin:12px 0 0;font-size:13px;line-height:1.6;color:#78716c;">Werkt de knop niet? Open deze link handmatig:<br /><span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;">${escapeHtml(loginUrl)}</span></p>`
+    : ''
 
   return {
     subject: 'Je toegang tot Karthuizer is geactiveerd',
@@ -146,6 +149,7 @@ function renderApprovalEmail(email: string) {
                   ${safeEmail} is goedgekeurd. Je kunt nu inloggen en stemmen op openstaande vragen.
                 </p>
                 ${safeLink}
+                ${safeFallback}
                 <p style="margin:16px 0 0;font-size:13px;line-height:1.6;color:#a8a29e;">
                   Heb je vragen? Neem contact op met een beheerder.
                 </p>
@@ -191,6 +195,7 @@ function renderNewQuestionEmail(question: QuestionNotificationData) {
         <div style="padding:22px 20px;color:#44403c;line-height:1.7;white-space:pre-wrap;">
           ${escapeHtml(question.description?.trim() || 'Geen toelichting opgegeven.')}
           ${questionUrl ? `<p style="margin:18px 0 0;"><a href="${questionUrl}" style="color:#8a5a2b;text-decoration:underline;">Open in Karthuizer</a></p>` : ''}
+          ${questionUrl ? `<p style="margin:12px 0 0;font-size:13px;line-height:1.6;color:#78716c;white-space:normal;">Werkt de knop niet? Open deze link handmatig:<br /><span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;">${escapeHtml(questionUrl)}</span></p>` : ''}
         </div>
       </div>
     </div>
@@ -326,6 +331,7 @@ function renderVoteResultsEmail(question: QuestionNotificationData) {
           </div>
           ${renderComments(question.vote_comments ?? [])}
           ${questionUrl ? `<div style="margin-top:22px;text-align:center;"><a href="${questionUrl}" style="display:inline-block;padding:12px 16px;border-radius:999px;background:#292524;color:#fff;text-decoration:none;font-weight:600;">Bekijk in Karthuizer</a></div>` : ''}
+          ${questionUrl ? `<p style="margin:12px 0 0;font-size:13px;line-height:1.6;color:#78716c;white-space:normal;">Werkt de knop niet? Open deze link handmatig:<br /><span style="font-family:ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all;">${escapeHtml(questionUrl)}</span></p>` : ''}
         </div>
       </div>
     </div>
@@ -335,6 +341,10 @@ function renderVoteResultsEmail(question: QuestionNotificationData) {
       ? `${resultText(question)} - ${question.title}\n\n${question.description ?? ''}\n\nBekijk: ${questionUrl}`
       : `${resultText(question)} - ${question.title}`,
   }
+}
+
+function sendEmailReason(result: Awaited<ReturnType<typeof sendEmail>>, fallback: string) {
+  return 'reason' in result ? result.reason ?? fallback : fallback
 }
 
 async function getApprovedGroupEmails(groupId: string) {
@@ -392,9 +402,11 @@ export async function sendApprovalEmail(profile: UserProfile) {
     text: rendered.text,
   })
 
-  return result.sent
-    ? { sent: true as const, result }
-    : { sent: false as const, emailError: result.reason ?? 'Email niet verstuurd', result }
+  if (!result.sent) {
+    return { sent: false as const, emailError: sendEmailReason(result, 'Email niet verstuurd'), result }
+  }
+
+  return { sent: true as const, result }
 }
 
 export async function sendNewQuestionEmail(questionId: string) {
@@ -417,9 +429,11 @@ export async function sendNewQuestionEmail(questionId: string) {
     text: rendered.text,
   })
 
-  return result.sent
-    ? { sent: true as const, result }
-    : { sent: false as const, reason: result.reason ?? 'send-failed', result }
+  if (!result.sent) {
+    return { sent: false as const, reason: sendEmailReason(result, 'send-failed'), result }
+  }
+
+  return { sent: true as const, result }
 }
 
 export async function sendVoteResultsEmailIfNeeded(questionId: string) {
@@ -452,12 +466,13 @@ export async function sendVoteResultsEmailIfNeeded(questionId: string) {
   })
 
   if (!result.sent) {
+    const reason = sendEmailReason(result, 'send-failed')
     await markQuestionNotification('email_vote_results_failed', questionId, {
-      reason: result.reason ?? 'send-failed',
+      reason,
       recipients,
       subject: rendered.subject,
     })
-    return { sent: false as const, reason: result.reason ?? 'send-failed', result }
+    return { sent: false as const, reason, result }
   }
 
   await markQuestionNotification('email_vote_results_sent', questionId, {

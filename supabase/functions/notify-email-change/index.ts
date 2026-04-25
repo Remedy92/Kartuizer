@@ -34,7 +34,7 @@ function renderEmail(params: {
   oldEmail: string
   newEmail: string
   userId: string
-}): { subject: string; html: string } {
+}): { subject: string; html: string; text: string } {
   const subject = `[Karthuizer] E-mailadres gewijzigd: ${params.oldEmail} → ${params.newEmail}`
 
   const html = `
@@ -85,7 +85,17 @@ function renderEmail(params: {
 </html>
   `
 
-  return { subject, html }
+  const text = [
+    'E-mailadres gewijzigd',
+    '',
+    `Oud: ${params.oldEmail}`,
+    `Nieuw: ${params.newEmail}`,
+    `User ID: ${params.userId}`,
+    '',
+    `Pas dit ook handmatig aan bij de doorstuuradressen van ${NOTIFICATION_TO_EMAIL}.`,
+  ].join('\n')
+
+  return { subject, html, text }
 }
 
 Deno.serve(async (req) => {
@@ -169,7 +179,7 @@ Deno.serve(async (req) => {
     })
   }
 
-  const { subject, html } = renderEmail({
+  const { subject, html, text } = renderEmail({
     oldEmail,
     newEmail: authEmail,
     userId: user.id,
@@ -186,6 +196,7 @@ Deno.serve(async (req) => {
       to: [NOTIFICATION_TO_EMAIL],
       subject,
       html,
+      text,
     }),
   })
 
@@ -211,4 +222,3 @@ Deno.serve(async (req) => {
     response: resData,
   })
 })
-

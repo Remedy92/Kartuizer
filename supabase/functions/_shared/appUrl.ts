@@ -4,6 +4,8 @@ type BuildAppUrlOptions = {
   search?: Record<string, string | null | undefined>
 }
 
+const DEFAULT_PUBLIC_APP_ORIGIN = 'https://karthuizer.vercel.app'
+
 const APP_ROUTE_PREFIXES = [
   '/dashboard',
   '/login',
@@ -45,8 +47,7 @@ function joinPath(basePathname: string, path: string): string {
 }
 
 export function buildAppUrl(appUrl: string | null | undefined, options: BuildAppUrlOptions = {}): string | null {
-  const raw = (appUrl ?? '').trim()
-  if (!raw) return null
+  const raw = (appUrl ?? '').trim() || DEFAULT_PUBLIC_APP_ORIGIN
 
   const withProtocol = hasProtocol(raw) ? raw : `https://${raw}`
 

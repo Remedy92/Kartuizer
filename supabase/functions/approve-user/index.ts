@@ -65,6 +65,12 @@ async function sendWelcomeEmail(
   const linkHtml = loginUrl
     ? `<p style="margin: 0 0 16px 0;"><a href="${loginUrl}" style="color: #8a5a2b; text-decoration: underline;">Open Karthuizer</a></p>`
     : ''
+  const fallbackHtml = loginUrl
+    ? `<p style="margin: 0 0 16px 0; font-size: 13px; line-height: 1.6; color: #78716c;">Werkt de knop niet? Open deze link handmatig:<br /><span style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all;">${loginUrl}</span></p>`
+    : ''
+  const text = loginUrl
+    ? `Je account is goedgekeurd. Log in via ${loginUrl}`
+    : 'Je account is goedgekeurd. Je kunt nu inloggen op Karthuizer.'
 
   const html = `
 <!DOCTYPE html>
@@ -99,6 +105,7 @@ async function sendWelcomeEmail(
                   Je account is goedgekeurd. Je kunt nu inloggen en stemmen op openstaande vragen.
                 </p>
                 ${linkHtml}
+                ${fallbackHtml}
                 <p style="margin: 0; font-size: 13px; line-height: 1.6; color: #a8a29e;">
                   Heb je vragen? Neem contact op met een beheerder.
                 </p>
@@ -123,6 +130,7 @@ async function sendWelcomeEmail(
       to: [to],
       subject,
       html,
+      text,
     }),
   })
 

@@ -1,10 +1,11 @@
-/** Base URL for API calls. In production the API is co-located on Vercel, so we always
- *  use a relative path. In development the Express server runs on a separate port, so we
- *  fall back to VITE_API_BASE_URL (default: http://localhost:8787). */
+/** Base URL for API calls. Production uses a split deploy, so VITE_API_BASE_URL must
+ *  point at the long-lived API host. Development falls back to the local API port. */
 export function apiUrl(path: string): string {
   const normalized = path.startsWith('/') ? path : `/${path}`
+  const configuredBase = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '')
+  if (configuredBase) return `${configuredBase}${normalized}`
   if (import.meta.env.PROD) return normalized
-  const base = (import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8787').replace(/\/$/, '')
+  const base = 'http://localhost:8787'
   return `${base}${normalized}`
 }
 
