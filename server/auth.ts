@@ -6,12 +6,18 @@ import { pool, query } from './db.js'
 import { sendEmail } from './email.js'
 
 const appOrigin = process.env.APP_ORIGIN || 'http://localhost:5173'
-/** Public URL of this Express app (required when the SPA is on another origin). */
-const apiPublicUrl = process.env.API_PUBLIC_URL || appOrigin
+const apiPublicUrl = process.env.API_PUBLIC_URL || 'http://localhost:8787'
+/**
+ * Public auth URL used inside email links.
+ *
+ * In production this must be the web origin, because Vercel rewrites /api/* to
+ * this API and the browser needs auth cookies on the web domain.
+ */
+const publicAuthOrigin = process.env.PUBLIC_AUTH_ORIGIN || appOrigin
 
-if (process.env.NODE_ENV === 'production' && !process.env.API_PUBLIC_URL) {
+if (process.env.NODE_ENV === 'production' && !process.env.APP_ORIGIN) {
   console.warn(
-    '[auth] API_PUBLIC_URL is unset; magic links and OAuth callbacks may point at the wrong host. Set it to your Render service URL (e.g. https://kartuizer.onrender.com).'
+    '[auth] APP_ORIGIN is unset; magic links and OAuth callbacks may point at the wrong host. Set it to the Vercel web URL (e.g. https://karthuizer.vercel.app).'
   )
 }
 // Capture magic link URLs so the server can verify them directly
@@ -26,7 +32,7 @@ export function consumeMagicLinkUrl(email: string): string | null {
 
 export const auth = betterAuth({
   database: pool,
-  baseURL: apiPublicUrl,
+  baseURL: publicAuthOrigin,
   trustedOrigins: [
     appOrigin,
     apiPublicUrl,

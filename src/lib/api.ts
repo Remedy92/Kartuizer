@@ -1,10 +1,17 @@
-/** Base URL for API calls. Production uses a split deploy, so VITE_API_BASE_URL must
- *  point at the long-lived API host. Development falls back to the local API port. */
+/**
+ * Base URL for API calls.
+ *
+ * Production intentionally uses same-origin /api calls. Vercel rewrites those
+ * requests to the Render API, while the browser keeps auth cookies on the web
+ * domain. Direct cross-origin API calls make login/email-link cookies flaky.
+ */
 export function apiUrl(path: string): string {
   const normalized = path.startsWith('/') ? path : `/${path}`
+  if (import.meta.env.PROD) return normalized
+
   const configuredBase = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '')
   if (configuredBase) return `${configuredBase}${normalized}`
-  if (import.meta.env.PROD) return normalized
+
   const base = 'http://localhost:8787'
   return `${base}${normalized}`
 }

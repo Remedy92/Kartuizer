@@ -54,16 +54,9 @@ The API health check should be `/api/health`.
 
 ### Vercel frontend
 
-The Vercel deployment should point at the Render API.
-
-Required env var on Vercel production:
-- `VITE_API_BASE_URL=https://kartuizer.onrender.com`
-
-If you need to update that from the terminal, use:
-
-```bash
-./scripts/set-vercel-vite-api-base.sh 'https://kartuizer.onrender.com'
-```
+The Vercel deployment should use the `/api/*` rewrite in `vercel.json`. Do not
+set `VITE_API_BASE_URL` in production: browser API calls must stay same-origin
+so auth cookies and emailed login links work reliably.
 
 ### Deploy flow
 
@@ -96,15 +89,15 @@ curl https://karthuizer.vercel.app/api/health
 ```
 
 For auth, trigger a magic-link login and confirm:
-- the log shows a `https://kartuizer.onrender.com/api/auth/...` callback
+- the log shows a `https://karthuizer.vercel.app/api/auth/...` callback
 - the login response returns `authenticated: true`
-- `/api/me` returns a session when the cookie is present
+- `https://karthuizer.vercel.app/api/me` returns a session when the cookie is present
 
 ## Notes For Maintainers
 
 - `render.yaml` is the source of truth for the Render service blueprint.
 - `vercel.json` rewrites `/api/*` from Vercel to Render.
-- `server/auth.ts` logs a warning in production if `API_PUBLIC_URL` is missing.
+- `server/auth.ts` uses `APP_ORIGIN` for auth links so cookies land on the Vercel web domain.
 - Legacy Supabase edge-function env vars still exist under `supabase/functions/`, but the live API path is the Express app on Render.
 
 ## Supabase Project

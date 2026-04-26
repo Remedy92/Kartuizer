@@ -30,7 +30,7 @@
 ## Security & Configuration Tips
 - **Split deploy (recommended):** Vercel serves only the SPA. Run the API on a long-lived host.
   - **API on Render:** In the Render dashboard: *New* → *Blueprint* → connect this repo; `render.yaml` provisions `karthuizer-api` (Dockerfile). In the service **Environment**, set `DATABASE_URL`, `APP_ORIGIN` (e.g. `https://karthuizer.vercel.app`), `API_PUBLIC_URL` (the service’s own public `https://…onrender.com` URL), `AUTH_FROM_EMAIL`, `RESEND_API_KEY`, and optionally `FRONTEND_ORIGINS` for preview domains.
-  - **Vercel client:** Add **Production** env `VITE_API_BASE_URL` = that same API public URL (no trailing slash), then redeploy the SPA. From a machine with `vercel` logged in: `./scripts/set-vercel-vite-api-base.sh 'https://YOUR-API.onrender.com'`.
+  - **Vercel client:** Do not set `VITE_API_BASE_URL` in Production. The browser should call same-origin `/api/*`; `vercel.json` rewrites those requests to Render so auth cookies and email links stay on the Vercel web domain.
   - **GitHub → Vercel (optional):** `.github/workflows/deploy-vercel.yml` (`workflow_dispatch`) with secrets `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID` from `.vercel/project.json` + a Vercel token.
 - Local app env vars: `DATABASE_URL`, `APP_ORIGIN`, `AUTH_FROM_EMAIL`, `RESEND_API_KEY`.
 - Legacy Supabase Edge Function env vars: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`.

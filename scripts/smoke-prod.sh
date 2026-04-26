@@ -2,7 +2,8 @@
 # Smoke test the live split-deploy setup:
 # - Render API health
 # - Vercel rewrite to Render health
-# - Magic-link login and authenticated /api/me
+# - Magic-link login through the Vercel /api rewrite
+# - Authenticated /api/me through the same Vercel origin
 set -euo pipefail
 
 API_BASE_URL="${API_BASE_URL:-https://kartuizer.onrender.com}"
@@ -13,7 +14,7 @@ tmp_dir="$(mktemp -d)"
 cookie_jar="$tmp_dir/cookies.txt"
 cleanup() {
   # Delete the smoke test user from the DB via the authenticated session (best-effort)
-  curl -fsS -b "$cookie_jar" -X DELETE "${API_BASE_URL}/api/me" >/dev/null 2>&1 || true
+  curl -fsS -b "$cookie_jar" -X DELETE "${WEB_BASE_URL}/api/me" >/dev/null 2>&1 || true
   rm -rf "$tmp_dir"
 }
 trap cleanup EXIT
@@ -66,13 +67,13 @@ assert_json health "$web_health"
 
 echo "Requesting magic-link login..."
 magic_link="$(curl -fsS -c "$cookie_jar" -b "$cookie_jar" \
-  -X POST "${API_BASE_URL}/api/internalauth/sign-in-magic-link" \
+  -X POST "${WEB_BASE_URL}/api/internalauth/sign-in-magic-link" \
   -H 'Content-Type: application/json' \
   -d "{\"email\":\"${SMOKE_EMAIL}\",\"callbackURL\":\"/dashboard\"}")"
 assert_json magic-link "$magic_link"
 
-echo "Checking authenticated /api/me..."
-me_response="$(curl -fsS -b "$cookie_jar" "${API_BASE_URL}/api/me")"
+echo "Checking authenticated /api/me through Vercel..."
+me_response="$(curl -fsS -b "$cookie_jar" "${WEB_BASE_URL}/api/me")"
 assert_json me "$me_response"
 
 echo "Smoke test passed."

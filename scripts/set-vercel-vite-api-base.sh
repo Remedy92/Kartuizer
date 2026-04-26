@@ -1,8 +1,9 @@
 #!/usr/bin/env bash
-# Usage: ./scripts/set-vercel-vite-api-base.sh https://karthuizer-api.onrender.com
-# Sets VITE_API_BASE_URL on Vercel (production) and triggers a production deploy.
+# Deprecated helper.
+#
+# Production auth relies on same-origin /api requests through the Vercel rewrite.
+# This script now removes VITE_API_BASE_URL from Vercel production and deploys.
 set -euo pipefail
-API_URL="${1:?Pass API public URL, e.g. https://karthuizer-api.onrender.com}"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
@@ -12,5 +13,4 @@ if ! command -v vercel >/dev/null 2>&1; then
 fi
 
 vercel env rm VITE_API_BASE_URL production --yes 2>/dev/null || true
-vercel env add VITE_API_BASE_URL production --value "$API_URL" --yes
 vercel deploy --prod --yes
