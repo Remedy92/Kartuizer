@@ -12,6 +12,8 @@ const smtpPass = process.env.SMTP_PASS
 const fromEmail = process.env.AUTH_FROM_EMAIL || 'Karthuizer <onboarding@resend.dev>'
 const emailTestRecipient = process.env.EMAIL_TEST_RECIPIENT?.trim() || null
 const emailAuditDir = process.env.EMAIL_AUDIT_DIR?.trim() || null
+// Hard limit on one send. Login waits for this call, so it must never hang.
+const emailTimeoutMs = Number(process.env.EMAIL_TIMEOUT_MS || '10000')
 
 // Use SMTP (Brevo, Gmail, etc.) when configured, otherwise fall back to Resend
 const transport = smtpHost
@@ -27,8 +29,33 @@ const smtpTransport = smtpHost
       port: smtpPort,
       secure: smtpPort === 465,
       auth: smtpUser ? { user: smtpUser, pass: smtpPass } : undefined,
+      connectionTimeout: emailTimeoutMs,
+      greetingTimeout: emailTimeoutMs,
+      socketTimeout: emailTimeoutMs,
     })
   : null
+
+export const emailTransportName = transport
+
+/** Reject after `emailTimeoutMs` so a stalled provider cannot block a request. */
+function withTimeout<T>(promise: Promise<T>, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const timer = setTimeout(
+      () => reject(new Error(`${label} timed out after ${emailTimeoutMs}ms`)),
+      emailTimeoutMs
+    )
+    promise.then(
+      (value) => {
+        clearTimeout(timer)
+        resolve(value)
+      },
+      (err) => {
+        clearTimeout(timer)
+        reject(err)
+      }
+    )
+  })
+}
 
 if (transport) {
   console.log(`[email] using ${transport} transport${transport === 'smtp' ? ` (${smtpHost}:${smtpPort})` : ''}`)
@@ -119,13 +146,16 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
   // --- SMTP transport (Brevo, Gmail, etc.) ---
   if (transport === 'smtp' && smtpTransport) {
     try {
-      const info = await smtpTransport.sendMail({
-        from: fromEmail,
-        to: actualTo.join(', '),
-        subject,
-        html: input.html,
-        text: input.text,
-      })
+      const info = await withTimeout(
+        smtpTransport.sendMail({
+          from: fromEmail,
+          to: actualTo.join(', '),
+          subject,
+          html: input.html,
+          text: input.text,
+        }),
+        'smtp send'
+      )
 
       await writeEmailAuditFile({
         originalTo,
@@ -159,13 +189,35 @@ export async function sendEmail(input: SendEmailInput): Promise<SendEmailResult>
   }
 
   // --- Resend transport ---
-  const response = await resend!.emails.send({
-    from: fromEmail,
-    to: actualTo,
-    subject,
-    html: input.html,
-    text: input.text,
-  })
+  let response: Awaited<ReturnType<NonNullable<typeof resend>['emails']['send']>>
+  try {
+    response = await withTimeout(
+      resend!.emails.send({
+        from: fromEmail,
+        to: actualTo,
+        subject,
+        html: input.html,
+        text: input.text,
+      }),
+      'resend send'
+    )
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err)
+
+    await writeEmailAuditFile({
+      originalTo,
+      actualTo,
+      subject,
+      html: input.html,
+      text: input.text,
+      overridden,
+      id: null,
+      error: errorMessage,
+    })
+
+    console.error('[email] resend threw', JSON.stringify({ subject, originalTo, actualTo, overridden, error: errorMessage }))
+    return { sent: false, originalTo, actualTo, subject, overridden, reason: 'resend-error', error: errorMessage }
+  }
 
   if (response.error) {
     await writeEmailAuditFile({
