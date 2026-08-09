@@ -4,6 +4,7 @@ import { auth, authHandler, getServerSession, consumeMagicLinkUrl } from './auth
 import { query } from './db.js'
 import { getQuestionById, listQuestions } from './questions.js'
 import { sendApprovalEmail, sendNewQuestionEmail, sendVoteResultsEmailIfNeeded } from './notifications.js'
+import { emailTransportName } from './email.js'
 import { buildAppUrl, resolvePublicAppOrigin } from './appUrl.js'
 
 const app = express()
@@ -163,7 +164,7 @@ async function requireAdmin(req: express.Request, res: express.Response) {
 }
 
 app.get('/api/health', (_req, res) => {
-  res.json({ ok: true })
+  res.json({ ok: true, emailTransport: emailTransportName })
 })
 
 app.get('/api/me', async (req, res) => {
